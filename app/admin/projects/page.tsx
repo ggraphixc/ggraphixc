@@ -5,6 +5,9 @@ import { supabase } from "@/lib/supabase/client";
 import type { Project } from "@/lib/types";
 import ImageUpload from "@/components/admin/ImageUpload";
 import GalleryManager from "@/components/admin/GalleryManager";
+import InlineEdit from "@/components/admin/InlineEdit";
+import AdminToast from "@/components/admin/AdminToast";
+import { useDragSort } from "@/components/admin/useDragSort";
 import { bumpContentCache } from "@/components/admin/cacheBump";
 
 type FormState = Omit<Project, "id" | "created_at">;
@@ -33,6 +36,7 @@ export default function AdminProjects() {
   const [busy, setBusy] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [toast, setToast] = useState<{ text: string; type: "ok" | "err" } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -58,6 +62,48 @@ export default function AdminProjects() {
       mounted = false;
     };
   }, []);
+
+  /** Drag-reorder: renumber display_order 1..n and persist. */
+  async function reorder(next: Project[]) {
+    const reordered = next.map((p, i) => ({ ...p, display_order: i + 1 }));
+    setItems(reordered);
+    const { error } = await supabase
+      .from("projects")
+      .upsert(
+        reordered.map((p) => ({ id: p.id, display_order: p.display_order })),
+        { onConflict: "id" }
+      );
+    if (error) {
+      setToast({ text: "Reorder failed: " + error.message, type: "err" });
+      await load();
+    } else {
+      setToast({ text: "Order saved", type: "ok" });
+      bumpContentCache();
+    }
+  }
+
+  const { rowProps, handleProps, dragIndex, overIndex } = useDragSort(items, reorder);
+
+  /** Inline field save on a row. */
+  async function quickSave(id: string, patch: Partial<Project>) {
+    const { error } = await supabase.from("projects").update(patch).eq("id", id);
+    if (error) {
+      setToast({ text: error.message, type: "err" });
+      return;
+    }
+    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    setToast({ text: "Saved", type: "ok" });
+    bumpContentCache();
+  }
+
+  /** Keyboard / touch fallback: swap a row with its neighbour. */
+  async function nudge(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const next = [...items];
+    [next[i], next[j]] = [next[j], next[i]];
+    await reorder(next);
+  }
 
   function startEdit(p: Project) {
     setEditing(p.id);
@@ -154,6 +200,7 @@ export default function AdminProjects() {
       setMsg(error.message);
       return;
     }
+    setToast({ text: editing ? "Project updated" : "Project added", type: "ok" });
     reset();
     await load();
     bumpContentCache();
@@ -174,7 +221,7 @@ export default function AdminProjects() {
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800 }}>Projects</h1>
           <p style={{ color: "var(--muted)", fontSize: 14 }}>
-            Case studies shown on /projects. Each one becomes a detail page.
+            Case studies shown on /projects. Drag rows to reorder — each becomes a detail page.
           </p>
         </div>
         {editing && (
@@ -232,7 +279,7 @@ export default function AdminProjects() {
             />
           </div>
           <div className="field">
-            <label>Display order</label>
+            <label>Display order (drag rows to reorder)</label>
             <input type="number" value={form.display_order} onChange={(e) => set("display_order", Number(e.target.value))} />
           </div>
         </div>
@@ -277,38 +324,90 @@ export default function AdminProjects() {
         )}
       </form>
 
-      <div className="admin-card" style={{ overflowX: "auto" }}>
+      <div className="admin-card admin-table-wrap">
         {loading ? (
           <p style={{ color: "var(--muted)" }}>Loading…</p>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
+                <th style={{ width: 30 }} aria-label="Drag to reorder" />
+                <th style={{ width: 64 }}>Preview</th>
                 <th>Title</th>
                 <th>Category</th>
                 <th>Result</th>
-                <th>Case study</th>
-                <th>Order</th>
+                <th>Featured</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {items.map((p) => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>
-                    {p.featured && <span style={{ color: "var(--accent)", marginRight: 6 }}>★</span>}
-                    {p.title}
+              {items.map((p, i) => (
+                <tr
+                  key={p.id}
+                  {...rowProps(i)}
+                  className={`${dragIndex === i ? "dragging" : ""} ${overIndex === i ? "drop-target" : ""}`}
+                >
+                  <td>
+                    <span {...handleProps(i)} className="drag-handle" aria-label="Drag to reorder" title="Drag to reorder" role="button" tabIndex={0} onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        nudge(i, -1);
+                      }
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        nudge(i, 1);
+                      }
+                    }}>
+                      <i className="fa-solid fa-grip-vertical" />
+                    </span>
+                    <span className="row-actions" style={{ marginTop: 6, gap: 4 }}>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }} onClick={() => nudge(i, -1)} aria-label="Move up" title="Move up">
+                        <i className="fa-solid fa-arrow-up" />
+                      </button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }} onClick={() => nudge(i, 1)} aria-label="Move down" title="Move down">
+                        <i className="fa-solid fa-arrow-down" />
+                      </button>
+                    </span>
                   </td>
-                  <td style={{ color: "var(--muted)" }}>{p.category}</td>
-                  <td><span className="badge-soft">{p.result}</span></td>
-                  <td style={{ color: "var(--muted)" }}>
-                    {p.challenge || p.solution || p.results ? (
-                      <span style={{ color: "#22c55e" }}>yes</span>
+                  <td>
+                    {p.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="thumb-cell" src={p.image_url} alt={p.title} />
                     ) : (
-                      <span>no</span>
+                      <div className="thumb-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontSize: 12 }}>
+                        —
+                      </div>
                     )}
                   </td>
-                  <td style={{ color: "var(--muted)" }}>{p.display_order}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <InlineEdit
+                      value={p.title}
+                      onSave={(v) => quickSave(p.id, { title: v })}
+                    />
+                  </td>
+                  <td style={{ color: "var(--muted)" }}>
+                    <InlineEdit
+                      value={p.category ?? ""}
+                      onSave={(v) => quickSave(p.id, { category: v || null })}
+                    />
+                  </td>
+                  <td>
+                    <InlineEdit
+                      value={p.result ?? ""}
+                      onSave={(v) => quickSave(p.id, { result: v || null })}
+                      style={{ color: "var(--accent)", fontWeight: 700 }}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className={`star-toggle ${p.featured ? "on" : ""}`}
+                      onClick={() => quickSave(p.id, { featured: !p.featured })}
+                      aria-label={p.featured ? "Unfeature" : "Feature on homepage"}
+                      title={p.featured ? "Featured on homepage" : "Click to feature"}
+                    >
+                      <i className={p.featured ? "fa-solid fa-star" : "fa-regular fa-star"} />
+                    </button>
+                  </td>
                   <td>
                     <div className="row-actions">
                       <button className="btn btn-ghost btn-sm" onClick={() => startEdit(p)}>
@@ -323,13 +422,15 @@ export default function AdminProjects() {
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ color: "var(--muted)" }}>No projects yet.</td>
+                  <td colSpan={7} style={{ color: "var(--muted)" }}>No projects yet.</td>
                 </tr>
               )}
             </tbody>
           </table>
         )}
       </div>
+
+      <AdminToast message={toast?.text ?? ""} type={toast?.type ?? "ok"} onClear={() => setToast(null)} />
     </>
   );
 }

@@ -62,9 +62,9 @@ export default function HeroCanvas() {
       waveGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       const waveMat = new THREE.PointsMaterial({
         color: 0x00d2ff,
-        size: 0.05,
+        size: 0.04,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.32,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
@@ -74,23 +74,23 @@ export default function HeroCanvas() {
 
       // --- core wireframe icosahedron ---
       const core = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(1.6, 1),
+        new THREE.IcosahedronGeometry(1.5, 1),
         new THREE.MeshBasicMaterial({
           color: 0x005bea,
           wireframe: true,
           transparent: true,
-          opacity: 0.5
+          opacity: 0.22
         })
       );
       scene.add(core);
 
       // --- inner glow core ---
       const glow = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(0.85, 0),
+        new THREE.IcosahedronGeometry(0.8, 0),
         new THREE.MeshBasicMaterial({
           color: 0x00d2ff,
           transparent: true,
-          opacity: 0.16
+          opacity: 0.08
         })
       );
       scene.add(glow);
@@ -110,9 +110,9 @@ export default function HeroCanvas() {
       shellGeo.setAttribute("position", new THREE.BufferAttribute(shellPos, 3));
       const shellMat = new THREE.PointsMaterial({
         color: 0x00d2ff,
-        size: 0.022,
+        size: 0.018,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.28,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });

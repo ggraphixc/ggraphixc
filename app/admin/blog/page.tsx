@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { BlogPost } from "@/lib/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import InlineEdit from "@/components/admin/InlineEdit";
+import AdminToast from "@/components/admin/AdminToast";
+import { useDragSort } from "@/components/admin/useDragSort";
 import { bumpContentCache } from "@/components/admin/cacheBump";
 
 type FormState = Omit<BlogPost, "id" | "created_at">;
@@ -26,6 +29,7 @@ export default function AdminBlog() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [toast, setToast] = useState<{ text: string; type: "ok" | "err" } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -51,6 +55,48 @@ export default function AdminBlog() {
       mounted = false;
     };
   }, []);
+
+  /** Drag-reorder: renumber display_order 1..n and persist. */
+  async function reorder(next: BlogPost[]) {
+    const reordered = next.map((p, i) => ({ ...p, display_order: i + 1 }));
+    setItems(reordered);
+    const { error } = await supabase
+      .from("blog_posts")
+      .upsert(
+        reordered.map((p) => ({ id: p.id, display_order: p.display_order })),
+        { onConflict: "id" }
+      );
+    if (error) {
+      setToast({ text: "Reorder failed: " + error.message, type: "err" });
+      await load();
+    } else {
+      setToast({ text: "Order saved", type: "ok" });
+      bumpContentCache();
+    }
+  }
+
+  const { rowProps, handleProps, dragIndex, overIndex } = useDragSort(items, reorder);
+
+  /** Inline field save on a row. */
+  async function quickSave(id: string, patch: Partial<BlogPost>) {
+    const { error } = await supabase.from("blog_posts").update(patch).eq("id", id);
+    if (error) {
+      setToast({ text: error.message, type: "err" });
+      return;
+    }
+    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    setToast({ text: "Saved", type: "ok" });
+    bumpContentCache();
+  }
+
+  /** Keyboard / touch fallback: swap a row with its neighbour. */
+  async function nudge(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const next = [...items];
+    [next[i], next[j]] = [next[j], next[i]];
+    await reorder(next);
+  }
 
   function startEdit(p: BlogPost) {
     setEditing(p.id);
@@ -106,6 +152,7 @@ export default function AdminBlog() {
       setMsg(error.message);
       return;
     }
+    setToast({ text: editing ? "Post updated" : "Post added", type: "ok" });
     reset();
     await load();
     bumpContentCache();
@@ -133,7 +180,9 @@ export default function AdminBlog() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800 }}>Blog</h1>
-          <p style={{ color: "var(--muted)", fontSize: 14 }}>Write and publish posts shown on /blog.</p>
+          <p style={{ color: "var(--muted)", fontSize: 14 }}>
+            Write and publish posts shown on /blog. Drag rows to reorder.
+          </p>
         </div>
         {editing && (
           <button className="btn btn-ghost btn-sm" onClick={reset}>
@@ -194,31 +243,71 @@ export default function AdminBlog() {
         </button>
       </form>
 
-      <div className="admin-card" style={{ overflowX: "auto" }}>
+      <div className="admin-card admin-table-wrap">
         {loading ? (
           <p style={{ color: "var(--muted)" }}>Loading…</p>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
+                <th style={{ width: 30 }} aria-label="Drag to reorder" />
+                <th style={{ width: 64 }}>Cover</th>
                 <th>Title</th>
                 <th>Tags</th>
                 <th>Status</th>
-                <th>Order</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {items.map((p) => (
-                <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>{p.title}</td>
-                  <td style={{ color: "var(--muted)" }}>{p.tags}</td>
+              {items.map((p, i) => (
+                <tr
+                  key={p.id}
+                  {...rowProps(i)}
+                  className={`${dragIndex === i ? "dragging" : ""} ${overIndex === i ? "drop-target" : ""}`}
+                >
+                  <td>
+                    <span {...handleProps(i)} className="drag-handle" aria-label="Drag to reorder" title="Drag to reorder" role="button" tabIndex={0} onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        nudge(i, -1);
+                      }
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        nudge(i, 1);
+                      }
+                    }}>
+                      <i className="fa-solid fa-grip-vertical" />
+                    </span>
+                    <span className="row-actions" style={{ marginTop: 6, gap: 4 }}>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }} onClick={() => nudge(i, -1)} aria-label="Move up" title="Move up">
+                        <i className="fa-solid fa-arrow-up" />
+                      </button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px" }} onClick={() => nudge(i, 1)} aria-label="Move down" title="Move down">
+                        <i className="fa-solid fa-arrow-down" />
+                      </button>
+                    </span>
+                  </td>
+                  <td>
+                    {p.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="thumb-cell" src={p.cover_url} alt={p.title} />
+                    ) : (
+                      <div className="thumb-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontSize: 12 }}>
+                        —
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ fontWeight: 600 }}>
+                    <InlineEdit value={p.title} onSave={(v) => quickSave(p.id, { title: v })} />
+                  </td>
+                  <td style={{ color: "var(--muted)" }}>
+                    <InlineEdit value={p.tags ?? ""} onSave={(v) => quickSave(p.id, { tags: v || null })} />
+                  </td>
                   <td>
                     <span className="badge-soft" style={{ background: p.published ? "rgba(0,210,255,0.12)" : "rgba(255,255,255,0.06)", color: p.published ? "var(--accent)" : "var(--muted)" }}>
                       {p.published ? "published" : "draft"}
                     </span>
                   </td>
-                  <td style={{ color: "var(--muted)" }}>{p.display_order}</td>
                   <td>
                     <div className="row-actions">
                       <button className="btn btn-ghost btn-sm" onClick={() => togglePublish(p)} title="Toggle publish">
@@ -236,13 +325,15 @@ export default function AdminBlog() {
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ color: "var(--muted)" }}>No posts yet.</td>
+                  <td colSpan={6} style={{ color: "var(--muted)" }}>No posts yet.</td>
                 </tr>
               )}
             </tbody>
           </table>
         )}
       </div>
+
+      <AdminToast message={toast?.text ?? ""} type={toast?.type ?? "ok"} onClear={() => setToast(null)} />
     </>
   );
 }
