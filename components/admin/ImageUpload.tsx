@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image-compressor";
 
 export default function ImageUpload({
@@ -36,16 +35,16 @@ export default function ImageUpload({
       );
 
       const path = `${folder}/${Date.now()}-${compressed.name.replace(/\s+/g, "-")}`;
-      const { error } = await supabase.storage.from("project-images").upload(path, compressed, {
-        cacheControl: "3600",
-        upsert: false
-      });
-      if (error) {
-        setError(error.message + " — you can still paste an image URL below.");
+      const fd = new FormData();
+      fd.append("file", compressed, path);
+      fd.append("folder", folder);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const json = await res.json();
+      if (!res.ok) {
+        setError((json.error || "Upload failed") + " — you can still paste an image URL below.");
         return;
       }
-      const { data } = supabase.storage.from("project-images").getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(json.secure_url as string);
     } catch {
       setError("Could not process that image. Try a different file or paste a URL.");
     } finally {

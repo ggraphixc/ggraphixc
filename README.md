@@ -9,6 +9,7 @@ Built with **Next.js 16 + React 19 + Supabase**, using the dark/glassmorphic des
 - **React 19** — Server Actions + `useActionState` forms, ISR caching
 - **Tailwind CSS 4** (CSS-first config via `@theme` in `app/globals.css`)
 - **Supabase** for content (projects, case studies, galleries, testimonials, blog, inquiries) + Auth for the admin portal
+- **Cloudinary** for media storage — admin image uploads are client-compressed (50–250 KB) then stored on Cloudinary
 - **Native 2026 platform features** — View Transitions API, Speculation Rules API (pre-rendering), dynamic OG images (`next/og`)
 - **three.js** — GPU-accelerated hero (WebGPU renderer with WebGL fallback)
 - **Google AI (Gemini)** — optional AI concierge on /contact + AI case-study drafts in the admin
@@ -17,7 +18,7 @@ Built with **Next.js 16 + React 19 + Supabase**, using the dark/glassmorphic des
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then fill in your Supabase keys
+cp .env.local.example .env.local   # then fill in your Supabase keys + CLOUDINARY_URL
 npm run dev
 ```
 
@@ -33,6 +34,19 @@ Visit http://localhost:3000 (public site) and http://localhost:3000/admin (admin
 4. Copy the project URL and anon key (and service-role key) into `.env.local`.
 
 Without Supabase configured, the site still renders with built-in sample content (demo mode).
+
+## Cloudinary setup
+
+1. Create a free account at https://cloudinary.com.
+2. Copy your **API Environment Variable** (`cloudinary://API_KEY:API_SECRET@CLOUD_NAME`) from the
+   Console Dashboard into `.env.local` as `CLOUDINARY_URL`.
+3. Admin image uploads go through `/api/upload` (server-side, admin-guarded): the client
+   compresses the image first (50–250 KB WebP/JPEG via `lib/image-compressor.ts`), then Cloudinary
+   stores it and returns a `secure_url` that gets saved to the database.
+
+> **Security note:** `/api/upload` requires a logged-in admin session **when Supabase is
+> configured**. In pure demo mode (no Supabase env vars) the guard is skipped — so before
+> deploying the site publicly, add your Supabase keys so the upload endpoint stays locked.
 
 ## AI features (optional)
 
@@ -54,9 +68,9 @@ when the key is absent (the concierge suggests emailing hello@ggraphixc.com inst
   content caching (5-min revalidate) with instant admin invalidation (`/api/revalidate`).
 - **Contact** — Server Action form (no API route), writes to the `inquiries` table.
 - **Admin** (`/admin`) — dashboard, projects (case-study fields + featured + gallery management +
-  client-side image compression targeting 50–250 KB), blog, testimonials, messages, and a settings
-  page for homepage copy + contact email. All edits purge the content cache so the public site
-  updates instantly.
+  client-side image compression targeting 50–250 KB, stored on **Cloudinary**), blog, testimonials,
+  messages, and a settings page for homepage copy + contact email. All edits purge the content cache
+  so the public site updates instantly.
 
 ## Project structure
 

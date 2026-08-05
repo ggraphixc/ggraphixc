@@ -43,15 +43,15 @@ export default function GalleryManager({ projectId }: { projectId: string }) {
     try {
       for (const file of Array.from(files)) {
         const compressed = await compressImage(file);
-        const path = `projects/${projectId}-${Date.now()}-${compressed.name.replace(/\s+/g, "-")}`;
-        const { error: upErr } = await supabase.storage
-          .from("project-images")
-          .upload(path, compressed, { cacheControl: "3600", upsert: false });
-        if (upErr) throw new Error(upErr.message);
-        const { data } = supabase.storage.from("project-images").getPublicUrl(path);
+        const fd = new FormData();
+        fd.append("file", compressed, `gallery-${Date.now()}-${compressed.name.replace(/\s+/g, "-")}`);
+        fd.append("folder", "projects/gallery");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Upload failed");
         const { error: insErr } = await supabase.from("project_images").insert({
           project_id: projectId,
-          image_url: data.publicUrl,
+          image_url: json.secure_url as string,
           display_order: images.length + i
         });
         if (insErr) throw new Error(insErr.message);
