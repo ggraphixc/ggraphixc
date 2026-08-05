@@ -1,0 +1,33 @@
+{
+  "name": "ggraphixc",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Personal portfolio for Godson Otobo (ggraphixc) — graphics designer. Built with Next.js 16 + Supabase, design inspired by andybext.com.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.112.0",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "^0.178.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.178.0",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
