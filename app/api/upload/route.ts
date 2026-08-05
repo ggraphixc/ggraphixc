@@ -9,10 +9,11 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 // Receives a (client-side compressed) image as FormData and stores it on
 // Cloudinary, returning the public secure_url to persist in the database.
 //
-// Auth mirrors /api/revalidate: when Supabase is configured (production), only a
-// logged-in admin session may upload. In demo mode (no Supabase env vars) the
-// guard is skipped — so do not deploy the site publicly without Supabase keys,
-// otherwise this endpoint would accept anonymous uploads to your Cloudinary.
+// Auth: when Supabase is configured, only a logged-in admin session may upload.
+// In demo mode (no Supabase env vars) uploads are allowed ONLY in development,
+// so the admin flow can be tested locally. A production deployment without
+// Supabase auth would expose an anonymous upload endpoint into the owner's
+// Cloudinary account — so it is refused instead.
 export async function POST(req: Request) {
   if (supabaseUrl && supabaseAnonKey) {
     const cookieStore = await cookies();
@@ -28,6 +29,11 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+  } else if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "Uploads are disabled — configure Supabase auth first." },
+      { status: 403 }
+    );
   }
 
   let cld;

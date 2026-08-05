@@ -1,10 +1,11 @@
 -- ============================================================================
--- ggraphixc — Supabase schema
--- Run this in the Supabase SQL editor (Dashboard -> SQL -> New query).
+-- ggraphixc — 001_initial_schema (initial migration)
+-- Creates all tables, RLS policies, seed content, and the storage bucket.
 --
--- NOTE: the versioned copy of this file lives in supabase/migrations/
--- (20260805142043_initial_schema.sql) for `supabase db push` workflows.
--- Both are idempotent; keep them in sync when editing.
+-- Run via the Supabase SQL editor (Dashboard → SQL → New query) or:
+--   supabase db push   (with the Supabase CLI linked to this project)
+--
+-- Safe to re-run: uses IF NOT EXISTS / ON CONFLICT DO NOTHING throughout.
 -- ============================================================================
 
 -- ---------- projects ----------

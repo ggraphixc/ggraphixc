@@ -27,9 +27,12 @@ Visit http://localhost:3000 (public site) and http://localhost:3000/admin (admin
 ## Supabase setup
 
 1. Create a project at https://supabase.com.
-2. Open **SQL Editor** and run `supabase/schema.sql` (creates tables, RLS policies, and seeds sample content).
-   Re-run it after upgrading — the 2026 section (`featured`, `client_name`, `challenge`, `solution`, `results`,
-   `project_images`) is idempotent and safe on an existing database.
+2. Apply the schema — either:
+   - **SQL Editor:** open Dashboard → SQL → New query and run `supabase/schema.sql`
+     (or the versioned migration `supabase/migrations/20260805142043_initial_schema.sql`), or
+   - **CLI:** `supabase db push` after linking the project.
+   This creates all tables, RLS policies, and seeds sample content. Re-running is safe —
+   everything is idempotent (`IF NOT EXISTS` / `ON CONFLICT DO NOTHING`).
 3. In **Authentication → Users → Add user**, create your admin account (email + password).
 4. Copy the project URL and anon key (and service-role key) into `.env.local`.
 
@@ -45,8 +48,9 @@ Without Supabase configured, the site still renders with built-in sample content
    stores it and returns a `secure_url` that gets saved to the database.
 
 > **Security note:** `/api/upload` requires a logged-in admin session **when Supabase is
-> configured**. In pure demo mode (no Supabase env vars) the guard is skipped — so before
-> deploying the site publicly, add your Supabase keys so the upload endpoint stays locked.
+> configured**. Without Supabase keys, uploads work only in local development — a production
+> deployment without Supabase auth refuses uploads entirely, so your Cloudinary can never be
+> hit by anonymous requests.
 
 ## AI features (optional)
 
