@@ -128,19 +128,29 @@ summary:focus-visible {
   }
 }
 
-/* ---------- Scroll reveal ---------- */
-.reveal {
+/* ---------- Scroll reveal ----------
+   Progressive enhancement: content is VISIBLE by default (so a missing/failed
+   JS bundle, an opened static file, or a hydration hiccup can never blank the
+   page). Only when JS has marked the document with `.js` do we hide elements
+   and rely on the IntersectionObserver to reveal them. `.reveal-fallback` is a
+   hard safety net: if the observer never fires (e.g. hydration error), content
+   is force-shown shortly after load. */
+.js .reveal {
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.8s var(--cb), transform 0.8s var(--cb);
   will-change: transform, opacity;
 }
-.reveal.in-view {
+.js .reveal.in-view {
   opacity: 1;
   transform: translateY(0);
 }
+.reveal-fallback .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .js .reveal { opacity: 1 !important; transform: none !important; transition: none; }
   html { scroll-behavior: auto; }
 }
 
