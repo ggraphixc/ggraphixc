@@ -166,7 +166,16 @@ export default function AdminProjects() {
         ...f,
         challenge: json.challenge ?? f.challenge,
         solution: json.solution ?? f.solution,
-        results: json.results ?? f.results
+        results: json.results ?? f.results,
+        description: json.description ?? f.description,
+        category: json.category ?? f.category,
+        result: json.result ?? f.result,
+        slug: json.slug
+          ? json.slug
+              .toLowerCase()
+              .replace(/[^a-z0-9-]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+          : f.slug
       }));
       setMsg("✨ AI draft generated — review and tweak before saving.");
     } catch {

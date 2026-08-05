@@ -62,21 +62,33 @@ export async function POST(request: Request) {
 
   const images = await imageParts(Array.isArray(body.imageUrls) ? body.imageUrls : []);
 
-  const prompt = `Write a short case-study narrative for a design project.
+  const prompt = `Write a short case-study narrative and metadata for a design project.
 
 Project title: ${title}
 Category: ${String(body.category ?? "").trim() || "—"}
 Summary: ${String(body.description ?? "").trim() || "—"}
 
-${images.length > 0 ? "Reference images of the actual work are attached — describe the visuals you can see (style, colors, layout, mood) so the case study matches the real output.\n" : ""}
+${images.length > 0 ? "Reference images of the actual work are attached — describe the visuals you can see (style, colors, layout, mood) so the copy matches the real output.\n" : ""}
 
-Return ONLY JSON with exactly these three keys:
+Return ONLY JSON with exactly these seven keys:
 - "challenge": 2-3 sentences describing the client's problem.
 - "solution": 2-3 sentences describing the design approach and deliverables.
 - "results": 1-2 sentences describing the outcome with a plausible, specific metric.
+- "description": 1-2 sentences for the card and SEO — the project at a glance.
+- "category": a short category label (e.g. "Brand Identity", "Web Design", "Packaging").
+- "result": a brief outcome badge — a metric plus a label, max ~4 words (e.g. "+48% Recall").
+- "slug": a url-safe slug derived from the title: lowercase, hyphen-separated, no stop words.
 Voice: confident, concise, no buzzwords, no marketing fluff.`;
 
-  type Draft = { challenge?: unknown; solution?: unknown; results?: unknown };
+  type Draft = {
+    challenge?: unknown;
+    solution?: unknown;
+    results?: unknown;
+    description?: unknown;
+    category?: unknown;
+    result?: unknown;
+    slug?: unknown;
+  };
 
   // Gemini can occasionally return truncated or malformed JSON — most often
   // when vision inputs push the output past maxOutputTokens (the response then
@@ -126,9 +138,17 @@ Voice: confident, concise, no buzzwords, no marketing fluff.`;
     );
   }
 
-  return NextResponse.json({
+  const out: Record<string, string> = {
     challenge: parsed.challenge,
     solution: parsed.solution,
     results: parsed.results
-  });
+  };
+  // Extra metadata fields are optional — fill them when the model returns them
+  // so a partial draft still populates what's available.
+  if (typeof parsed.description === "string") out.description = parsed.description;
+  if (typeof parsed.category === "string") out.category = parsed.category;
+  if (typeof parsed.result === "string") out.result = parsed.result;
+  if (typeof parsed.slug === "string") out.slug = parsed.slug;
+
+  return NextResponse.json(out);
 }
