@@ -36,11 +36,11 @@ export default async function AboutPage() {
       <section className="section" style={{ paddingTop: 160, paddingBottom: 60 }}>
         <div className="container">
           <Reveal>
-            <span className="kicker">About</span>
-            <h1 className="section-title">Design that earns attention, trust & action</h1>
-          </Reveal>
-          <Reveal delay={100}>
-            <p className="section-lead" style={{ fontSize: 19 }}>{s.about_text}</p>
+            <div className="section-head">
+              <span className="kicker">About</span>
+              <h1 className="section-title">Design that earns attention, trust &amp; action</h1>
+              <p className="section-lead" style={{ fontSize: 19 }}>{s.about_text}</p>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -63,9 +63,15 @@ export default async function AboutPage() {
       <section className="section">
         <div className="container">
           <Reveal>
-            <h2 className="section-title">What I work on</h2>
+            <div className="section-head">
+              <span className="kicker">Specialties</span>
+              <h2 className="section-title">What I work on</h2>
+              <p className="section-lead">
+                Eight disciplines, one standard: every output earns its place in your brand system.
+              </p>
+            </div>
           </Reveal>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 28 }}>
             {SKILLS.map((sk) => (
               <span key={sk} className="kicker" style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}>
                 {sk}
@@ -78,15 +84,21 @@ export default async function AboutPage() {
       <section className="section">
         <div className="container">
           <Reveal>
-            <h2 className="section-title">How we work</h2>
+            <div className="section-head">
+              <span className="kicker">Process</span>
+              <h2 className="section-title">How we work</h2>
+              <p className="section-lead">
+                A clear, four-step rhythm that keeps every project moving and every decision documented.
+              </p>
+            </div>
           </Reveal>
           <div className="process-grid">
             {PROCESS.map((p, i) => (
               <Reveal key={p.n} delay={i * 60}>
-                <div className="glass" style={{ padding: 26, height: "100%" }}>
-                  <div style={{ fontFamily: "Caveat, cursive", fontSize: 40, color: "var(--accent)", fontWeight: 600 }}>{p.n}</div>
-                  <h3 style={{ fontSize: 19, fontWeight: 800, margin: "8px 0" }}>{p.t}</h3>
-                  <p style={{ color: "var(--muted)", fontSize: 14 }}>{p.d}</p>
+                <div className="glass" style={{ padding: 26, height: "100%", position: "relative", overflow: "hidden" }}>
+                  <div style={{ fontFamily: "Caveat, cursive", fontSize: 44, color: "var(--accent)", fontWeight: 600, lineHeight: 1 }}>{p.n}</div>
+                  <h3 style={{ fontSize: 19, fontWeight: 800, margin: "10px 0 6px" }}>{p.t}</h3>
+                  <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.65 }}>{p.d}</p>
                 </div>
               </Reveal>
             ))}
@@ -94,16 +106,27 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="section" style={{ textAlign: "center" }}>
+      <section className="section">
         <div className="container">
           <Reveal>
-            <h2 className="section-title">Let&apos;s build your next advantage</h2>
-            <p className="section-lead" style={{ margin: "0 auto 26px" }}>
-              Tell me about your brand and where you want it to go.
-            </p>
-            <Link href="/contact" className="btn btn-primary">
-              Start a Project <i className="fa-solid fa-arrow-right" />
-            </Link>
+            <div
+              className="glass"
+              style={{
+                padding: "48px 40px",
+                textAlign: "center",
+                background: "linear-gradient(135deg, rgba(0,210,255,0.07), rgba(0,91,234,0.1)), rgba(255,255,255,0.02)"
+              }}
+            >
+              <h2 style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, fontSize: "clamp(24px, 3.5vw, 36px)" }}>
+                Let&apos;s build your next advantage
+              </h2>
+              <p className="section-lead" style={{ margin: "12px auto 26px", textAlign: "center" }}>
+                Tell me about your brand and where you want it to go.
+              </p>
+              <Link href="/contact" className="btn btn-primary">
+                Start a Project <i className="fa-solid fa-arrow-right" />
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>

@@ -17,11 +17,13 @@ export default async function ProjectsPage() {
     <section className="section" style={{ paddingTop: 160 }}>
       <div className="container">
         <Reveal>
-          <span className="kicker">Selected Work</span>
-          <h1 className="section-title">Designs built to earn attention, trust & action</h1>
-          <p className="section-lead">
-            A filterable archive of brand identities, creative systems, product UI, and campaign work.
-          </p>
+          <div className="section-head">
+            <span className="kicker">Selected Work</span>
+            <h1 className="section-title">Designs built to earn attention, trust &amp; action</h1>
+            <p className="section-lead">
+              A filterable archive of brand identities, creative systems, product UI, and campaign work.
+            </p>
+          </div>
         </Reveal>
         <ProjectsBrowser projects={projects} />
       </div>

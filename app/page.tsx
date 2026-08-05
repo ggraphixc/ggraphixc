@@ -43,12 +43,13 @@ export default async function HomePage() {
         <section className="section" id="blog">
           <div className="container">
             <Reveal>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
-                <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20 }}>
+                <div className="section-head">
                   <span className="kicker">Blog</span>
-                  <h2 className="section-title">Notes on design & brand</h2>
+                  <h2 className="section-title">Notes on design &amp; brand</h2>
+                  <p className="section-lead">Short, practical writing on brand systems, visual craft, and process.</p>
                 </div>
-                <Link href="/blog" className="btn btn-outline btn-sm">
+                <Link href="/blog" className="btn btn-outline btn-sm" style={{ flexShrink: 0 }}>
                   View all posts
                 </Link>
               </div>
@@ -56,7 +57,7 @@ export default async function HomePage() {
             <div className="work-grid" style={{ marginTop: 36 }}>
               {posts.slice(0, 3).map((p, i) => (
                 <Reveal key={p.id} delay={i * 50}>
-                  <Link href={`/blog/${p.slug}`} className="work-card" style={{ display: "block", height: "100%" }}>
+                  <Link href={`/blog/${p.slug}`} className="work-card" style={{ display: "flex", height: "100%" }}>
                     <div className="thumb">
                       {p.cover_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -65,8 +66,11 @@ export default async function HomePage() {
                       {p.tags && <span className="tag">{p.tags}</span>}
                     </div>
                     <div className="body">
-                      <h3 style={{ fontSize: 19, fontWeight: 800 }}>{p.title}</h3>
+                      <h3 style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.3 }}>{p.title}</h3>
                       {p.excerpt && <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 8 }}>{p.excerpt}</p>}
+                      <span className="card-link">
+                        Read post <i className="fa-solid fa-arrow-right" />
+                      </span>
                     </div>
                   </Link>
                 </Reveal>

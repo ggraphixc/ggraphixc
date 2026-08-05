@@ -15,9 +15,10 @@ export default function Hero({
       <div className="container hero-inner">
         <Reveal>
           <div className="hero-badge badge-handle">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/brand/ggraphixc-logo.png" alt="" style={{ height: 18, width: "auto" }} />
-            Graphics Designer · Brand & Visual Systems
+            <span className="badge-dot" aria-hidden="true" />
+            <span>
+              Graphics Designer · Brand &amp; Visual Systems
+            </span>
           </div>
         </Reveal>
         <Reveal delay={80}>
@@ -34,6 +35,20 @@ export default function Hero({
             <a href="#work" className="btn btn-outline">
               View Selected Work
             </a>
+          </div>
+        </Reveal>
+        <Reveal delay={320}>
+          <div className="hero-proof">
+            <span className="stars" aria-label="5 out of 5 stars">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <i key={i} className="fa-solid fa-star" />
+              ))}
+            </span>
+            <span>5.0 rated by <strong>40+ brands</strong></span>
+            <span className="divider" aria-hidden="true" />
+            <span>
+              <strong>6+ years</strong> of visual craft
+            </span>
           </div>
         </Reveal>
       </div>

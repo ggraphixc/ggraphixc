@@ -45,7 +45,7 @@ export default function Header() {
         </nav>
 
         <button
-          className="hamburger"
+          className={`hamburger ${open ? "open" : ""}`}
           aria-label="Toggle menu"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -57,7 +57,7 @@ export default function Header() {
       </div>
 
       {open && (
-        <div className="mobile-nav">
+        <div id="mobile-nav" className="mobile-nav">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>
               {n.label}

@@ -33,10 +33,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     <article className="section" style={{ paddingTop: 160 }}>
       <div className="container" style={{ maxWidth: 760 }}>
         <Reveal>
-          <Link href="/blog" className="btn btn-ghost btn-sm" style={{ marginBottom: 22 }}>
+          <Link href="/blog" className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>
             <i className="fa-solid fa-arrow-left" /> Back to Blog
           </Link>
-          {post.tags && <div style={{ margin: "14px 0" }}><span className="kicker">{post.tags}</span></div>}
+          {post.tags && <div style={{ margin: "16px 0 4px" }}><span className="kicker">{post.tags}</span></div>}
           <h1 className="section-title" style={{ fontSize: "clamp(30px, 5vw, 52px)" }}>{post.title}</h1>
           {post.excerpt && <p className="section-lead" style={{ fontSize: 19 }}>{post.excerpt}</p>}
         </Reveal>

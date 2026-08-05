@@ -85,13 +85,15 @@ export default function ServicesPage() {
         <div className="hero-glow" />
         <div className="container">
           <Reveal>
-            <span className="kicker">Services</span>
-            <h1 className="section-title" style={{ fontSize: "clamp(36px, 5.5vw, 60px)" }}>
-              What I <span className="accent-text">offer</span>
-            </h1>
-            <p className="section-lead">
-              Comprehensive design solutions tailored to elevate your brand and achieve your business objectives.
-            </p>
+            <div className="section-head">
+              <span className="kicker">Services</span>
+              <h1 className="section-title" style={{ fontSize: "clamp(36px, 5.5vw, 60px)" }}>
+                What I <span className="accent-text">offer</span>
+              </h1>
+              <p className="section-lead">
+                Comprehensive design solutions tailored to elevate your brand and achieve your business objectives.
+              </p>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -101,7 +103,7 @@ export default function ServicesPage() {
           {SERVICES.map((s, index) => (
             <Reveal key={s.title} delay={index * 60}>
               <div
-                className="glass"
+                className="glass service-row"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
@@ -125,25 +127,27 @@ export default function ServicesPage() {
                 </div>
                 <div>
                   <div
+                    className="service-features"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
-                      gap: "10px 14px",
+                      gap: "12px 16px",
                       background: "rgba(0, 210, 255, 0.03)",
                       border: "1px solid var(--border)",
-                      borderRadius: 16,
-                      padding: 22
+                      borderRadius: "var(--radius-md)",
+                      padding: 24
                     }}
                   >
                     {s.features.map((f) => (
-                      <span key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600 }}>
+                      <span key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>
                         <span
                           style={{
-                            width: 7,
-                            height: 7,
+                            width: 8,
+                            height: 8,
                             borderRadius: "50%",
                             background: "linear-gradient(135deg, var(--accent), var(--royal))",
-                            flexShrink: 0
+                            flexShrink: 0,
+                            boxShadow: "0 0 8px rgba(0,210,255,0.5)"
                           }}
                         />
                         {f}
@@ -160,8 +164,11 @@ export default function ServicesPage() {
       <section className="section" style={{ paddingTop: 20 }}>
         <div className="container">
           <Reveal>
-            <span className="kicker">My Process</span>
-            <h2 className="section-title">How I work</h2>
+            <div className="section-head">
+              <span className="kicker">My Process</span>
+              <h2 className="section-title">How I work</h2>
+              <p className="section-lead">Four clear stages from first call to final delivery — no surprises, no drift.</p>
+            </div>
           </Reveal>
           <div className="process-grid">
             {PROCESS.map((p, i) => (

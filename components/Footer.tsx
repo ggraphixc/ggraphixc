@@ -22,6 +22,13 @@ const COLS = [
   }
 ];
 
+const SOCIALS = [
+  { icon: "fa-brands fa-behance", label: "Behance", href: "https://behance.net" },
+  { icon: "fa-brands fa-instagram", label: "Instagram", href: "https://instagram.com" },
+  { icon: "fa-brands fa-x-twitter", label: "X (Twitter)", href: "https://x.com" },
+  { icon: "fa-brands fa-linkedin-in", label: "LinkedIn", href: "https://linkedin.com" }
+];
+
 export default async function Footer() {
   const settings = await getSettings();
   const email = settings.contact_email || "hello@ggraphixc.com";
@@ -31,26 +38,31 @@ export default async function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <div className="brand" style={{ marginBottom: 14 }}>
+            <Link href="/" className="brand" style={{ marginBottom: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
               ggraphixc
-            </div>
-            <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 280 }}>
+            </Link>
+            <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 300, lineHeight: 1.7 }}>
               Premium brand identity, creative systems, and conversion-ready design by Godson Otobo.
             </p>
             <a
               href={`mailto:${email}`}
-              style={{ color: "var(--accent)", fontSize: 14, fontWeight: 700, display: "inline-block", marginTop: 10 }}
+              style={{ color: "var(--accent)", fontSize: 14, fontWeight: 700, display: "inline-block", marginTop: 12 }}
             >
               {email}
             </a>
+            <div className="footer-social">
+              {SOCIALS.map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label}>
+                  <i className={s.icon} />
+                </a>
+              ))}
+            </div>
           </div>
           {COLS.map((col) => (
             <div key={col.title}>
-              <h4 style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text)", marginBottom: 12 }}>
-                {col.title}
-              </h4>
+              <h4>{col.title}</h4>
               {col.links.map((l) => (
                 <Link key={l.label} href={l.href}>
                   {l.label}
@@ -59,27 +71,13 @@ export default async function Footer() {
             </div>
           ))}
           <div>
-            <h4 style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text)", marginBottom: 12 }}>
-              Contact
-            </h4>
+            <h4>Contact</h4>
             <Link href={`mailto:${email}`}>{email}</Link>
             <Link href="/contact">Start a Project</Link>
             <Link href="/admin">Admin</Link>
           </div>
         </div>
-        <div
-          style={{
-            marginTop: 40,
-            paddingTop: 24,
-            borderTop: "1px solid var(--border)",
-            color: "var(--muted)",
-            fontSize: 13,
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 10
-          }}
-        >
+        <div className="footer-bottom">
           <span>© 2026 ggraphixc. All rights reserved.</span>
           <span>Designed by Godson Otobo</span>
         </div>

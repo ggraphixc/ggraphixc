@@ -18,14 +18,15 @@ export default function About({ text }: { text: string }) {
               className="glass"
               style={{
                 aspectRatio: "1 / 1",
-                borderRadius: "24px",
+                borderRadius: "28px",
                 background:
                   "radial-gradient(circle at 30% 20%, rgba(0,210,255,0.22), transparent 55%), radial-gradient(circle at 80% 90%, rgba(0,91,234,0.25), transparent 55%), #0f0f12",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
-                overflow: "hidden"
+                overflow: "hidden",
+                boxShadow: "var(--shadow)"
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -41,29 +42,66 @@ export default function About({ text }: { text: string }) {
                   objectFit: "cover"
                 }}
               />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: "rgba(5,5,7,0.72)",
+                  border: "1px solid var(--border-strong)",
+                  backdropFilter: "blur(12px)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "12px 16px"
+                }}
+              >
+                <span
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, var(--accent), var(--royal))",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 800,
+                    color: "#04060a",
+                    flexShrink: 0
+                  }}
+                >
+                  GO
+                </span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>Godson Otobo</div>
+                  <div style={{ color: "var(--muted)", fontSize: 12.5 }}>Brand &amp; Visual Systems Designer</div>
+                </div>
+              </div>
             </div>
           </Reveal>
 
           <Reveal delay={120}>
             <span className="kicker">About</span>
-            <h2 className="section-title">Design that earns attention, trust & action</h2>
-            <p className="section-lead" style={{ marginBottom: 24 }}>
+            <h2 className="section-title">Design that earns attention, trust &amp; action</h2>
+            <p className="section-lead" style={{ marginBottom: 26, fontSize: 16.5 }}>
               {text}
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <span className="kicker" style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}>
-                Brand Identity
-              </span>
-              <span className="kicker" style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}>
-                Creative Systems
-              </span>
-              <span className="kicker" style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}>
-                Product UI
-              </span>
-              <span className="kicker" style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}>
-                Social & Motion
-              </span>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {["Brand Identity", "Creative Systems", "Product UI", "Social & Motion"].map((chip) => (
+                <span
+                  key={chip}
+                  className="kicker"
+                  style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}
+                >
+                  {chip}
+                </span>
+              ))}
             </div>
+            <a href="/about" className="btn btn-outline" style={{ marginTop: 28 }}>
+              More about me <i className="fa-solid fa-arrow-right" />
+            </a>
           </Reveal>
         </div>
       </div>

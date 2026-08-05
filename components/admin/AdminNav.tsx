@@ -39,7 +39,7 @@ export default function AdminNav() {
           </Link>
         ))}
       </nav>
-      <button className="btn btn-ghost btn-sm" style={{ width: "100%", marginTop: 16, justifyContent: "center" }} onClick={logout}>
+      <button className="btn btn-ghost btn-sm admin-logout" onClick={logout}>
         <i className="fa-solid fa-right-from-bracket" /> Logout
       </button>
     </aside>

@@ -35,13 +35,39 @@ export default function Contact() {
               plan.
             </p>
             <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-              <a href="mailto:hello@ggraphixc.com" className="btn btn-outline" style={{ justifyContent: "center" }}>
+              <a href="mailto:hello@ggraphixc.com" className="btn btn-outline" style={{ justifyContent: "flex-start" }}>
                 <i className="fa-solid fa-envelope" /> hello@ggraphixc.com
               </a>
+              <a href="tel:+2340000000000" className="btn btn-ghost" style={{ justifyContent: "flex-start" }}>
+                <i className="fa-solid fa-phone" /> WhatsApp &amp; calls welcome
+              </a>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                marginTop: 22,
+                padding: 18,
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                background: "rgba(255,255,255,0.02)"
+              }}
+            >
+              <span style={{ color: "var(--muted)", fontSize: 13, fontWeight: 600 }}>What happens next:</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>
+                <i className="fa-solid fa-check" style={{ color: "var(--accent)", marginRight: 6 }} />Reply in 24h
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>
+                <i className="fa-solid fa-check" style={{ color: "var(--accent)", marginRight: 6 }} />Free kickoff call
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>
+                <i className="fa-solid fa-check" style={{ color: "var(--accent)", marginRight: 6 }} />Clear quote &amp; timeline
+              </span>
             </div>
           </div>
 
-          <form ref={formRef} action={formAction} className="glass" style={{ padding: 30 }}>
+          <form ref={formRef} action={formAction} className="glass" style={{ padding: 32 }}>
             <div className="field">
               <label htmlFor="name">Full Name</label>
               <input id="name" name="name" required placeholder="Godson Otobo" />

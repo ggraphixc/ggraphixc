@@ -50,7 +50,7 @@ export default function ProjectsBrowser({ projects }: { projects: Project[] }) {
             <Link
               className="work-card"
               href={`/projects/${p.slug}`}
-              style={{ display: "block" }}
+              style={{ display: "flex" }}
             >
               <div className="thumb">
                 {initialsOrImg(p)}
@@ -72,10 +72,13 @@ export default function ProjectsBrowser({ projects }: { projects: Project[] }) {
               </div>
               <div className="body">
                 {p.result && <div className="result" style={{ marginBottom: 6 }}>{p.result}</div>}
-                <h3 style={{ fontSize: 19, fontWeight: 800 }}>{p.title}</h3>
+                <h3 style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.3 }}>{p.title}</h3>
                 {p.description && (
                   <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 8 }}>{p.description}</p>
                 )}
+                <span className="card-link">
+                  View case study <i className="fa-solid fa-arrow-right" />
+                </span>
               </div>
             </Link>
           </Reveal>

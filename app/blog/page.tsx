@@ -17,15 +17,17 @@ export default async function BlogPage() {
     <section className="section" style={{ paddingTop: 160 }}>
       <div className="container">
         <Reveal>
-          <span className="kicker">Blog</span>
-          <h1 className="section-title">Notes on design & brand</h1>
-          <p className="section-lead">Short, practical writing on brand systems, visual craft, and process.</p>
+          <div className="section-head">
+            <span className="kicker">Blog</span>
+            <h1 className="section-title">Notes on design &amp; brand</h1>
+            <p className="section-lead">Short, practical writing on brand systems, visual craft, and process.</p>
+          </div>
         </Reveal>
 
         <div className="work-grid" style={{ marginTop: 40 }}>
           {posts.map((p, i) => (
             <Reveal key={p.id} delay={i * 50}>
-              <Link href={`/blog/${p.slug}`} className="work-card" style={{ display: "block", height: "100%" }}>
+              <Link href={`/blog/${p.slug}`} className="work-card" style={{ display: "flex", height: "100%" }}>
                 <div className="thumb">
                   {p.cover_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -34,10 +36,10 @@ export default async function BlogPage() {
                   {p.tags && <span className="tag">{p.tags}</span>}
                 </div>
                 <div className="body">
-                  <h3 style={{ fontSize: 20, fontWeight: 800 }}>{p.title}</h3>
+                  <h3 style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3 }}>{p.title}</h3>
                   {p.excerpt && <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 8 }}>{p.excerpt}</p>}
-                  <span style={{ color: "var(--accent)", fontWeight: 700, fontSize: 13, display: "inline-block", marginTop: 14 }}>
-                    Read post →
+                  <span className="card-link">
+                    Read post <i className="fa-solid fa-arrow-right" />
                   </span>
                 </div>
               </Link>
