@@ -150,7 +150,12 @@ export default function AdminProjects() {
       const res = await fetch("/api/ai/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: form.title, category: form.category, description: form.description })
+        body: JSON.stringify({
+          title: form.title,
+          category: form.category,
+          description: form.description,
+          imageUrls: [form.image_url, ...galleryDraft].filter((u): u is string => Boolean(u))
+        })
       });
       const json = await res.json();
       if (!res.ok) {

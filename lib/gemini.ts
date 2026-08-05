@@ -12,9 +12,20 @@ const ATTEMPTS = 3;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export type GeminiPart =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } };
+
+export type GeminiContent = {
+  role: "user" | "model";
+  // A plain string is normalized to [{ text }] before sending — the API
+  // rejects a bare string at contents[].parts.
+  parts: GeminiPart[] | string;
+};
+
 export type GeminiCall = {
   system?: string;
-  contents: { role: "user" | "model"; parts: string }[];
+  contents: GeminiContent[];
   temperature?: number;
   maxOutputTokens?: number;
   responseMimeType?: "application/json" | "text/plain";
@@ -40,7 +51,10 @@ export async function callGemini(opts: GeminiCall): Promise<GeminiResult> {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               system_instruction: opts.system ? { parts: [{ text: opts.system }] } : undefined,
-              contents: opts.contents,
+              contents: opts.contents.map((c) => ({
+                role: c.role,
+                parts: Array.isArray(c.parts) ? c.parts : [{ text: c.parts }]
+              })),
               generationConfig: {
                 temperature: opts.temperature ?? 0.7,
                 maxOutputTokens: opts.maxOutputTokens ?? 700,
