@@ -28,7 +28,8 @@ export default function Header() {
     <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-shell">
         <Link href="/" className="brand" aria-label="ggraphixc home">
-          <span className="dot" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
           ggraphixc
         </Link>
 

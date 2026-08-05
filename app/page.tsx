@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Hero from "@/components/sections/Hero";
 import Stats from "@/components/sections/Stats";
+import Clients from "@/components/sections/Clients";
 import About from "@/components/sections/About";
 import Services from "@/components/sections/Services";
 import Work from "@/components/sections/Work";
@@ -32,6 +33,7 @@ export default async function HomePage() {
           satisfaction: settings.stats_satisfaction
         }}
       />
+      <Clients />
       <About text={settings.about_text} />
       <Services />
       <Work projects={projects} />

@@ -28,19 +28,19 @@ export default function About({ text }: { text: string }) {
                 overflow: "hidden"
               }}
             >
-              <span
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/about/portrait.jpg"
+                alt="Godson Otobo — ggraphixc"
+                loading="lazy"
                 style={{
-                  fontFamily: "Caveat, cursive",
-                  fontSize: "clamp(60px, 12vw, 140px)",
-                  fontWeight: 600,
-                  background: "linear-gradient(135deg, var(--accent), var(--royal))",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent"
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"
                 }}
-              >
-                ggraphixc
-              </span>
+              />
             </div>
           </Reveal>
 

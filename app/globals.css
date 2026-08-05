@@ -213,6 +213,12 @@ h1, h2, h3, h4, h5 {
   background: linear-gradient(135deg, var(--accent), var(--royal));
   box-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
 }
+.brand .brand-mark {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.35));
+}
 .nav-links {
   display: flex;
   align-items: center;
@@ -294,6 +300,7 @@ h1, h2, h3, h4, h5 {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--text);
+  gap: 10px;
 }
 .badge-handle::before,
 .badge-handle::after {
@@ -400,6 +407,68 @@ h1, h2, h3, h4, h5 {
   color: var(--accent);
   font-weight: 800;
   font-size: 13px;
+}
+
+/* ---------- Client logos marquee ---------- */
+.clients {
+  padding: 20px 0 90px;
+  position: relative;
+}
+.clients-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.clients-head p {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.clients-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.clients-track {
+  display: flex;
+  align-items: center;
+  gap: 70px;
+  width: max-content;
+  padding: 10px 0;
+  animation: clients-marquee 38s linear infinite;
+}
+.clients-track:hover {
+  animation-play-state: paused;
+}
+.clients-track img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.4;
+  filter: grayscale(1);
+  transition: 0.4s var(--cb);
+}
+.clients-track img:hover {
+  opacity: 1;
+  filter: grayscale(0);
+  transform: translateY(-2px);
+}
+@keyframes clients-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clients-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 /* ---------- Stat ---------- */

@@ -8,7 +8,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "Veloura Living — Brand & Packaging",
     slug: "veloura-living",
     category: "Brand Identity",
-    image_url: null,
+    image_url: "/images/projects/mr-clin-cards.jpg",
     result: "+48% Recall",
     description:
       "A calm, premium identity system and packaging suite for a direct-to-consumer furniture brand, built to feel tactile and trustworthy.",
@@ -29,7 +29,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "Velocity Drive — Visual Campaign",
     slug: "velocity-drive",
     category: "Creative Direction",
-    image_url: null,
+    image_url: "/images/projects/thrive-credit-card.jpg",
     result: "+64% Engagement",
     description:
       "A high-velocity visual campaign with motion graphics and ad creative for a luxury rentals launch.",
@@ -50,7 +50,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "AeroLux Travel — Social Kit",
     slug: "aerolux-travel",
     category: "Social Design",
-    image_url: null,
+    image_url: "/images/projects/thrive-referrals.jpg",
     result: "-30% Production Time",
     description:
       "A modular social template system and icon library that cut campaign production time dramatically.",
@@ -70,7 +70,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "ConvertX — Landing Page Design",
     slug: "convertx",
     category: "Web / UI",
-    image_url: null,
+    image_url: "/images/projects/web-2.jpg",
     result: "+120% Leads",
     description:
       "Conversion-focused landing page architecture with a clean visual hierarchy and reusable component kit.",
@@ -88,7 +88,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "Swiftora — Dashboard UI",
     slug: "swiftora",
     category: "Product UI",
-    image_url: null,
+    image_url: "/images/projects/uiux-3.jpg",
     result: "-40% Ops Cost",
     description:
       "An enterprise analytics UI with a consistent design system, custom widgets, and a scalable component library.",
@@ -106,7 +106,7 @@ export const SAMPLE_PROJECTS: Project[] = [
     title: "Sanctuary — Audio Brand",
     slug: "sanctuary",
     category: "Brand Identity",
-    image_url: null,
+    image_url: "/images/projects/gelt-token.jpg",
     result: "100k+ Streams",
     description:
       "A bold audio-first brand identity and cover art system for an independent streaming artist.",
@@ -239,7 +239,7 @@ export const SAMPLE_BLOG: BlogPost[] = [
     slug: "consistent-brand-system",
     excerpt:
       "A reusable brand system is the difference between scrambling for assets and shipping on-brand in minutes.",
-    cover_url: null,
+    cover_url: "/images/projects/branding-1.jpg",
     content:
       "Most brands lose time because every new post, deck, or ad starts from scratch. A small system — logo rules, color tokens, a type scale, and a few templates — lets your team move fast without a designer in the loop for every task.\n\nStart with the 20% of assets you actually reuse: social templates, an icon set, and a one-page brand sheet. Everything else can be derived from those.",
     tags: "Brand, Systems",
@@ -252,7 +252,7 @@ export const SAMPLE_BLOG: BlogPost[] = [
     title: "Designing thumbnails that actually get clicked",
     slug: "thumbnails-that-get-clicked",
     excerpt: "A good thumbnail is a promise. Here is the simple structure I use for scroll-stopping covers.",
-    cover_url: null,
+    cover_url: "/images/projects/design-1.png",
     content:
       "Clarity beats cleverness. Lead with one focal subject, keep text to three words max, and use high contrast so it reads at a glance. Test two versions and keep the one people actually stop for.",
     tags: "Social, Motion",

@@ -14,7 +14,11 @@ export default function Hero({
       <div className="hero-glow" />
       <div className="container hero-inner">
         <Reveal>
-          <div className="hero-badge badge-handle">Graphics Designer · Brand & Visual Systems</div>
+          <div className="hero-badge badge-handle">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/brand/ggraphixc-logo.png" alt="" style={{ height: 18, width: "auto" }} />
+            Graphics Designer · Brand & Visual Systems
+          </div>
         </Reveal>
         <Reveal delay={80}>
           <h1>{headline}</h1>

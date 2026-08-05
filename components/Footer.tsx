@@ -32,7 +32,8 @@ export default async function Footer() {
         <div className="footer-grid">
           <div>
             <div className="brand" style={{ marginBottom: 14 }}>
-              <span className="dot" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
               ggraphixc
             </div>
             <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 280 }}>
