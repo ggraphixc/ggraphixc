@@ -1,8 +1,8 @@
 -- ============================================================================
--- ggraphixc — 001_initial_schema (initial migration)
+-- ggraphixc - 001_initial_schema (initial migration)
 -- Creates all tables, RLS policies, seed content, and the storage bucket.
 --
--- Run via the Supabase SQL editor (Dashboard → SQL → New query) or:
+-- Run via the Supabase SQL editor (Dashboard -> SQL -> New query) or:
 --   supabase db push   (with the Supabase CLI linked to this project)
 --
 -- Safe to re-run: uses IF NOT EXISTS / ON CONFLICT DO NOTHING throughout.
@@ -22,7 +22,7 @@ create table if not exists public.projects (
   created_at timestamptz not null default now()
 );
 
--- Slug must be unique — the app looks up case studies with .maybeSingle().
+-- Slug must be unique - the app looks up case studies with .maybeSingle().
 -- A unique index is used instead of a table constraint so this stays
 -- idempotent (CREATE UNIQUE INDEX IF NOT EXISTS) and pairs with
 -- ON CONFLICT (slug) below.
@@ -107,17 +107,17 @@ create policy "admin write inquiries" on public.inquiries
 -- ============================================================================
 insert into public.projects (title, slug, category, result, description, display_order)
 values
-  ('Veloura Living — Brand & Packaging', 'veloura-living', 'Brand Identity', '+48% Recall',
+  ('Veloura Living - Brand & Packaging', 'veloura-living', 'Brand Identity', '+48% Recall',
    'A calm, premium identity system and packaging suite for a direct-to-consumer furniture brand.', 1),
-  ('Velocity Drive — Visual Campaign', 'velocity-drive', 'Creative Direction', '+64% Engagement',
+  ('Velocity Drive - Visual Campaign', 'velocity-drive', 'Creative Direction', '+64% Engagement',
    'A high-velocity visual campaign with motion graphics and ad creative for a luxury rentals launch.', 2),
-  ('AeroLux Travel — Social Kit', 'aerolux-travel', 'Social Design', '-30% Production Time',
+  ('AeroLux Travel - Social Kit', 'aerolux-travel', 'Social Design', '-30% Production Time',
    'A modular social template system and icon library that cut campaign production time.', 3),
-  ('ConvertX — Landing Page Design', 'convertx', 'Web / UI', '+120% Leads',
+  ('ConvertX - Landing Page Design', 'convertx', 'Web / UI', '+120% Leads',
    'Conversion-focused landing page architecture with a clean visual hierarchy.', 4),
-  ('Swiftora — Dashboard UI', 'swiftora', 'Product UI', '-40% Ops Cost',
+  ('Swiftora - Dashboard UI', 'swiftora', 'Product UI', '-40% Ops Cost',
    'An enterprise analytics UI with a consistent design system and component library.', 5),
-  ('Sanctuary — Audio Brand', 'sanctuary', 'Brand Identity', '100k+ Streams',
+  ('Sanctuary - Audio Brand', 'sanctuary', 'Brand Identity', '100k+ Streams',
    'A bold audio-first brand identity and cover art system for an independent artist.', 6)
 on conflict (slug) do nothing;
 
@@ -127,7 +127,7 @@ from (values
   ('Samuel Adama', 'CEO, Ophirbrooks Technologies',
    'ggraphixc turned a basic brief into a premium visual identity that clearly explains our offer.', 1),
   ('Ifanyi Eze', 'Marketing Lead',
-   'We finally had a clear visual direction — consistent templates, brand colors, assets tied to goals.', 2),
+   'We finally had a clear visual direction - consistent templates, brand colors, assets tied to goals.', 2),
   ('Christopher Onogwu', 'Product Designer',
    'They helped us simplify the product flow and give users a cleaner path from first look to action.', 3),
   ('Kunle Olalekan', 'Founder',
@@ -180,7 +180,7 @@ insert into public.blog_posts (title, slug, excerpt, content, tags, published, d
 values
   ('How a consistent brand system saves you time', 'consistent-brand-system',
    'A reusable brand system is the difference between scrambling for assets and shipping on-brand in minutes.',
-   'Most brands lose time because every new post, deck, or ad starts from scratch. A small system — logo rules, color tokens, a type scale, and a few templates — lets your team move fast without a designer in the loop for every task.\n\nStart with the 20% of assets you actually reuse: social templates, an icon set, and a one-page brand sheet. Everything else can be derived from those.',
+   'Most brands lose time because every new post, deck, or ad starts from scratch. A small system - logo rules, color tokens, a type scale, and a few templates - lets your team move fast without a designer in the loop for every task.\n\nStart with the 20% of assets you actually reuse: social templates, an icon set, and a one-page brand sheet. Everything else can be derived from those.',
    'Brand, Systems', true, 1),
   ('Designing thumbnails that actually get clicked', 'thumbnails-that-get-clicked',
    'A good thumbnail is a promise. Here is the simple structure I use for scroll-stopping covers.',
@@ -211,7 +211,7 @@ create policy "public read images" on storage.objects
   for select using (bucket_id = 'project-images');
 
 -- ============================================================================
--- 2026 upgrade — case-study fields + project image gallery
+-- 2026 upgrade - case-study fields + project image gallery
 -- (safe to re-run: uses IF NOT EXISTS so it works on already-seeded databases)
 -- ============================================================================
 alter table public.projects add column if not exists featured boolean not null default false;
@@ -245,14 +245,14 @@ update public.projects set
   featured = true,
   client_name = 'Veloura Living',
   challenge = 'A DTC furniture brand with a warm, tactile product line was being communicated through scattered, cold marketing assets. Every channel told a slightly different visual story, which made the brand feel smaller and harder to trust.',
-  solution = 'I built a calm, premium identity system — a refined wordmark, a warm neutral palette, a modular packaging grid, and art direction rules — then applied it across packaging, web, and social so every touchpoint felt like one brand.',
+  solution = 'I built a calm, premium identity system - a refined wordmark, a warm neutral palette, a modular packaging grid, and art direction rules - then applied it across packaging, web, and social so every touchpoint felt like one brand.',
   results = 'Shipped a 40+ asset brand kit. Client reports +48% unaided brand recall in follow-up testing and a consistent launch across 3 channels.'
 where slug = 'veloura-living';
 
 update public.projects set
   featured = true,
   client_name = 'Velocity Drive',
-  challenge = 'A luxury rentals platform needed a launch campaign that cut through a saturated, generic category — and they needed it fast, with no in-house creative team.',
+  challenge = 'A luxury rentals platform needed a launch campaign that cut through a saturated, generic category - and they needed it fast, with no in-house creative team.',
   solution = 'A high-velocity visual campaign: bold kinetic typography, a motion graphics system, and ad creative variants engineered to be produced in batch. One direction, endlessly remixable.',
   results = '+64% engagement on launch ads and a campaign library that let the team ship new variants in hours instead of days.'
 where slug = 'velocity-drive';
@@ -261,7 +261,7 @@ update public.projects set
   featured = true,
   client_name = 'AeroLux Travel',
   challenge = 'The marketing team was recreating social assets from scratch every week, burning designer time and drifting off-brand.',
-  solution = 'A modular social template system with an icon library, layout rules, and a small token set — so any asset could be assembled from the kit in minutes.',
+  solution = 'A modular social template system with an icon library, layout rules, and a small token set - so any asset could be assembled from the kit in minutes.',
   results = 'Cut campaign production time by ~30% while keeping every post on-brand.'
 where slug = 'aerolux-travel';
 
@@ -269,5 +269,5 @@ where slug = 'aerolux-travel';
 -- Create your admin user
 -- In the Supabase Dashboard go to: Authentication -> Users -> "Add user"
 -- (check "Send invite" or set a password) and use that email/password to log in
--- at /admin/login. No extra DB grants are needed — RLS above handles access.
+-- at /admin/login. No extra DB grants are needed - RLS above handles access.
 -- ============================================================================
