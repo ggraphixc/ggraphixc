@@ -1,11 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getGoogleApiKey } from "@/lib/data";
-
-// gemini-flash-latest is the stable alias; explicit pins (e.g. gemini-2.5-flash)
-// get retired and return 404 for keys that didn't use them before retirement.
-const MODEL = "gemini-flash-latest";
+import { callGemini, extractJson } from "@/lib/gemini";
 
 export async function POST(request: Request) {
   // Admin-only: this endpoint spends Gemini tokens.
@@ -25,14 +21,6 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-  }
-
-  const apiKey = await getGoogleApiKey();
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "Google AI key is not configured — add it in Admin → Settings, or to .env.local." },
-      { status: 400 }
-    );
   }
 
   let body: { title?: string; category?: string; description?: string };
@@ -59,39 +47,39 @@ Return ONLY JSON with exactly these three keys:
 - "results": 1-2 sentences describing the outcome with a plausible, specific metric.
 Voice: confident, concise, no buzzwords, no marketing fluff.`;
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: "You are a senior design case-study copywriter." }]
-          },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 700,
-            responseMimeType: "application/json"
-          }
-        })
-      }
-    );
-    if (!res.ok) throw new Error(`Gemini responded ${res.status}: ${(await res.text()).slice(0, 200)}`);
-    const json = await res.json();
-    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const parsed = JSON.parse(text);
-    if (typeof parsed.challenge !== "string" || typeof parsed.solution !== "string" || typeof parsed.results !== "string") {
-      throw new Error("Unexpected shape");
-    }
-    return NextResponse.json(parsed);
-  } catch (e) {
-    const detail = e instanceof Error ? e.message : "Unknown error";
-    console.error("[ai/draft] failed:", detail);
+  const result = await callGemini({
+    system: "You are a senior design case-study copywriter.",
+    contents: [{ role: "user", parts: prompt }],
+    temperature: 0.7,
+    maxOutputTokens: 700,
+    responseMimeType: "application/json"
+  });
+
+  if ("error" in result) {
+    console.error("[ai/draft] failed:", result.error);
     return NextResponse.json(
-      { error: `The AI draft failed. ${detail}` },
+      { error: `The AI draft failed. ${result.error}` },
       { status: 500 }
     );
   }
+
+  const parsed = extractJson<{ challenge?: unknown; solution?: unknown; results?: unknown }>(result.text);
+  if (
+    !parsed ||
+    typeof parsed.challenge !== "string" ||
+    typeof parsed.solution !== "string" ||
+    typeof parsed.results !== "string"
+  ) {
+    console.error("[ai/draft] unexpected shape:", result.text.slice(0, 300));
+    return NextResponse.json(
+      { error: "The AI draft failed. Unexpected response shape." },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    challenge: parsed.challenge,
+    solution: parsed.solution,
+    results: parsed.results
+  });
 }

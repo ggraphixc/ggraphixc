@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGoogleApiKey } from "@/lib/data";
-
-const MODEL = "gemini-flash-latest";
+import { callGemini } from "@/lib/gemini";
 
 const SYSTEM_PROMPT = `You are the friendly project concierge for ggraphixc — the design studio of Godson Otobo, a graphics designer.
 
@@ -44,44 +42,36 @@ export async function POST(request: Request) {
   }
   const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
 
-  const apiKey = await getGoogleApiKey();
-  if (!apiKey) {
-    return NextResponse.json({
-      offline: true,
-      reply:
-        "I'm offline right now — the AI key isn't configured yet. Add it in Admin → Settings, or email hello@ggraphixc.com and Godson will get back to you within 24 hours."
-    });
-  }
-
   const contents = messages.map((m) => ({
-    role: m.role === "user" ? "user" : "model",
-    parts: [{ text: m.parts }]
+    role: (m.role === "user" ? "user" : "model") as "user" | "model",
+    parts: m.parts
   }));
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents,
-          generationConfig: { temperature: 0.6, maxOutputTokens: 512 }
-        })
-      }
-    );
-    if (!res.ok) throw new Error(`Gemini responded ${res.status}`);
-    const json = await res.json();
-    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    return NextResponse.json({
-      reply:
-        text ||
-        "I couldn't quite process that. Could you rephrase, or email hello@ggraphixc.com?"
-    });
-  } catch {
+  const result = await callGemini({
+    system: SYSTEM_PROMPT,
+    contents,
+    temperature: 0.6,
+    maxOutputTokens: 512
+  });
+
+  if ("error" in result) {
+    // Key missing → tell the owner how to enable the concierge.
+    if (result.error.includes("not configured")) {
+      return NextResponse.json({
+        offline: true,
+        reply:
+          "I'm offline right now — the AI key isn't configured yet. Add it in Admin → Settings, or email hello@ggraphixc.com and Godson will get back to you within 24 hours."
+      });
+    }
     return NextResponse.json({
       reply: "Hmm, I hit a technical snag. Email hello@ggraphixc.com instead and I'll get right back to you."
     });
   }
+
+  const reply = result.text.trim();
+  return NextResponse.json({
+    reply:
+      reply ||
+      "I couldn't quite process that. Could you rephrase, or email hello@ggraphixc.com?"
+  });
 }
