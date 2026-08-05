@@ -3,7 +3,9 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getGoogleApiKey } from "@/lib/data";
 
-const MODEL = "gemini-2.5-flash";
+// gemini-flash-latest is the stable alias; explicit pins (e.g. gemini-2.5-flash)
+// get retired and return 404 for keys that didn't use them before retirement.
+const MODEL = "gemini-flash-latest";
 
 export async function POST(request: Request) {
   // Admin-only: this endpoint spends Gemini tokens.
@@ -76,7 +78,7 @@ Voice: confident, concise, no buzzwords, no marketing fluff.`;
         })
       }
     );
-    if (!res.ok) throw new Error(`Gemini responded ${res.status}`);
+    if (!res.ok) throw new Error(`Gemini responded ${res.status}: ${(await res.text()).slice(0, 200)}`);
     const json = await res.json();
     const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     const parsed = JSON.parse(text);
@@ -84,7 +86,12 @@ Voice: confident, concise, no buzzwords, no marketing fluff.`;
       throw new Error("Unexpected shape");
     }
     return NextResponse.json(parsed);
-  } catch {
-    return NextResponse.json({ error: "The AI draft failed. Try again, or write it by hand." }, { status: 500 });
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : "Unknown error";
+    console.error("[ai/draft] failed:", detail);
+    return NextResponse.json(
+      { error: `The AI draft failed. ${detail}` },
+      { status: 500 }
+    );
   }
 }

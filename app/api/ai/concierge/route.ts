@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getGoogleApiKey } from "@/lib/data";
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-flash-latest";
 
 const SYSTEM_PROMPT = `You are the friendly project concierge for ggraphixc — the design studio of Godson Otobo, a graphics designer.
 
