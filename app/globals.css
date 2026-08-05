@@ -436,7 +436,6 @@ h1, h2, h3, h4, h5 {
 .clients-track {
   display: flex;
   align-items: center;
-  gap: 70px;
   width: max-content;
   padding: 10px 0;
   animation: clients-marquee 38s linear infinite;
@@ -451,6 +450,7 @@ h1, h2, h3, h4, h5 {
   opacity: 0.4;
   filter: grayscale(1);
   transition: 0.4s var(--cb);
+  margin-right: 70px;
 }
 .clients-track img:hover {
   opacity: 1;
@@ -462,12 +462,28 @@ h1, h2, h3, h4, h5 {
     transform: translateX(-50%);
   }
 }
+/* Reduced-motion: show one static, wrapped set instead of the duplicated loop. */
+.clients-static {
+  display: none;
+}
 @media (prefers-reduced-motion: reduce) {
-  .clients-track {
-    animation: none;
+  .clients-marquee {
+    display: none;
+  }
+  .clients-static {
+    display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    width: 100%;
+    align-items: center;
+    gap: 40px;
+    padding: 10px 20px;
+  }
+  .clients-static img {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+    opacity: 0.5;
+    filter: grayscale(1);
   }
 }
 

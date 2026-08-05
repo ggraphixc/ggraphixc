@@ -17,13 +17,19 @@ export default function Clients() {
           <p>Brands I&apos;ve helped look &amp; feel their best</p>
         </div>
       </div>
-      <div className="clients-marquee">
+      <div className="clients-marquee" aria-hidden="true">
         <div className="clients-track">
           {row.map((c, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={`${c.name}-${i}`} src={c.src} alt={c.name} loading="lazy" title={c.name} />
+            <img key={`${c.name}-${i}`} src={c.src} alt="" loading="lazy" title={c.name} />
           ))}
         </div>
+      </div>
+      <div className="clients-static">
+        {CLIENTS.map((c) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={c.name} src={c.src} alt={c.name} loading="lazy" title={c.name} />
+        ))}
       </div>
     </section>
   );
