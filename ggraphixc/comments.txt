@@ -1,0 +1,22 @@
+
+<div class='post_comment'>
+                        <div class='Nam_star'><strong>sade</strong><div class='user-rating'><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-line' style='color: gold;'></i></div></div>
+                        <span>09/10/2024 | 11:10 AM</span>
+                        <p>Great work 👍</p> 
+                    </div>
+<div class='post_comment'>
+                        <div class='Nam_star'><strong>Tewksbury </strong><div class='user-rating'><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i></div></div>
+                        <span>09/10/2024 | 11:09 AM</span>
+                        <p>I loved the pictures ❤️</p> 
+                    </div>
+<div class='post_comment'>
+                        <div class='Nam_star'><strong>Testname</strong><div class='user-rating'><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-line' style='color: gold;'></i><i class='ri-star-line' style='color: gold;'></i></div></div>
+                        <span>09/10/2024 | 11:00 AM</span>
+                        <p>Test comments</p> 
+                    </div>
+<div class='post_comment'>
+                        <div class='Nam_star'><strong>Ella Osaretin</strong><div class='user-rating'><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-fill' style='color: orange;'></i><i class='ri-star-line' style='color: gold;'></i></div></div>
+                        <span>09/10/2024 | 10:55 AM</span>
+                        <p>Ggraphixc, truly stands out with its innovative and creative approach to design. The level of professionalism you bring to each project is impressive, showcasing a deep understanding of branding and aesthetics. Your commitment to delivering high-quality work speaks volumes about your dedication and passion.</p>
+                        
+                    </div>

@@ -1,0 +1,158 @@
+@import url(style.css);
+
+
+@media screen and (max-width: 600px){
+    #heroSection, #aboutsection, #ourmotive, #servicesec{
+        width: 100%;
+        justify-content: center;
+
+    }
+    #aboutContainer, #motivecontainer, #serviceOAll{
+        width: 90%;
+        justify-content: center;
+    }
+    #hero-content{
+        width: 80%;
+    }
+    #header{
+
+        justify-content: center;
+        display: flex;
+    }
+    
+    #logo{
+        padding-left: 20px;
+    }
+    #navContainer{
+        justify-content: center;
+        display: flex;
+    }
+    #menu-btn, #close-btn{
+        display: block;
+    }
+    #xbutton2{
+        padding: 10px 10px;
+        
+    }
+    .hero-CTA{
+        flex-direction: column;
+        row-gap: 10px;
+        align-items: flex-start;
+    }
+    #xbutton:hover{
+    border-radius: 7px;
+    background-color: var(--secondary-color2);
+    color: var(--primary-color);
+    }
+    #xbutton{
+        padding: 11px 11px;
+
+    }
+    #Dpen{
+        transform: rotateZ(60deg) scale(0.6);
+    }
+    #textitle{
+        font-size: 30px;
+    }
+    #branding{
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+    #os{
+        font-size: 40px;
+        font-weight: 700;
+    }
+    #sercvif{
+        font-size: 30px;
+        
+    }
+    #servwriteup{
+        font-size: 15px;
+        
+    }
+    a#SYJ{
+        left: 50%;
+        font-size: 22px;
+        transform: translateX(-50%);
+    }
+    #service-container{
+        width: 100%;
+    }
+    div.elementor-text-wrap div a{
+        font-size: 25px;
+    }
+    div.elementor-widget-container2{
+        width: 100%;
+    }
+    #sectionelement{
+        flex-wrap: wrap;
+    }
+    #secsection{
+        height: 75vh;
+    }
+    #footerHT.elementor-heading-title{
+        font-size: 30px;
+    }
+    div.sectcontainer p{
+        font-size: 15px;
+    }
+    div.elementor-widget-container p{
+        font-size: 20px;
+    }
+    #triggerbtn{
+        font-size: 20px;
+    }
+    div.porcontainer div:not(#typing-container){
+        position: absolute;
+        bottom: 50px;
+        left: 20px;
+    }
+    #projectTx{
+        font-size: 34px;
+    }
+    div.porcontainer div p{
+        width: 100%;
+        min-width: 300px;
+        max-width: 500px;
+    }
+      div.item.filtered {
+    overflow: hidden;
+    width: 420px;
+    }
+    .item.filtered:active::before {
+        opacity: 1;
+      }
+      
+      .item.filtered:active h5 {
+        opacity: 1;
+        transform: scale(1.02);
+        transform: translateX(20%);
+    
+      }
+      div.item.filtered:hover h5 {
+        
+        transform: translateX(30%);
+    
+      }
+      ul.serd{
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      div.formdetails{
+        flex-wrap: wrap;
+      }
+      div.aboutusCont{
+        width: 100%;
+      }
+      div#aboutusWrap{
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+      }
+      div.aboutcontent{
+        width: 80%;
+      }
+
+
+}

@@ -1,0 +1,281 @@
+@import url(style.css);
+
+html {
+    scroll-behavior: smooth;
+}
+
+                
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none;
+    font-family: 'Montserrat' sans-serif;
+    
+}
+:root {
+    --primary-color: #0d0c2d;
+    --ascent-color: rgb(60, 130, 220);
+    --secondary-color: #f4f0bd;
+    --secondary-color2: #f4b508;
+    --transparent-color: #f4f0bd9e;
+    --colour: #e8f6fe;
+    --font-family: 'montserrat', sans-serif;
+    --font-size: 16px;
+    --light-shadow: 0 2px 15px rgba(131, 133, 81, 0.463);
+    --Dark-shadow: 0px 4px 25px rgba(0, 0, 0, 0.305); 
+    --firstgradient: linear-gradient(to right, rgb(19, 15, 70), rgb(36, 98, 181));
+    --secondgradient: linear-gradient(to right, #773ecb, #2663ff);
+    --thirdgradient: linear-gradient(to bottom, rgb(255, 47, 0), #ffc802);
+}
+
+.secsection{
+    width: 100%;
+    height: 60vh;
+    background: var(--secondgradient);
+    position: relative;
+    padding-block: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    
+}
+ img.cl{
+    width: 100%;
+    position: absolute;
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: multiply;
+    top: 0;
+    left: 0;
+    
+}
+.sectcontainer{
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    width: 80%;
+    
+}
+.sectcontainer h1{
+    font-size: 40px;
+    
+}
+.sectcontainer h3{
+    font-size: 15px;
+    font-weight: 400;
+}
+.triggerbtn{
+    width: fit-content;
+    background: linear-gradient(to left, rgb(255, 47, 0), #ffc802);
+    color: #ffffff;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-family: 'Montserrat' sans-serif;
+    font-size: 25px;
+    text-transform: capitalize;
+    border-radius: 7px;
+    font-weight: 700;
+    transition: transform .4s ease-in-out, box-shadow .4s ease-in-out;
+
+}
+.triggerbtn:hover{
+    transform: scale(1.14);
+    box-shadow: 0 0 30px rgba(255, 217, 0, 0.449);
+}
+
+.elementor-section {
+    background: #07070b;
+    width: 100%;
+    /* padding: 100px 0; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 100px;
+    position: relative;
+    padding-block: 0 80px;
+
+}
+.element-sec {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    background: #dfdef5;
+    justify-content: center;
+    align-items: center;
+    
+}
+#sectionelement{
+    width: 80%;
+    display: flex;
+    gap: 20px;
+    
+
+      
+}
+
+@media screen and (max-width: 1200px){
+    #sectionelement{
+        flex-wrap: wrap;
+        height: 100%;
+    }
+}
+
+#textedsw{
+    font-size: 40px;
+    position: relative;
+    color: #0d0c2d;
+    transition: color .4s ease-in-out;
+    text-align: center;
+    width: 300px;
+    
+}
+#textedsw::after {
+    content: "We Offer";
+    /* font-size: 30px; */
+    position: absolute;
+    top: 0;    
+    left: 0;
+    width: 100%;              
+    height: fit-content;     
+    display: flex;                
+    justify-content: center;      
+    align-items: center;          
+    opacity: 0;              
+    transition: opacity .4s ease-in-out;/* Smooth transition for fade-in */
+    background: linear-gradient(to right, red, #ff7802); 
+    background-clip: text; 
+    -webkit-text-fill-color: transparent;                
+}
+
+/* On hover, make the original text invisible and show the new text */
+#textedsw:hover {
+    color: transparent;           /* Make the original text invisible */
+}
+
+#textedsw:hover::after {
+    opacity: 1;                   /* Show the "Let go" text */
+}
+.elementor-widget-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    /* padding: 0 70px; */
+
+}
+.elementor-heading-title{
+    font-size: 30px;
+    transition: all 0.4s ease-in;
+    cursor: context-menu;
+
+}
+.elementor-widget-container p{
+    font-size: 20px;
+    width: 100%;
+}
+div.element{
+    display: flex;
+    width: 100%;
+    height: fit-content;
+    column-gap: 30px;
+    position: relative;
+    flex-direction: row;
+}
+.elementor-widget-container 
+.elementor-text-wrap{
+    width: 100%;
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+
+}
+.contentplate{
+    background: var(--colour);
+    width: fit-content;
+    padding: 20px;
+    border-radius: 12px;
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    color: #0d0c2d;
+}
+.contentplate h1{
+    font-size: 30px;
+}
+.contentplate div{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+#w1{
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 4px;
+    padding: 7px 15px; 
+    width: fit-content;
+    transition: transform .4s ease;  
+    cursor: context-menu;
+    background: var(--secondgradient);
+    color: #ffffff;
+}
+#w1:hover{
+    transform: scale(1.14);
+    box-shadow: 0 0 25px #040017b8;
+    
+}
+#fw{
+    font-size: 25px; 
+    color: #1fdaff;
+    font-weight: 500;
+}
+.element-img{
+    background-image: url(Images/gelt\ token.jpg);
+    position: relative;
+    width: 100%;
+   background-position: center;
+    background-size: cover;
+    height: 50vh;
+}
+
+.drigbtn{
+    width: fit-content;
+    background: linear-gradient(to left, rgb(4, 56, 178), #0ca0e0);
+    color: #ffffff;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-family: 'Montserrat' sans-serif;
+    font-size: 20px;
+    text-transform: capitalize;
+    border-radius: 25px;
+    font-weight: 700;
+    transition: transform .4s ease-in-out, box-shadow .4s ease-in-out;
+
+}
+.drigbtn:hover{
+    transform: scale(1.14);
+    box-shadow: 0 0 30px rgba(44, 156, 255, 0.449);
+}
+
+#sectionelement.rw1{
+    flex-direction: row-reverse;
+}
+
+.rewiewwws{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* gap: 10px; */
+    align-items: center;
+}
+div.testi h3{
+    color: #dfdef5;
+}
+div.testi p{
+    color: #dfdef5;
+}
+
