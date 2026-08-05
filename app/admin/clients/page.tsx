@@ -129,7 +129,7 @@ export default function AdminClients() {
 
       <form className="admin-card" onSubmit={add}>
         <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 14 }}>Add client</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
+        <div className="admin-form-grid">
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Client name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Inc." />

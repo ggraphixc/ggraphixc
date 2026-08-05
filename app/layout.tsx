@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ViewTransitions from "@/components/ViewTransitions";
+import SiteChrome from "@/components/SiteChrome";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -67,11 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <ViewTransitions>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </ViewTransitions>
+        <SiteChrome>{children}</SiteChrome>
         <Analytics />
       </body>
     </html>

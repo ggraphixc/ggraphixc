@@ -72,7 +72,7 @@ export default function AdminSettings() {
         {loading ? (
           <p style={{ color: "var(--muted)" }}>Loading…</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <div className="admin-form-grid">
             {FIELD_LABELS.map(([key, label, hint], i) => {
               const isSecret = key === "google_api_key";
               return (

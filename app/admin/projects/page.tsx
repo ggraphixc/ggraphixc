@@ -276,7 +276,7 @@ export default function AdminProjects() {
           </button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="admin-form-grid">
           <div className="field">
             <label>Title</label>
             <input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Veloura Living" />

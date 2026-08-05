@@ -195,7 +195,7 @@ export default function AdminBlog() {
         <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 14 }}>
           {editing ? "Edit post" : "New post"}
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="admin-form-grid">
           <div className="field">
             <label>Title</label>
             <input value={form.title} onChange={(e) => set("title", e.target.value)} />
@@ -223,7 +223,7 @@ export default function AdminBlog() {
           <label>Content (paragraphs separated by blank lines)</label>
           <textarea value={form.content} onChange={(e) => set("content", e.target.value)} style={{ minHeight: 160 }} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="admin-form-grid">
           <div className="field">
             <label>Tags (comma separated)</label>
             <input value={form.tags ?? ""} onChange={(e) => set("tags", e.target.value)} placeholder="Brand, Systems" />

@@ -171,7 +171,7 @@ export default function AdminTestimonials() {
         <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 14 }}>
           {editing ? "Edit testimonial" : "Add testimonial"}
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className="admin-form-grid">
           <div className="field">
             <label>Name</label>
             <input value={form.name} onChange={(e) => set("name", e.target.value)} />
