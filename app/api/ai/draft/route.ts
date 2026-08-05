@@ -76,30 +76,50 @@ Return ONLY JSON with exactly these three keys:
 - "results": 1-2 sentences describing the outcome with a plausible, specific metric.
 Voice: confident, concise, no buzzwords, no marketing fluff.`;
 
-  const result = await callGemini({
-    system: "You are a senior design case-study copywriter.",
-    contents: [{ role: "user", parts: [{ text: prompt }, ...images] }],
-    temperature: 0.7,
-    maxOutputTokens: 700,
-    responseMimeType: "application/json"
-  });
+  type Draft = { challenge?: unknown; solution?: unknown; results?: unknown };
 
-  if ("error" in result) {
-    console.error("[ai/draft] failed:", result.error);
-    return NextResponse.json(
-      { error: `The AI draft failed. ${result.error}` },
-      { status: 500 }
-    );
+  // Gemini can occasionally return truncated or malformed JSON — most often
+  // when vision inputs push the output past maxOutputTokens (the response then
+  // ends mid-string with no closing brace). Retry with a larger token budget
+  // before giving up.
+  let result: { text: string } | { error: string } | null = null;
+  let parsed: Draft | null = null;
+  for (const maxOutputTokens of [700, 1024, 1400]) {
+    result = await callGemini({
+      system: "You are a senior design case-study copywriter.",
+      contents: [{ role: "user", parts: [{ text: prompt }, ...images] }],
+      temperature: 0.7,
+      maxOutputTokens,
+      responseMimeType: "application/json"
+    });
+
+    if ("error" in result) {
+      console.error("[ai/draft] failed:", result.error);
+      return NextResponse.json(
+        { error: `The AI draft failed. ${result.error}` },
+        { status: 500 }
+      );
+    }
+
+    parsed = extractJson<Draft>(result.text);
+    if (
+      parsed &&
+      typeof parsed.challenge === "string" &&
+      typeof parsed.solution === "string" &&
+      typeof parsed.results === "string"
+    ) {
+      break;
+    }
   }
 
-  const parsed = extractJson<{ challenge?: unknown; solution?: unknown; results?: unknown }>(result.text);
   if (
     !parsed ||
     typeof parsed.challenge !== "string" ||
     typeof parsed.solution !== "string" ||
     typeof parsed.results !== "string"
   ) {
-    console.error("[ai/draft] unexpected shape:", result.text.slice(0, 300));
+    const preview = result && "text" in result ? result.text.slice(0, 300) : "(no text)";
+    console.error("[ai/draft] unexpected shape:", preview);
     return NextResponse.json(
       { error: "The AI draft failed. Unexpected response shape." },
       { status: 500 }

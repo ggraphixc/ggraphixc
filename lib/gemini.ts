@@ -93,21 +93,61 @@ export async function callGemini(opts: GeminiCall): Promise<GeminiResult> {
 /**
  * Gemini is not always strict about `responseMimeType: application/json` —
  * strip markdown fences and take the first balanced JSON object if needed.
+ * Also repairs the most common defect: literal (unescaped) newlines inside
+ * string values, which make JSON.parse throw.
  */
 export function extractJson<T = unknown>(text: string): T | null {
-  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  let cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+
   try {
     return JSON.parse(cleaned) as T;
   } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    if (start >= 0 && end > start) {
-      try {
-        return JSON.parse(cleaned.slice(start, end + 1)) as T;
-      } catch {
-        return null;
-      }
-    }
+    /* fall through to repair */
+  }
+
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+
+  const candidate = escapeNewlinesInJson(cleaned.slice(start, end + 1));
+  try {
+    return JSON.parse(candidate) as T;
+  } catch {
     return null;
   }
+}
+
+/** Escape unescaped \n/\r characters that appear inside JSON string values. */
+function escapeNewlinesInJson(json: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+    if (inString) {
+      if (ch === "\\") {
+        out += ch + (json[i + 1] ?? "");
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+        out += ch;
+        continue;
+      }
+      if (ch === "\r") {
+        out += "\\n";
+        if (json[i + 1] === "\n") i++; // consume the LF so we emit a single newline
+        continue;
+      }
+      if (ch === "\n") {
+        out += "\\n";
+        continue;
+      }
+      out += ch;
+    } else {
+      if (ch === '"') inString = true;
+      out += ch;
+    }
+  }
+  return out;
 }
