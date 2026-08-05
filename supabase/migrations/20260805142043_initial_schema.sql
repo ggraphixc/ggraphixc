@@ -22,6 +22,13 @@ create table if not exists public.projects (
   created_at timestamptz not null default now()
 );
 
+-- Slug must be unique — the app looks up case studies with .maybeSingle().
+do $ begin
+  if not exists (select 1 from pg_constraint where conname = 'projects_slug_key') then
+    alter table public.projects add constraint projects_slug_key unique (slug);
+  end if;
+end $;
+
 -- ---------- testimonials ----------
 create table if not exists public.testimonials (
   id uuid primary key default gen_random_uuid(),
@@ -67,23 +74,32 @@ alter table public.inquiries enable row level security;
 alter table public.site_settings enable row level security;
 
 -- Public read everywhere
+drop policy if exists "public read projects" on public.projects;
 create policy "public read projects" on public.projects for select using (true);
+drop policy if exists "public read testimonials" on public.testimonials;
 create policy "public read testimonials" on public.testimonials for select using (true);
+drop policy if exists "public read settings" on public.site_settings;
 create policy "public read settings" on public.site_settings for select using (true);
 
 -- Authenticated admins can manage content
+drop policy if exists "admin write projects" on public.projects;
 create policy "admin write projects" on public.projects
   for all to authenticated using (true) with check (true);
+drop policy if exists "admin write testimonials" on public.testimonials;
 create policy "admin write testimonials" on public.testimonials
   for all to authenticated using (true) with check (true);
+drop policy if exists "admin write settings" on public.site_settings;
 create policy "admin write settings" on public.site_settings
   for all to authenticated using (true) with check (true);
 
 -- Inquiries: public can insert (contact form), admins can read/manage
+drop policy if exists "public insert inquiries" on public.inquiries;
 create policy "public insert inquiries" on public.inquiries
   for insert to anon with check (true);
+drop policy if exists "admin read inquiries" on public.inquiries;
 create policy "admin read inquiries" on public.inquiries
   for select to authenticated using (true);
+drop policy if exists "admin write inquiries" on public.inquiries;
 create policy "admin write inquiries" on public.inquiries
   for all to authenticated using (true) with check (true);
 
@@ -104,10 +120,11 @@ values
    'An enterprise analytics UI with a consistent design system and component library.', 5),
   ('Sanctuary — Audio Brand', 'sanctuary', 'Brand Identity', '100k+ Streams',
    'A bold audio-first brand identity and cover art system for an independent artist.', 6)
-on conflict do nothing;
+on conflict (slug) do nothing;
 
 insert into public.testimonials (name, role, quote, display_order)
-values
+select v.name, v.role, v.quote, v.display_order
+from (values
   ('Samuel Adama', 'CEO, Ophirbrooks Technologies',
    'ggraphixc turned a basic brief into a premium visual identity that clearly explains our offer.', 1),
   ('Ifanyi Eze', 'Marketing Lead',
@@ -116,7 +133,8 @@ values
    'They helped us simplify the product flow and give users a cleaner path from first look to action.', 3),
   ('Kunle Olalekan', 'Founder',
    'ggraphixc built us a unified kit so the team could move faster and stay on brand.', 4)
-on conflict do nothing;
+) as v(name, role, quote, display_order)
+where not exists (select 1 from public.testimonials t where t.quote = v.quote);
 
 insert into public.site_settings (key, value) values
   ('hero_headline', 'I Design Brands, Visuals & Digital Experiences'),
@@ -149,10 +167,13 @@ create index if not exists blog_order_idx on public.blog_posts (display_order);
 
 alter table public.blog_posts enable row level security;
 
+drop policy if exists "public read published posts" on public.blog_posts;
 create policy "public read published posts" on public.blog_posts
   for select using (published = true);
+drop policy if exists "admin read all posts" on public.blog_posts;
 create policy "admin read all posts" on public.blog_posts
   for select to authenticated using (true);
+drop policy if exists "admin write posts" on public.blog_posts;
 create policy "admin write posts" on public.blog_posts
   for all to authenticated using (true) with check (true);
 
@@ -176,13 +197,17 @@ values ('project-images', 'project-images', true)
 on conflict (id) do nothing;
 
 -- Authenticated admins can upload / manage files
+drop policy if exists "admin upload images" on storage.objects;
 create policy "admin upload images" on storage.objects
   for insert to authenticated with check (bucket_id = 'project-images');
+drop policy if exists "admin update images" on storage.objects;
 create policy "admin update images" on storage.objects
   for update to authenticated using (bucket_id = 'project-images');
+drop policy if exists "admin delete images" on storage.objects;
 create policy "admin delete images" on storage.objects
   for delete to authenticated using (bucket_id = 'project-images');
 -- Public read of uploaded images
+drop policy if exists "public read images" on storage.objects;
 create policy "public read images" on storage.objects
   for select using (bucket_id = 'project-images');
 
@@ -209,9 +234,11 @@ create index if not exists project_images_project_idx on public.project_images (
 
 alter table public.project_images enable row level security;
 
-create policy if not exists "public read project images" on public.project_images
+drop policy if exists "public read project images" on public.project_images;
+create policy "public read project images" on public.project_images
   for select using (true);
-create policy if not exists "admin write project images" on public.project_images
+drop policy if exists "admin write project images" on public.project_images;
+create policy "admin write project images" on public.project_images
   for all to authenticated using (true) with check (true);
 
 -- Seed case-study narrative + featured flags for the sample projects
