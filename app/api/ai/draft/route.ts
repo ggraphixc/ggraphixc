@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getGoogleApiKey } from "@/lib/data";
 
-const API_KEY = process.env.GOOGLE_API_KEY;
 const MODEL = "gemini-2.5-flash";
 
 export async function POST(request: Request) {
@@ -25,9 +25,10 @@ export async function POST(request: Request) {
     }
   }
 
-  if (!API_KEY) {
+  const apiKey = await getGoogleApiKey();
+  if (!apiKey) {
     return NextResponse.json(
-      { error: "GOOGLE_API_KEY is not configured — add it to .env.local to enable AI drafting." },
+      { error: "Google AI key is not configured — add it in Admin → Settings, or to .env.local." },
       { status: 400 }
     );
   }
@@ -58,7 +59,7 @@ Voice: confident, concise, no buzzwords, no marketing fluff.`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { Project } from "@/lib/types";
 import ImageUpload from "@/components/admin/ImageUpload";
 import GalleryManager from "@/components/admin/GalleryManager";
+import MultiImageUpload from "@/components/admin/MultiImageUpload";
 import InlineEdit from "@/components/admin/InlineEdit";
 import AdminToast from "@/components/admin/AdminToast";
 import { useDragSort } from "@/components/admin/useDragSort";
@@ -37,6 +38,8 @@ export default function AdminProjects() {
   const [drafting, setDrafting] = useState(false);
   const [msg, setMsg] = useState("");
   const [toast, setToast] = useState<{ text: string; type: "ok" | "err" } | null>(null);
+  // Gallery images buffered for a NEW project (no id yet) — inserted after save.
+  const [galleryDraft, setGalleryDraft] = useState<string[]>([]);
 
   async function load() {
     setLoading(true);
@@ -128,6 +131,7 @@ export default function AdminProjects() {
   function reset() {
     setEditing(null);
     setForm(EMPTY);
+    setGalleryDraft([]);
     setMsg("");
   }
 
@@ -200,6 +204,25 @@ export default function AdminProjects() {
       setMsg(error.message);
       return;
     }
+    // Insert any buffered gallery images for the newly created project.
+    if (!editing && galleryDraft.length > 0) {
+      const created = await supabase
+        .from("projects")
+        .select("id")
+        .eq("slug", payload.slug)
+        .single();
+      if (!created.error && created.data) {
+        const { error: gErr } = await supabase.from("project_images").insert(
+          galleryDraft.map((url, i) => ({
+            project_id: created.data.id,
+            image_url: url,
+            display_order: i + 1
+          }))
+        );
+        if (gErr) setMsg("Project saved, but gallery images failed: " + gErr.message);
+      }
+    }
+    setGalleryDraft([]);
     setToast({ text: editing ? "Project updated" : "Project added", type: "ok" });
     reset();
     await load();
@@ -313,11 +336,25 @@ export default function AdminProjects() {
           {busy ? "Saving..." : editing ? "Update Project" : "Add Project"}
         </button>
 
+        {!editing && (
+          <div style={{ marginTop: 22, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+            <h4 style={{ fontSize: 14, fontWeight: 800, marginBottom: 4 }}>Gallery images (optional)</h4>
+            <p style={{ color: "var(--muted)", fontSize: 12, marginBottom: 8 }}>
+              Add multiple images now — they&apos;re saved to the case study automatically when you add the project.
+            </p>
+            <MultiImageUpload
+              urls={galleryDraft}
+              onChange={setGalleryDraft}
+              folder="projects/gallery"
+            />
+          </div>
+        )}
+
         {editing && (
           <div style={{ marginTop: 22, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
             <h4 style={{ fontSize: 14, fontWeight: 800, marginBottom: 4 }}>Gallery</h4>
             <p style={{ color: "var(--muted)", fontSize: 12, marginBottom: 8 }}>
-              Extra images shown on the case-study page after saving.
+              Extra images shown on the case-study page after saving. Drag or click to reorder.
             </p>
             <GalleryManager projectId={editing} />
           </div>

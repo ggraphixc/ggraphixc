@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSettings } from "@/lib/data";
+import NewsletterForm from "@/components/NewsletterForm";
 
 const COLS = [
   {
@@ -76,6 +77,7 @@ export default async function Footer() {
             <Link href="/contact">Start a Project</Link>
             <Link href="/admin">Admin</Link>
           </div>
+          <NewsletterForm />
         </div>
         <div className="footer-bottom">
           <span>© 2026 ggraphixc. All rights reserved.</span>

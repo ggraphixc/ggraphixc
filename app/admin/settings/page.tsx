@@ -73,18 +73,23 @@ export default function AdminSettings() {
           <p style={{ color: "var(--muted)" }}>Loading…</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-            {FIELD_LABELS.map(([key, label, hint], i) => (
-              <div key={key} className="field">
-                <label>{label}</label>
-                <input
-                  value={form[key] ?? ""}
-                  onChange={(e) => set(key, e.target.value)}
-                  placeholder={hint}
-                  style={i >= 3 ? { fontWeight: 700 } : undefined}
-                />
-                <span style={{ fontSize: 11, color: "var(--muted)", marginTop: -6 }}>{hint}</span>
-              </div>
-            ))}
+            {FIELD_LABELS.map(([key, label, hint], i) => {
+              const isSecret = key === "google_api_key";
+              return (
+                <div key={key} className="field">
+                  <label>{label}</label>
+                  <input
+                    type={isSecret ? "password" : "text"}
+                    value={form[key] ?? ""}
+                    onChange={(e) => set(key, e.target.value)}
+                    placeholder={isSecret ? "Paste your Google AI key…" : hint}
+                    autoComplete={isSecret ? "off" : undefined}
+                    style={i >= 3 ? { fontWeight: 700 } : undefined}
+                  />
+                  <span style={{ fontSize: 11, color: "var(--muted)", marginTop: -6 }}>{hint}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 

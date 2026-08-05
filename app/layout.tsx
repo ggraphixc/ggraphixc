@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ViewTransitions from "@/components/ViewTransitions";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "ggraphixc — Godson Otobo | Graphics Designer",
@@ -42,6 +43,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         />
         <script type="speculationrules">{JSON.stringify(speculationRules)}</script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: "Godson Otobo",
+              alternateName: "ggraphixc",
+              jobTitle: "Graphics Designer",
+              url: "https://ggraphixc.com",
+              description:
+                "Brand identity, creative systems, and conversion-ready design by Godson Otobo (ggraphixc).",
+              knowsAbout: [
+                "Brand Identity",
+                "Creative Systems",
+                "Product UI",
+                "Social & Campaign Design"
+              ],
+              email: "hello@ggraphixc.com"
+            })
+          }}
+        />
       </head>
       <body>
         <ViewTransitions>
@@ -49,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           <Footer />
         </ViewTransitions>
+        <Analytics />
       </body>
     </html>
   );

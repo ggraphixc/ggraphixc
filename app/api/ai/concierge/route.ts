@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { getGoogleApiKey } from "@/lib/data";
 
-const API_KEY = process.env.GOOGLE_API_KEY;
 const MODEL = "gemini-2.5-flash";
 
 const SYSTEM_PROMPT = `You are the friendly project concierge for ggraphixc — the design studio of Godson Otobo, a graphics designer.
@@ -44,11 +44,12 @@ export async function POST(request: Request) {
   }
   const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
 
-  if (!API_KEY) {
+  const apiKey = await getGoogleApiKey();
+  if (!apiKey) {
     return NextResponse.json({
       offline: true,
       reply:
-        "I'm offline right now — the AI key isn't configured yet. Email hello@ggraphixc.com and Godson will get back to you within 24 hours."
+        "I'm offline right now — the AI key isn't configured yet. Add it in Admin → Settings, or email hello@ggraphixc.com and Godson will get back to you within 24 hours."
     });
   }
 
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

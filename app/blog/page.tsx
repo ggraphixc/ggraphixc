@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import BlogExplorer from "@/components/BlogExplorer";
 import { getPublishedBlog } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -24,30 +24,11 @@ export default async function BlogPage() {
           </div>
         </Reveal>
 
-        <div className="work-grid" style={{ marginTop: 40 }}>
-          {posts.map((p, i) => (
-            <Reveal key={p.id} delay={i * 50}>
-              <Link href={`/blog/${p.slug}`} className="work-card" style={{ display: "flex", height: "100%" }}>
-                <div className="thumb">
-                  {p.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.cover_url} alt={p.title} loading="lazy" />
-                  ) : null}
-                  {p.tags && <span className="tag">{p.tags}</span>}
-                </div>
-                <div className="body">
-                  <h3 style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3 }}>{p.title}</h3>
-                  {p.excerpt && <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 8 }}>{p.excerpt}</p>}
-                  <span className="card-link">
-                    Read post <i className="fa-solid fa-arrow-right" />
-                  </span>
-                </div>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-
-        {posts.length === 0 && <p style={{ color: "var(--muted)" }}>No posts published yet.</p>}
+        {posts.length === 0 ? (
+          <p style={{ color: "var(--muted)" }}>No posts published yet.</p>
+        ) : (
+          <BlogExplorer posts={posts} />
+        )}
       </div>
     </section>
   );

@@ -35,6 +35,22 @@ export type Testimonial = {
   created_at: string;
 };
 
+export type Client = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  display_order: number;
+  created_at: string;
+};
+
+export type Faq = {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+  created_at: string;
+};
+
 export type Inquiry = {
   id: string;
   name: string;
@@ -74,6 +90,8 @@ export type Database = {
       project_images: { Row: ProjectImage; Insert: Omit<ProjectImage, "id" | "created_at">; Update: Partial<ProjectImage> };
       testimonials: { Row: Testimonial; Insert: Omit<Testimonial, "id" | "created_at">; Update: Partial<Testimonial> };
       inquiries: { Row: Inquiry; Insert: Omit<Inquiry, "id" | "created_at" | "status">; Update: Partial<Inquiry> };
+      clients: { Row: Client; Insert: Omit<Client, "id" | "created_at">; Update: Partial<Client> };
+      faqs: { Row: Faq; Insert: Omit<Faq, "id" | "created_at">; Update: Partial<Faq> };
       site_settings: { Row: SiteSetting; Insert: Omit<SiteSetting, "updated_at">; Update: Partial<SiteSetting> };
       blog_posts: { Row: BlogPost; Insert: Omit<BlogPost, "id" | "created_at">; Update: Partial<BlogPost> };
     };

@@ -1,6 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS } from "@/lib/site-settings";
-import type { Project, ProjectImage, Testimonial, SiteSetting, BlogPost } from "@/lib/types";
+import type { Project, ProjectImage, Testimonial, SiteSetting, BlogPost, Client, Faq } from "@/lib/types";
 
 export const SAMPLE_PROJECTS: Project[] = [
   {
@@ -272,6 +272,95 @@ export async function getPublishedBlog(): Promise<BlogPost[]> {
     .order("display_order", { ascending: true });
   if (error || !data || data.length === 0) return SAMPLE_BLOG;
   return data as BlogPost[];
+}
+
+export const SAMPLE_CLIENTS: Client[] = [
+  { id: "c1", name: "Gleamify", logo_url: "/images/clients/gleamify-1.png", display_order: 1, created_at: new Date().toISOString() },
+  { id: "c2", name: "Thrive", logo_url: "/images/clients/thrive.jpg", display_order: 2, created_at: new Date().toISOString() },
+  { id: "c3", name: "Gelt Token", logo_url: "/images/clients/gelt.jpg", display_order: 3, created_at: new Date().toISOString() },
+  { id: "c4", name: "Mr. Clin", logo_url: "/images/clients/mr-clin.jpg", display_order: 4, created_at: new Date().toISOString() },
+  { id: "c5", name: "Azax", logo_url: "/images/clients/azax.jpg", display_order: 5, created_at: new Date().toISOString() },
+  { id: "c6", name: "Thrive Token", logo_url: "/images/clients/thrive-token.jpg", display_order: 6, created_at: new Date().toISOString() }
+];
+
+export const SAMPLE_FAQS: Faq[] = [
+  {
+    id: "f1",
+    question: "What design services do you offer?",
+    answer:
+      "Brand identity, creative systems, product & UI design, social and campaign creative, packaging/print, and art direction — either as one project or ongoing visual partnership.",
+    display_order: 1,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "f2",
+    question: "Can you help my brand look more premium and consistent?",
+    answer:
+      "Yes. I audit scattered visuals and rebuild them into a clean identity and reusable system, so every touchpoint feels intentional and trustworthy.",
+    display_order: 2,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "f3",
+    question: "How long does a brand or design project take?",
+    answer:
+      "A focused identity system usually takes 2–4 weeks, a full brand + creative system 4–8 weeks, and a product UI build depends on scope and approvals.",
+    display_order: 3,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "f4",
+    question: "Do you provide source files and full ownership?",
+    answer:
+      "Always. You keep full ownership of every approved asset, design file, and system I create — delivered in formats your team can actually use.",
+    display_order: 4,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "f5",
+    question: "Can we work together on an ongoing basis?",
+    answer:
+      "Yes. Many clients keep me on a monthly retainer for continuous design, so new assets ship fast and stay on-brand without hiring in-house.",
+    display_order: 5,
+    created_at: new Date().toISOString()
+  }
+];
+
+export async function getClients(): Promise<Client[]> {
+  const sb = await safeService();
+  if (!sb) return SAMPLE_CLIENTS;
+  const { data, error } = await sb
+    .from("clients")
+    .select("*")
+    .order("display_order", { ascending: true });
+  if (error || !data || data.length === 0) return SAMPLE_CLIENTS;
+  return data as Client[];
+}
+
+export async function getFaqs(): Promise<Faq[]> {
+  const sb = await safeService();
+  if (!sb) return SAMPLE_FAQS;
+  const { data, error } = await sb
+    .from("faqs")
+    .select("*")
+    .order("display_order", { ascending: true });
+  if (error || !data || data.length === 0) return SAMPLE_FAQS;
+  return data as Faq[];
+}
+
+/**
+ * Resolve the Google AI (Gemini) key: env var wins, else the private
+ * google_api_key setting from site_settings (hidden from public reads via RLS).
+ * Server-only — never call from a client component.
+ */
+export async function getGoogleApiKey(): Promise<string | null> {
+  if (process.env.GOOGLE_API_KEY) return process.env.GOOGLE_API_KEY;
+  const sb = await safeService();
+  if (!sb) return null;
+  const { data, error } = await sb.from("site_settings").select("value").eq("key", "google_api_key").maybeSingle();
+  if (error || !data) return null;
+  const v = (data as SiteSetting).value?.trim();
+  return v || null;
 }
 
 export async function getBlogPost(slug: string): Promise<BlogPost | null> {

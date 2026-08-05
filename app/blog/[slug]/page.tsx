@@ -29,8 +29,26 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const paragraphs = post.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const articleLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt ?? undefined,
+    image: post.cover_url ? [post.cover_url] : undefined,
+    datePublished: post.created_at,
+    author: { "@type": "Person", name: "Godson Otobo", url: base },
+    publisher: {
+      "@type": "Organization",
+      name: "ggraphixc",
+      url: base
+    },
+    mainEntityOfPage: `${base}/blog/${post.slug}`
+  };
+
   return (
     <article className="section" style={{ paddingTop: 160 }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <div className="container" style={{ maxWidth: 760 }}>
         <Reveal>
           <Link href="/blog" className="btn btn-ghost btn-sm" style={{ marginBottom: 24 }}>

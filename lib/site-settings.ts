@@ -11,7 +11,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   stats_clients: "60+",
   stats_experience: "6+",
   stats_satisfaction: "98%",
-  contact_email: "hello@ggraphixc.com"
+  contact_email: "hello@ggraphixc.com",
+  google_api_key: ""
 };
 
 export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] = [
@@ -22,5 +23,10 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   ["stats_clients", "Clients stat", "e.g. 60+"],
   ["stats_experience", "Experience stat", "e.g. 6+"],
   ["stats_satisfaction", "Satisfaction stat", "e.g. 98%"],
-  ["contact_email", "Contact email", "Used across the site (footer + contact links)."]
+  ["contact_email", "Contact email", "Used across the site (footer + contact links)."],
+  [
+    "google_api_key",
+    "Google AI API key (Gemini)",
+    "Powers the AI concierge + case-study drafts. Get one at aistudio.google.com. Stored privately (never shown publicly)."
+  ]
 ];

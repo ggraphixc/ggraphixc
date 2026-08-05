@@ -49,8 +49,21 @@ export default async function ProjectCaseStudy({
   const prev = idx > 0 ? allProjects[idx - 1] : null;
   const next = idx >= 0 && idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
 
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const projectLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: project.title,
+    description: project.description ?? undefined,
+    image: project.image_url ?? undefined,
+    creator: { "@type": "Person", name: "Godson Otobo", url: base },
+    url: `${base}/projects/${project.slug}`,
+    genre: project.category ?? undefined
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectLd) }} />
       <section className="cs-hero">
         <div className="hero-glow" />
         <div className="container">
