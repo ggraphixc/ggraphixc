@@ -22,11 +22,10 @@ create table if not exists public.projects (
 );
 
 -- Slug must be unique — the app looks up case studies with .maybeSingle().
-do $ begin
-  if not exists (select 1 from pg_constraint where conname = 'projects_slug_key') then
-    alter table public.projects add constraint projects_slug_key unique (slug);
-  end if;
-end $;
+-- A unique index is used instead of a table constraint so this stays
+-- idempotent (CREATE UNIQUE INDEX IF NOT EXISTS) and pairs with
+-- ON CONFLICT (slug) below.
+create unique index if not exists projects_slug_key on public.projects (slug);
 
 -- ---------- testimonials ----------
 create table if not exists public.testimonials (
