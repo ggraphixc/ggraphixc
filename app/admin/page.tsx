@@ -8,11 +8,13 @@ export const dynamic = "force-dynamic";
 function CStat({
   label,
   icon,
-  value
+  value,
+  unit = "visitors"
 }: {
   label: string;
   icon: string;
   value?: EventCount;
+  unit?: string;
 }) {
   return (
     <div className="cstat">
@@ -21,7 +23,7 @@ function CStat({
         <span className="lbl">{label}</span>
       </div>
       <div className="num">{value?.count ?? 0}</div>
-      <div className="vis">{value?.visitors ?? 0} visitors</div>
+      <div className="vis">{value?.visitors ?? 0} {unit}</div>
     </div>
   );
 }
@@ -62,6 +64,7 @@ export default async function AdminDashboard({
   const opened = stats.events.concierge_opened?.count ?? 0;
   const afterChat = stats.contactAfterChat.count;
   const chatRate = opened > 0 ? Math.round((afterChat / opened) * 100) : 0;
+  const unit = stats.source === "local" ? "events" : "visitors";
   const cards = [
     { label: "Projects", value: c.projects, href: "/admin/projects", icon: "fa-images" },
     { label: "Blog Posts", value: c.blog, href: "/admin/blog", icon: "fa-pen-nib" },
@@ -92,8 +95,8 @@ export default async function AdminDashboard({
             <h3 style={{ fontSize: 18, fontWeight: 800 }}>Concierge activity</h3>
             <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>
               {stats.configured
-                ? `Chat + contact funnel from Vercel Analytics — ${stats.period.since} → ${stats.period.until}.`
-                : "Live chat & contact funnel from Vercel Analytics."}
+                ? `Chat + contact funnel from ${stats.source === "local" ? "self-hosted analytics" : "Vercel Analytics"} — ${stats.period.since} → ${stats.period.until}.`
+                : "Live chat & contact funnel analytics."}
             </p>
           </div>
           {stats.configured && (
@@ -111,11 +114,7 @@ export default async function AdminDashboard({
         {!stats.configured ? (
           <div className="analytics-hint">
             <i className="fa-solid fa-chart-line" aria-hidden="true" />
-            <div>
-              Events are already being collected, but the dashboard needs a one-time setup to read them: create a{" "}
-              <strong>Vercel access token</strong> (vercel.com → Account → Settings → Tokens) and add it as the{" "}
-              <code>VERCEL_ANALYTICS_TOKEN</code> environment variable in your Vercel project settings, then redeploy.
-            </div>
+            <div>{stats.hint ?? "Analytics setup required."}</div>
           </div>
         ) : stats.error ? (
           <p style={{ color: "#ff9b9b", fontSize: 13.5 }}>
@@ -124,15 +123,15 @@ export default async function AdminDashboard({
         ) : (
           <>
             <div className="cstats-grid">
-              <CStat label="Chats opened" icon="fa-comment-dots" value={stats.events.concierge_opened} />
-              <CStat label="Messages sent" icon="fa-paper-plane" value={stats.events.concierge_message} />
-              <CStat label="Card clicks" icon="fa-mouse-pointer" value={stats.events.concierge_card_click} />
-              <CStat label="Contact submits" icon="fa-envelope" value={stats.events.contact_submit} />
+              <CStat label="Chats opened" icon="fa-comment-dots" value={stats.events.concierge_opened} unit={unit} />
+              <CStat label="Messages sent" icon="fa-paper-plane" value={stats.events.concierge_message} unit={unit} />
+              <CStat label="Card clicks" icon="fa-mouse-pointer" value={stats.events.concierge_card_click} unit={unit} />
+              <CStat label="Contact submits" icon="fa-envelope" value={stats.events.contact_submit} unit={unit} />
             </div>
             <div className="cstats-funnel">
               <span>
                 <i className="fa-solid fa-check" style={{ color: "var(--accent)", marginRight: 6 }} />
-                Contact after chat: <strong>{afterChat}</strong> ({stats.contactAfterChat.visitors} visitors)
+                Contact after chat: <strong>{afterChat}</strong> ({stats.contactAfterChat.visitors} {unit})
               </span>
               <span>
                 Contact without chat: <strong>{stats.contactNoChat.count}</strong>

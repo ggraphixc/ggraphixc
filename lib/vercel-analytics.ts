@@ -1,24 +1,22 @@
-// Server-only: reads Vercel Web Analytics custom events (the concierge + contact
-// funnel events fired by @vercel/analytics track()). Requires a Vercel access
-// token in VERCEL_ANALYTICS_TOKEN. On Vercel, VERCEL_PROJECT_ID and
-// VERCEL_TEAM_ID / VERCEL_ORG_ID are injected automatically at runtime; locally
-// or without a token the helper reports `configured: false` so the admin can
-// show a setup hint instead of crashing.
+// Server-only: powers the admin "Concierge activity" panel.
+//
+// PRIMARY source: the self-hosted analytics_events table (Supabase) — works on
+// any Vercel plan. BONUS source: Vercel Web Analytics custom events API, used
+// only when the self-hosted table doesn't exist yet (migration not run) and a
+// token + Pro plan are available.
 //
 // Docs: https://vercel.com/docs/analytics/web-analytics-api
 
+import { getSelfHostedStats } from "@/lib/analytics";
+// Shared types live in lib/analytics.ts (the primary source); re-exported here
+// so existing callers can keep importing from this module.
+export type { EventCount, ConciergeStats } from "@/lib/analytics";
+import type { EventCount, ConciergeStats } from "@/lib/analytics";
+
+// ---------------------------------------------------------------------------
+// Bonus source: Vercel Web Analytics custom events API
+// ---------------------------------------------------------------------------
 const AGGREGATE_URL = "https://api.vercel.com/v1/query/web-analytics/events/aggregate";
-
-export type EventCount = { count: number; visitors: number };
-
-export type ConciergeStats = {
-  configured: boolean;
-  error?: string;
-  period: { since: string; until: string };
-  events: Record<string, EventCount>;
-  contactAfterChat: EventCount;
-  contactNoChat: EventCount;
-};
 
 type AggregateRow = {
   eventName?: string;
@@ -57,22 +55,12 @@ async function aggregate(params: Record<string, string>): Promise<{ data?: Aggre
   return res.json();
 }
 
-// Short in-memory cache so a force-dynamic dashboard doesn't hammer the Vercel
-// API on every visit (mirrors the concierge knowledge-cache pattern). Keyed by
-// the requested range so toggling 7/30 days always re-queries correctly.
-let statsCache: { at: number; days: number; stats: ConciergeStats } | null = null;
-const TTL_MS = 60_000;
-
-export async function getConciergeStats(days: 7 | 30 = 30): Promise<ConciergeStats> {
+async function getVercelStats(days: 7 | 30): Promise<ConciergeStats> {
   const until = new Date();
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const sinceS = since.toISOString().slice(0, 10);
   const untilS = until.toISOString().slice(0, 10);
   const empty: EventCount = { count: 0, visitors: 0 };
-
-  if (statsCache && Date.now() - statsCache.at < TTL_MS && statsCache.days === days) {
-    return statsCache.stats;
-  }
 
   if (!process.env.VERCEL_ANALYTICS_TOKEN || !process.env.VERCEL_PROJECT_ID) {
     return {
@@ -116,18 +104,18 @@ export async function getConciergeStats(days: 7 | 30 = 30): Promise<ConciergeSta
       }
     }
 
-    const stats: ConciergeStats = {
+    return {
       configured: true,
+      source: "vercel",
       period: { since: sinceS, until: untilS },
       events,
       contactAfterChat,
       contactNoChat
     };
-    statsCache = { at: Date.now(), days, stats };
-    return stats;
   } catch (err) {
     return {
       configured: true,
+      source: "vercel",
       error: err instanceof Error ? err.message : "Failed to fetch analytics",
       period: { since: sinceS, until: untilS },
       events: {},
@@ -135,4 +123,50 @@ export async function getConciergeStats(days: 7 | 30 = 30): Promise<ConciergeSta
       contactNoChat: empty
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Orchestrator + cache
+// ---------------------------------------------------------------------------
+let statsCache: { at: number; days: number; stats: ConciergeStats } | null = null;
+const TTL_MS = 60_000;
+
+export async function getConciergeStats(days: 7 | 30 = 30): Promise<ConciergeStats> {
+  if (statsCache && Date.now() - statsCache.at < TTL_MS && statsCache.days === days) {
+    return statsCache.stats;
+  }
+
+  const until = new Date();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const sinceS = since.toISOString().slice(0, 10);
+  const untilS = until.toISOString().slice(0, 10);
+  const empty: EventCount = { count: 0, visitors: 0 };
+
+  // PRIMARY: self-hosted analytics_events table.
+  const local = await getSelfHostedStats(days);
+  if (local.available) {
+    const { available: _a, ...stats } = local;
+    statsCache = { at: Date.now(), days, stats };
+    return stats;
+  }
+
+  // FALLBACK: Vercel custom-events API (bonus path).
+  const vercel = await getVercelStats(days);
+  if (vercel.configured) {
+    statsCache = { at: Date.now(), days, stats: vercel };
+    return vercel;
+  }
+
+  // Neither source ready — guide the owner through the primary fix.
+  const stats: ConciergeStats = {
+    configured: false,
+    hint:
+      "Events are already being collected. To see them on this panel, run the one-time analytics migration in Supabase: open the SQL editor and paste the contents of supabase/migrations/20260806120000_analytics_events.sql. (The optional Vercel path needs VERCEL_ANALYTICS_TOKEN + a Pro plan.)",
+    period: { since: sinceS, until: untilS },
+    events: {},
+    contactAfterChat: empty,
+    contactNoChat: empty
+  };
+  statsCache = { at: Date.now(), days, stats };
+  return stats;
 }

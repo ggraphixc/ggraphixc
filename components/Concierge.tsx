@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { track } from "@vercel/analytics";
+import { trackEvent } from "@/lib/client-track";
 
 type Msg = { role: "user" | "bot"; parts: string };
 
@@ -69,10 +69,10 @@ export default function Concierge({
         // Track unique chats per session, not every reopen.
         const wasOpen = sessionStorage.getItem("cc_chat_open") === "1";
         sessionStorage.setItem("cc_chat_open", "1");
-        if (!wasOpen) track("concierge_opened");
+        if (!wasOpen) trackEvent("concierge_opened");
       } catch {
         // Storage unavailable (private mode) — track the open anyway.
-        track("concierge_opened");
+        trackEvent("concierge_opened");
       }
     }
     setOpen(!open);
@@ -82,7 +82,7 @@ export default function Concierge({
     e?.preventDefault();
     const text = input.trim();
     if (!text || busy) return;
-    track("concierge_message");
+    trackEvent("concierge_message");
     const next: Msg[] = [...messages, { role: "user", parts: text }];
     setMessages(next);
     setInput("");
@@ -167,7 +167,7 @@ export default function Concierge({
                       href={`/projects/${p.slug}`}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => track("concierge_card_click", { project: p.slug })}
+                      onClick={() => trackEvent("concierge_card_click", { project: p.slug })}
                     >
                       {!imgBroken ? (
                         <img

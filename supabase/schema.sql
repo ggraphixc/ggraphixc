@@ -219,3 +219,19 @@ insert into public.faqs (question, answer, display_order) values
    'Yes. Many clients keep me on a monthly retainer for continuous design, so new assets ship fast and stay on-brand without hiring in-house.',
    5)
 on conflict ((lower(question))) do nothing;
+
+-- ---------- analytics_events ----------
+-- Self-hosted source for the admin Concierge activity panel. Written by the
+-- /api/track endpoint (service role). RLS on with no policies: the public anon
+-- key cannot read or write; only the server can.
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null,
+  event_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists analytics_events_name_time_idx
+  on public.analytics_events (event_name, created_at desc);
+create index if not exists analytics_events_time_idx
+  on public.analytics_events (created_at desc);
+alter table public.analytics_events enable row level security;
