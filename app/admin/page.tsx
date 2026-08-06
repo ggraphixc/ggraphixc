@@ -1,8 +1,30 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/data";
+import { getConciergeStats, type EventCount } from "@/lib/vercel-analytics";
 
 // The dashboard shows live counts per request — render dynamically.
 export const dynamic = "force-dynamic";
+
+function CStat({
+  label,
+  icon,
+  value
+}: {
+  label: string;
+  icon: string;
+  value?: EventCount;
+}) {
+  return (
+    <div className="cstat">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <i className={`fa-solid ${icon}`} style={{ color: "var(--accent)", fontSize: 14 }} />
+        <span className="lbl">{label}</span>
+      </div>
+      <div className="num">{value?.count ?? 0}</div>
+      <div className="vis">{value?.visitors ?? 0} visitors</div>
+    </div>
+  );
+}
 
 async function counts() {
   const sb = (() => {
@@ -30,6 +52,10 @@ async function counts() {
 export default async function AdminDashboard() {
   const c = await counts();
   const s = await getSettings();
+  const stats = await getConciergeStats();
+  const opened = stats.events.concierge_opened?.count ?? 0;
+  const afterChat = stats.contactAfterChat.count;
+  const chatRate = opened > 0 ? Math.round((afterChat / opened) * 100) : 0;
   const cards = [
     { label: "Projects", value: c.projects, href: "/admin/projects", icon: "fa-images" },
     { label: "Blog Posts", value: c.blog, href: "/admin/blog", icon: "fa-pen-nib" },
@@ -52,6 +78,56 @@ export default async function AdminDashboard() {
             <div style={{ color: "var(--muted)", fontWeight: 600 }}>{card.label}</div>
           </a>
         ))}
+      </div>
+
+      <div className="admin-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 800 }}>Concierge activity</h3>
+            <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>
+              {stats.configured
+                ? "Chat + contact funnel from Vercel Analytics — last 30 days."
+                : "Live chat & contact funnel from Vercel Analytics."}
+            </p>
+          </div>
+          {stats.configured && <span className="badge-soft">{stats.period.since} → {stats.period.until}</span>}
+        </div>
+
+        {!stats.configured ? (
+          <div className="analytics-hint">
+            <i className="fa-solid fa-chart-line" aria-hidden="true" />
+            <div>
+              Events are already being collected, but the dashboard needs a one-time setup to read them: create a{" "}
+              <strong>Vercel access token</strong> (vercel.com → Account → Settings → Tokens) and add it as the{" "}
+              <code>VERCEL_ANALYTICS_TOKEN</code> environment variable in your Vercel project settings, then redeploy.
+            </div>
+          </div>
+        ) : stats.error ? (
+          <p style={{ color: "#ff9b9b", fontSize: 13.5 }}>
+            Couldn&apos;t reach Vercel Analytics: {stats.error}
+          </p>
+        ) : (
+          <>
+            <div className="cstats-grid">
+              <CStat label="Chats opened" icon="fa-comment-dots" value={stats.events.concierge_opened} />
+              <CStat label="Messages sent" icon="fa-paper-plane" value={stats.events.concierge_message} />
+              <CStat label="Card clicks" icon="fa-mouse-pointer" value={stats.events.concierge_card_click} />
+              <CStat label="Contact submits" icon="fa-envelope" value={stats.events.contact_submit} />
+            </div>
+            <div className="cstats-funnel">
+              <span>
+                <i className="fa-solid fa-check" style={{ color: "var(--accent)", marginRight: 6 }} />
+                Contact after chat: <strong>{afterChat}</strong> ({stats.contactAfterChat.visitors} visitors)
+              </span>
+              <span>
+                Contact without chat: <strong>{stats.contactNoChat.count}</strong>
+              </span>
+              <span>
+                Chat → contact rate: <strong>{chatRate}%</strong>
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="admin-card">
