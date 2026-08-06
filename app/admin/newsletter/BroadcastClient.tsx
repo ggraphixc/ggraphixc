@@ -31,6 +31,17 @@ export default function BroadcastClient({
   const [busy, setBusy] = useState<"test" | "all" | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // AI draft panel
+  const [showAi, setShowAi] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiTone, setAiTone] = useState("Friendly");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiDone, setAiDone] = useState(false);
+  // A finished draft waits here when the message already has content, so it
+  // can't silently overwrite what the owner typed.
+  const [pendingDraft, setPendingDraft] = useState<string | null>(null);
+
   // Live preview from the current (unsaved) values — the sign-off, projects
   // CTA and per-subscriber unsubscribe link are appended exactly as in a real
   // send, so what you see is what subscribers get.
@@ -55,6 +66,40 @@ export default function BroadcastClient({
       setResult(res);
       setBusy(null);
     });
+  }
+
+  async function aiWrite() {
+    if (aiBusy) return; // Enter can fire while a draft is generating
+    if (!aiTopic.trim()) {
+      setAiError("Tell the AI what to write about first.");
+      return;
+    }
+    setAiBusy(true);
+    setAiError(null);
+    setAiDone(false);
+    setPendingDraft(null);
+    try {
+      const res = await fetch("/api/ai/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: aiTopic.trim(), tone: aiTone })
+      });
+      const json = (await res.json().catch(() => ({}))) as { body?: string; error?: string };
+      if (!res.ok || !json.body) {
+        throw new Error(json.error || "The AI draft failed.");
+      }
+      // Never overwrite what the owner already wrote without asking.
+      if (body.trim()) {
+        setPendingDraft(json.body);
+      } else {
+        setBody(json.body);
+        setAiDone(true);
+      }
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "The AI draft failed.");
+    } finally {
+      setAiBusy(false);
+    }
   }
 
   return (
@@ -128,6 +173,15 @@ export default function BroadcastClient({
           <button
             type="button"
             className="btn btn-outline btn-sm"
+            onClick={() => setShowAi((a) => !a)}
+            aria-expanded={showAi}
+          >
+            <i className="fa-solid fa-wand-magic-sparkles" style={{ marginRight: 6 }} />
+            {showAi ? "Close" : "AI"} write
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
             onClick={() => setShowPreview((p) => !p)}
             aria-expanded={showPreview}
           >
@@ -153,6 +207,109 @@ export default function BroadcastClient({
             {busy === "all" ? "Sending…" : `Send to all ${recipients.length}`}
           </button>
         </div>
+
+        {showAi && (
+          <div
+            style={{
+              margin: "0 0 16px",
+              padding: 16,
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              background: "var(--surface)"
+            }}
+          >
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
+              Describe the topic in a line — the AI drafts the message paragraphs in your brand&apos;s
+              voice. You keep the subject line and final word.
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div className="field" style={{ flex: "2 1 260px", marginBottom: 0 }}>
+                <label htmlFor="ai-topic">Topic</label>
+                <input
+                  id="ai-topic"
+                  type="text"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  placeholder="e.g. The anatomy of a brand refresh"
+                  maxLength={200}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void aiWrite();
+                    }
+                  }}
+                />
+              </div>
+              <div className="field" style={{ flex: "1 1 160px", marginBottom: 0 }}>
+                <label htmlFor="ai-tone">Tone</label>
+                <select id="ai-tone" value={aiTone} onChange={(e) => setAiTone(e.target.value)}>
+                  <option>Friendly</option>
+                  <option>Professional</option>
+                  <option>Story-driven</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => void aiWrite()}
+                disabled={aiBusy}
+              >
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ marginRight: 6 }} />
+                {aiBusy ? "Writing…" : "Write draft"}
+              </button>
+            </div>
+            {aiError && (
+              <p style={{ color: "#ff8080", fontSize: 13, marginTop: 10 }}>
+                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }} />
+                {aiError}
+              </p>
+            )}
+            {aiDone && !aiBusy && (
+              <p style={{ color: "var(--accent)", fontSize: 13, marginTop: 10 }}>
+                <i className="fa-solid fa-circle-check" style={{ marginRight: 6 }} />
+                Draft inserted into the message — tweak it, then preview before sending.
+              </p>
+            )}
+            {pendingDraft && !aiBusy && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginTop: 12,
+                  padding: 12,
+                  border: "1px solid var(--accent)",
+                  borderRadius: 10,
+                  background: "rgba(124,92,255,.08)"
+                }}
+              >
+                <span style={{ fontSize: 13, flex: "1 1 220px" }}>
+                  <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6, color: "var(--accent)" }} />
+                  The draft is ready — but the message already has content. Replace it?
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    setBody(pendingDraft);
+                    setPendingDraft(null);
+                    setAiDone(true);
+                  }}
+                >
+                  Replace draft
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setPendingDraft(null)}
+                >
+                  Keep my text
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {showPreview && (
           <div>
