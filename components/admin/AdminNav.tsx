@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin/testimonials", label: "Testimonials", icon: "fa-comment-dots" },
   { href: "/admin/messages", label: "Messages", icon: "fa-envelope" },
   { href: "/admin/newsletter", label: "Newsletter", icon: "fa-bullhorn" },
+  { href: "/admin/subscribers", label: "Subscribers", icon: "fa-envelope-open-text" },
   { href: "/admin/clients", label: "Clients", icon: "fa-handshake" },
   { href: "/admin/faqs", label: "FAQs", icon: "fa-circle-question" },
   { href: "/admin/settings", label: "Settings", icon: "fa-gear" }

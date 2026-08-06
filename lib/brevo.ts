@@ -176,6 +176,45 @@ export async function getNewsletterRecipients(limit = 1000): Promise<string[]> {
   return emails;
 }
 
+export type NewsletterSubscriber = {
+  email: string;
+  createdAt: string | null;
+};
+
+/**
+ * Fetch every contact on the Newsletter list with their creation date
+ * (paginated, capped). Throws on a hard fetch failure so callers can surface
+ * "couldn't reach Brevo" honestly. Used by the admin Subscribers manager.
+ */
+export async function getNewsletterSubscribers(limit = 2000): Promise<NewsletterSubscriber[]> {
+  if (!process.env.BREVO_API_KEY) return [];
+  const id = await getNewsletterListId();
+  if (id === null) return [];
+  const out: NewsletterSubscriber[] = [];
+  for (let offset = 0; offset < limit; offset += 500) {
+    const res = await fetch(
+      `${API}/contacts?limit=500&offset=${offset}`,
+      fetchOpts({ headers: headers() })
+    );
+    if (!res.ok) {
+      throw new Error(`Brevo ${res.status} fetching contacts`);
+    }
+    const json = (await res.json().catch(() => ({}))) as {
+      contacts?: { email?: string; createdAt?: string; listIds?: number[] }[];
+    };
+    const page = (json.contacts ?? [])
+      .filter((c) => Array.isArray(c.listIds) && c.listIds.includes(id))
+      .map((c) => ({
+        email: (c.email ?? "").toLowerCase(),
+        createdAt: c.createdAt ?? null
+      }))
+      .filter((c) => c.email);
+    out.push(...page);
+    if ((json.contacts ?? []).length < 500) break;
+  }
+  return out;
+}
+
 /**
  * Remove an address from Brevo entirely (the dependable unsubscribe).
  *

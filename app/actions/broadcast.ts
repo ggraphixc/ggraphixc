@@ -1,11 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
 import { getNewsletterRecipients, sendEmail } from "@/lib/brevo";
 import { getSettings } from "@/lib/data";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 import { signUnsubscribe } from "@/lib/newsletter-link";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export type BroadcastState = {
   ok: boolean;
@@ -24,36 +23,6 @@ const MAX_BROADCAST_RECIPIENTS = 100;
 // Site URL used in email links (matches the newsletter/contact conventions).
 const SITE_URL = "https://ggraphixc.vercel.app";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * Gate for privileged admin actions. Mirrors the API-route guard
- * (app/api/revalidate, upload, ai/draft): read the session cookie with
- * @supabase/ssr and validate the JWT server-side. Demo mode (no Supabase
- * env vars) is allowed, matching the upload route's local-only convention.
- */
-async function requireAdmin(): Promise<boolean> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  // No auth configured: allow the flow only in development (demo mode). In
-  // production this would leave an open endpoint that emails every subscriber
-  // from the owner's Brevo account — mirror the upload route's refusal.
-  if (!supabaseUrl || !anonKey) return process.env.NODE_ENV !== "production";
-  try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(supabaseUrl, anonKey, {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {}
-      }
-    });
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
-    return Boolean(user);
-  } catch {
-    return false;
-  }
-}
 
 /** Per-recipient email HTML — same layout as the welcome email, but each
  *  recipient gets their own signed unsubscribe token. */
