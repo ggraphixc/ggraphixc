@@ -230,7 +230,11 @@ summary:focus-visible {
   text-align: center;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--royal));
+  /* Dark scrim over the accent gradient so white text meets WCAG AA (>= 4.5:1)
+     everywhere along it — white on #00d2ff alone is only ~1.8:1. */
+  background:
+    linear-gradient(rgba(2, 10, 25, 0.42), rgba(2, 10, 25, 0.42)),
+    linear-gradient(135deg, var(--accent), var(--royal));
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 20, 40, 0.35);
   box-shadow: 0 10px 30px rgba(0, 210, 255, 0.22);
@@ -383,7 +387,9 @@ summary:focus-visible {
 .nav-links a.nav-cta,
 .nav-links a.nav-cta:hover {
   color: #ffffff;
-  background: linear-gradient(135deg, var(--accent), var(--royal));
+  background:
+    linear-gradient(rgba(2, 10, 25, 0.42), rgba(2, 10, 25, 0.42)),
+    linear-gradient(135deg, var(--accent), var(--royal));
 }
 .hamburger {
   display: none;
@@ -1710,6 +1716,11 @@ tr.drop-target td {
     color: var(--text);
     font-weight: 600;
     font-size: 15px;
+  }
+  /* .mobile-nav a (above) has higher specificity than .btn-primary — keep the
+     menu CTA pure white so it matches the rest of the primary buttons. */
+  .mobile-nav a.btn-primary {
+    color: #ffffff;
   }
   .mobile-nav .btn {
     margin-top: 16px;
