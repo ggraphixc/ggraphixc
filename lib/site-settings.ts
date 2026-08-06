@@ -31,7 +31,11 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   social_instagram: "https://instagram.com",
   social_x: "https://x.com",
   social_linkedin: "https://linkedin.com",
-  google_api_key: ""
+  google_api_key: "",
+  welcome_email_subject: "Welcome to ggraphixc — you're in! 🎉",
+  welcome_email_headline: "You're in — welcome to the design notes 👋",
+  welcome_email_body:
+    "Thanks for subscribing. Once a month you'll get one short email — brand systems, design craft, and the kind of before/after breakdowns that usually stay behind the scenes. No spam, ever.\n\nWhile you wait for the first issue, you can see how these ideas show up in real work on the projects page."
 };
 
 export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] = [
@@ -63,5 +67,16 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
     "google_api_key",
     "Google AI API key (Gemini)",
     "Powers the AI concierge + case-study drafts. Get one at aistudio.google.com. Stored privately (never shown publicly)."
+  ],
+  ["welcome_email_subject", "Welcome email — subject line", "Shown as the subject of the welcome email sent after a new signup."],
+  [
+    "welcome_email_headline",
+    "Welcome email — headline",
+    "The big heading at the top of the welcome email body."
+  ],
+  [
+    "welcome_email_body",
+    "Welcome email — body",
+    "Plain text paragraphs; leave a blank line between paragraphs. The sign-off, projects link, and unsubscribe link are added automatically."
   ]
 ];
