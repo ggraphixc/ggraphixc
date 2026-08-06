@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 
 type Msg = { role: "user" | "bot"; parts: string };
 
+// NOTE: this widget is mounted ONCE site-wide via <ConciergePortal /> in the
+// root layout (hidden on /admin). Don't add another <Concierge /> to a page —
+// it would render a duplicate chat button.
 type RecommendedProject = {
   title: string;
   slug: string;

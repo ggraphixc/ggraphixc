@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Contact from "@/components/sections/Contact";
-import Concierge from "@/components/Concierge";
 import { getSettings } from "@/lib/data";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,10 +19,6 @@ export default async function ContactPage() {
         phone={settings.contact_phone}
         whatsapp={settings.whatsapp_number}
         location={settings.location}
-      />
-      <Concierge
-        brand={settings.brand_name || "ggraphixc"}
-        email={settings.contact_email || "hello@ggraphixc.com"}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
+import ConciergePortal from "@/components/ConciergePortal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
@@ -87,6 +88,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <SiteChrome header={<Header brand={s.brand_name} />} footer={<Footer />}>{children}</SiteChrome>
+        {/* AI concierge chat — every public page. Hidden inside /admin. */}
+        <ConciergePortal
+          brand={s.brand_name || "ggraphixc"}
+          email={s.contact_email || "hello@ggraphixc.com"}
+        />
         <Analytics />
       </body>
     </html>
