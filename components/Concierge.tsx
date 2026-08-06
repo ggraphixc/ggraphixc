@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from "react";
 
 type Msg = { role: "user" | "bot"; parts: string };
 
+type RecommendedProject = {
+  title: string;
+  slug: string;
+  result?: string | null;
+  image_url?: string | null;
+};
+
 export default function Concierge({
   brand = "ggraphixc",
   email = "hello@ggraphixc.com"
@@ -19,6 +26,8 @@ export default function Concierge({
   const [messages, setMessages] = useState<Msg[]>([welcome]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [related, setRelated] = useState<RecommendedProject[]>([]);
+  const [failedImgs, setFailedImgs] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +42,7 @@ export default function Concierge({
     setMessages(next);
     setInput("");
     setBusy(true);
+    setRelated([]);
     try {
       const res = await fetch("/api/ai/concierge", {
         method: "POST",
@@ -40,6 +50,7 @@ export default function Concierge({
         body: JSON.stringify({ messages: next })
       });
       const json = await res.json().catch(() => ({}));
+      setRelated(Array.isArray(json.projects) ? json.projects : []);
       setMessages((m) => [
         ...m,
         {
@@ -52,6 +63,7 @@ export default function Concierge({
         }
       ]);
     } catch {
+      setRelated([]);
       setMessages((m) => [
         ...m,
         { role: "bot", parts: `Network hiccup — try again in a moment, or email ${email}.` }
@@ -95,6 +107,41 @@ export default function Concierge({
             {busy && (
               <div className="msg bot">
                 <span className="typing">Thinking</span>
+              </div>
+            )}
+            {related.length > 0 && (
+              <div className="concierge-cards">
+                <div className="concierge-cards-label">Recommended for you</div>
+                {related.map((p) => {
+                  if (!p.slug) return null;
+                  const imgBroken = p.image_url ? failedImgs[p.image_url] : true;
+                  return (
+                    <a
+                      key={p.slug}
+                      className="concierge-card"
+                      href={`/projects/${p.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {!imgBroken ? (
+                        <img
+                          src={p.image_url as string}
+                          alt=""
+                          loading="lazy"
+                          onError={() =>
+                            setFailedImgs((f) => ({ ...f, [p.image_url as string]: true }))
+                          }
+                        />
+                      ) : (
+                        <span className="card-ph" aria-hidden="true" />
+                      )}
+                      <span className="card-body">
+                        <span className="card-title">{p.title}</span>
+                        {p.result && <span className="card-result">{p.result}</span>}
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             )}
           </div>

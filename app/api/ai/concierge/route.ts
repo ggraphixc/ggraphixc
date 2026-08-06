@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini";
-import { getSettings, getProjects, getTestimonials, getFaqs } from "@/lib/data";
+import { getSettings, getProjects, getTestimonials, getFaqs, getPublishedBlog } from "@/lib/data";
+
+// Shape of the project cards the widget renders under each answer.
+export type RecommendedProject = {
+  title: string;
+  slug: string;
+  result?: string | null;
+  image_url?: string | null;
+};
 
 const truncate = (s: string, n: number) =>
   s.length > n ? `${s.slice(0, n - 1)}…` : s;
@@ -40,7 +48,45 @@ function buildKnowledge(): string {
       .join("\n");
     parts.push(`Official FAQ:\n${rows}`);
   }
+  const posts = blogCache;
+  if (posts.length > 0) {
+    const rows = posts
+      .slice(0, 6)
+      .map((b) => `- ${b.title} (/blog/${b.slug})${b.excerpt ? `: ${truncate(b.excerpt, 120)}` : ""}`)
+      .join("\n");
+    parts.push(`Blog articles to recommend:\n${rows}`);
+  }
   return parts.join("\n\n");
+}
+
+/**
+ * Pick up to 3 projects the visitor is likely asking about, by scoring the
+ * last user message against each project's title, category, description, and
+ * client name. Falls back to the highest-priority projects so the card row is
+ * never empty. Returns the lightweight shape the widget renders.
+ */
+function recommendProjects(message: string): RecommendedProject[] {
+  const q = (message || "").toLowerCase();
+  const words = q.split(/\W+/).filter((w) => w.length > 3);
+  const scored = projectsCache
+    .map((p) => {
+      const hay = `${p.title} ${p.category || ""} ${p.description || ""} ${p.client_name || ""}`.toLowerCase();
+      let score = 0;
+      if (q.length > 4 && hay.includes(q)) score += 3;
+      for (const w of words) if (hay.includes(w)) score += 1;
+      return { p, score };
+    })
+    .sort((a, b) => b.score - a.score || a.p.display_order - b.p.display_order);
+  const matches = scored.filter((s) => s.score > 0).slice(0, 3);
+  const picks = (matches.length > 0 ? matches : scored.slice(0, 3)).filter(
+    ({ p }) => p.slug
+  );
+  return picks.map(({ p }) => ({
+    title: p.title,
+    slug: p.slug,
+    result: p.result,
+    image_url: p.image_url
+  }));
 }
 
 // Module-level caches refreshed once per server instance. Portfolio data is
@@ -49,6 +95,7 @@ function buildKnowledge(): string {
 let projectsCache: Awaited<ReturnType<typeof getProjects>> = [];
 let testimonialsCache: Awaited<ReturnType<typeof getTestimonials>> = [];
 let faqsCache: Awaited<ReturnType<typeof getFaqs>> = [];
+let blogCache: Awaited<ReturnType<typeof getPublishedBlog>> = [];
 let knowledgeLoadedAt = 0;
 
 export function resetKnowledgeCache() {
@@ -59,10 +106,16 @@ async function loadKnowledge() {
   const now = Date.now();
   if (now - knowledgeLoadedAt < 10 * 60_000) return;
   try {
-    const [p, t, f] = await Promise.all([getProjects(), getTestimonials(), getFaqs()]);
+    const [p, t, f, b] = await Promise.all([
+      getProjects(),
+      getTestimonials(),
+      getFaqs(),
+      getPublishedBlog()
+    ]);
     projectsCache = p;
     testimonialsCache = t;
     faqsCache = f;
+    blogCache = b;
     knowledgeLoadedAt = now;
   } catch {
     // Keep whatever we already have; never break the concierge on a DB hiccup.
@@ -75,11 +128,15 @@ function buildSystemPrompt(s: Record<string, string>): string {
   const role = s.role_title || "Graphics Designer";
   const email = s.contact_email || "hello@ggraphixc.com";
   const location = s.location ? ` Based in ${s.location}.` : "";
+  // Owner-controlled pricing: when set, quote it verbatim instead of rough ranges.
+  const pricing = s.pricing_note?.trim()
+    ? `Pricing (set by the owner — quote this verbatim, never improvise prices): ${s.pricing_note.trim()}`
+    : "pricing ranges (rough: brand identity $1k-$5k+, social kits $1k-$3k, full campaigns $5k+)";
   return `You are the friendly project concierge for ${brand} — the design studio of ${designer}, a ${role}.${location}
 
 What ${brand} does: brand identity, creative systems, logo design, packaging, social media kits, campaign visual direction, web/UI design, and motion graphics.
 
-Your job: help prospective clients decide whether to reach out, and steer them toward the contact form at /contact. Answer questions about services, process (brief → moodboard → concepts → refinement → handoff), typical timelines (identity systems usually 2-4 weeks, social kits 1-2 weeks), and pricing ranges (rough: brand identity $1k-$5k+, social kits $1k-$3k, full campaigns $5k+). Be warm, concise (2-4 sentences), and never invent specific facts or portfolio claims. If asked something you don't know, say so and suggest emailing ${email}. Always end by nudging them to start a project via the contact form.
+Your job: help prospective clients decide whether to reach out, and steer them toward the contact form at /contact. Answer questions about services, process (brief → moodboard → concepts → refinement → handoff), typical timelines (identity systems usually 2-4 weeks, social kits 1-2 weeks), and ${pricing}. Be warm, concise (2-4 sentences), and never invent specific facts or portfolio claims. If asked something you don't know, say so and suggest emailing ${email}. Always end by nudging them to start a project via the contact form.
 
 Real portfolio facts — use these when visitors ask about specific work, proof, or whether ${brand} has done something:
 ${buildKnowledge()}`;
@@ -128,6 +185,9 @@ export async function POST(request: Request) {
     role: (m.role === "user" ? "user" : "model") as "user" | "model",
     parts: m.parts
   }));
+  const lastUserMessage =
+    [...messages].reverse().find((m) => m.role === "user")?.parts ?? "";
+  const projects = recommendProjects(lastUserMessage);
 
   const result = await callGemini({
     system: buildSystemPrompt(settings),
@@ -141,16 +201,19 @@ export async function POST(request: Request) {
     if (result.error.includes("not configured")) {
       return NextResponse.json({
         offline: true,
+        projects,
         reply: `I'm offline right now — the AI key isn't configured yet. Add it in Admin → Settings, or email ${email} and ${designer} will get back to you within 24 hours.`
       });
     }
     return NextResponse.json({
+      projects,
       reply: `Hmm, I hit a technical snag. Email ${email} instead and I'll get right back to you.`
     });
   }
 
   const reply = result.text.trim();
   return NextResponse.json({
+    projects,
     reply:
       reply ||
       `I couldn't quite process that. Could you rephrase, or email ${email}?`

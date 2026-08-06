@@ -6,6 +6,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   designer_name: "Godson Otobo",
   role_title: "Graphics Designer",
   hero_badge_tagline: "Brand & Visual Systems",
+  pricing_note:
+    "Brand identity $1k–$5k+, social kits $1k–$3k, full campaigns $5k+ — exact quotes after a brief.",
   hero_headline: "I Design Brands, Visuals & Digital Experiences",
   hero_lead:
     "Godson Otobo (ggraphixc) builds brand identities, creative systems, and conversion-ready design for ambitious brands that want to look premium and earn trust.",
@@ -37,6 +39,7 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   ["designer_name", "Your name", "Used in page titles, the About section, and the footer credit."],
   ["role_title", "Role title", "e.g. Graphics Designer — shown in the hero badge."],
   ["hero_badge_tagline", "Hero badge tagline", "e.g. Brand & Visual Systems — the small text after the role in the hero badge. Leave empty to hide it."],
+  ["pricing_note", "Pricing note (concierge)", "The AI concierge quotes this when visitors ask about cost. Edit it in plain text — e.g. 'Brand identity from $1,000, social kits from $800, exact quote after a brief.'"],
   ["contact_phone", "Phone number", "Used for the tel: link in the contact section."],
   ["whatsapp_number", "WhatsApp number", "Digits only with country code, e.g. 2348000000000 — enables a wa.me chat button."],
   ["location", "Location", "e.g. Lagos, Nigeria — shown in the contact section."],
