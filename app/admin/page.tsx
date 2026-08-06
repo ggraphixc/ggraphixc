@@ -1,4 +1,5 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
+import { getSettings } from "@/lib/data";
 
 // The dashboard shows live counts per request — render dynamically.
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ async function counts() {
 
 export default async function AdminDashboard() {
   const c = await counts();
+  const s = await getSettings();
   const cards = [
     { label: "Projects", value: c.projects, href: "/admin/projects", icon: "fa-images" },
     { label: "Blog Posts", value: c.blog, href: "/admin/blog", icon: "fa-pen-nib" },
@@ -50,6 +52,35 @@ export default async function AdminDashboard() {
             <div style={{ color: "var(--muted)", fontWeight: 600 }}>{card.label}</div>
           </a>
         ))}
+      </div>
+
+      <div className="admin-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 800 }}>Site info</h3>
+            <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>
+              What the public site shows from Admin → Settings. Marked fields are empty.
+            </p>
+          </div>
+          <a href="/admin/settings" className="btn btn-ghost btn-sm">
+            <i className="fa-solid fa-gear" /> Edit in Settings
+          </a>
+        </div>
+        <div className="site-info-grid">
+          {[
+            { k: "Brand name", v: s.brand_name },
+            { k: "Designer", v: s.designer_name },
+            { k: "Role", v: s.role_title },
+            { k: "Email", v: s.contact_email },
+            { k: "Phone / WhatsApp", v: s.whatsapp_number || s.contact_phone },
+            { k: "Location", v: s.location }
+          ].map((row) => (
+            <div key={row.k} className="site-info-item">
+              <div className="k">{row.k}</div>
+              <div className={row.v ? "v" : "v empty"}>{row.v || "Not set"}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="admin-card">

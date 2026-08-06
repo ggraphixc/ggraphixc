@@ -1140,6 +1140,36 @@ summary:focus-visible {
   }
 }
 
+/* ---------- Admin: site-info summary ---------- */
+.site-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 24px;
+}
+@media (max-width: 600px) {
+  .site-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.site-info-item .k {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.site-info-item .v {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 3px;
+  word-break: break-word;
+}
+.site-info-item .v.empty {
+  color: var(--muted);
+  font-weight: 500;
+  font-style: italic;
+}
+
 /* ---------- Admin: inline edit, drag reorder, thumbnails, toast ---------- */
 .inline-edit {
   cursor: text;

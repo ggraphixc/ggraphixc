@@ -21,7 +21,10 @@ export default async function ContactPage() {
         whatsapp={settings.whatsapp_number}
         location={settings.location}
       />
-      <Concierge />
+      <Concierge
+        brand={settings.brand_name || "ggraphixc"}
+        email={settings.contact_email || "hello@ggraphixc.com"}
+      />
     </div>
   );
 }

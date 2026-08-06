@@ -4,15 +4,19 @@ import { useEffect, useRef, useState } from "react";
 
 type Msg = { role: "user" | "bot"; parts: string };
 
-const WELCOME: Msg = {
-  role: "bot",
-  parts:
-    "Hey! I'm the ggraphixc concierge 🤖 Ask me about services, process, timelines, or rough budgets — or just say hi."
-};
-
-export default function Concierge() {
+export default function Concierge({
+  brand = "ggraphixc",
+  email = "hello@ggraphixc.com"
+}: {
+  brand?: string;
+  email?: string;
+}) {
+  const welcome: Msg = {
+    role: "bot",
+    parts: `Hey! I'm the ${brand} concierge 🤖 Ask me about services, process, timelines, or rough budgets — or just say hi.`
+  };
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([WELCOME]);
+  const [messages, setMessages] = useState<Msg[]>([welcome]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -44,13 +48,13 @@ export default function Concierge() {
             json.reply ||
             (json.error
               ? "That's too many messages at once — give me a second 🙂"
-              : "Hmm, I couldn't reach the server. Email hello@ggraphixc.com instead!")
+              : `Hmm, I couldn't reach the server. Email ${email} instead!`)
         }
       ]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "bot", parts: "Network hiccup — try again in a moment, or email hello@ggraphixc.com." }
+        { role: "bot", parts: `Network hiccup — try again in a moment, or email ${email}.` }
       ]);
     } finally {
       setBusy(false);
@@ -62,9 +66,9 @@ export default function Concierge() {
       {open && (
         <div className="concierge-panel" role="dialog" aria-label="AI project concierge">
           <div className="concierge-head">
-            <div className="avatar">G</div>
+            <div className="avatar">{(brand[0] || "G").toUpperCase()}</div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 14 }}>ggraphixc concierge</div>
+              <div style={{ fontWeight: 800, fontSize: 14 }}>{brand} concierge</div>
               <div style={{ fontSize: 12, color: "#22c55e", fontWeight: 600 }}>● Online — instant answers</div>
             </div>
             <button
