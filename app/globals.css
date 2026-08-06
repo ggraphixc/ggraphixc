@@ -1691,6 +1691,9 @@ tr.drop-target td {
     border-bottom: 1px solid var(--border);
     padding: 12px 20px 22px;
     z-index: 999;
+    /* Re-enable clicks: .site-header uses pointer-events:none to let the
+       transparent header padding pass through, which this sibling inherits. */
+    pointer-events: auto;
     animation: vt-fade-in 0.3s var(--cb);
   }
   .mobile-nav a {
