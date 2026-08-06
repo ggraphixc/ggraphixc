@@ -3,6 +3,14 @@
 
 const API = "https://api.brevo.com/v3";
 
+// Every Brevo call must finish quickly or fail fast — a hanging fetch would
+// leave a visitor waiting on the newsletter/contact form for many seconds.
+const TIMEOUT_MS = 10_000;
+
+function fetchOpts(opts: RequestInit): RequestInit {
+  return { ...opts, signal: AbortSignal.timeout(TIMEOUT_MS) };
+}
+
 function headers(): Record<string, string> {
   const key = process.env.BREVO_API_KEY;
   if (!key) throw new Error("Missing BREVO_API_KEY");
@@ -36,17 +44,20 @@ export async function sendEmail(opts: {
 }): Promise<BrevoSendResult> {
   if (!process.env.BREVO_API_KEY) return { ok: false, error: "BREVO_API_KEY not set" };
   try {
-    const res = await fetch(`${API}/smtp/email`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        sender: from(),
-        to: [{ email: opts.to, name: opts.toName }],
-        replyTo: opts.replyTo ? { email: opts.replyTo } : undefined,
-        subject: opts.subject,
-        htmlContent: opts.html
+    const res = await fetch(
+      `${API}/smtp/email`,
+      fetchOpts({
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify({
+          sender: from(),
+          to: [{ email: opts.to, name: opts.toName }],
+          replyTo: opts.replyTo ? { email: opts.replyTo } : undefined,
+          subject: opts.subject,
+          htmlContent: opts.html
+        })
       })
-    });
+    );
     const json = (await res.json().catch(() => ({}))) as { messageId?: string; code?: string };
     if (!res.ok) {
       return { ok: false, error: `Brevo ${res.status}: ${json.code ?? ""}`.trim() };
@@ -67,9 +78,7 @@ export async function subscribeNewsletter(email: string): Promise<BrevoSendResul
   try {
     // 1) locate or create the list once
     if (newsletterListId === null) {
-      const listsRes = await fetch(`${API}/contacts/lists?limit=50&offset=0`, {
-        headers: headers()
-      });
+      const listsRes = await fetch(`${API}/contacts/lists?limit=50&offset=0`, fetchOpts({ headers: headers() }));
       const listsJson = (await listsRes.json().catch(() => ({}))) as {
         lists?: { id: number; name: string }[];
       };
@@ -77,11 +86,14 @@ export async function subscribeNewsletter(email: string): Promise<BrevoSendResul
       if (existing) {
         newsletterListId = existing.id;
       } else {
-        const createRes = await fetch(`${API}/contacts/lists`, {
-          method: "POST",
-          headers: headers(),
-          body: JSON.stringify({ name: "Newsletter", folderId: 1 })
-        });
+        const createRes = await fetch(
+          `${API}/contacts/lists`,
+          fetchOpts({
+            method: "POST",
+            headers: headers(),
+            body: JSON.stringify({ name: "Newsletter", folderId: 1 })
+          })
+        );
         const createJson = (await createRes.json().catch(() => ({}))) as { id?: number };
         if (!createRes.ok || !createJson.id) {
           return { ok: false, error: `Could not create list (${createRes.status})` };
@@ -91,15 +103,18 @@ export async function subscribeNewsletter(email: string): Promise<BrevoSendResul
     }
 
     // 2) add / update the contact
-    const res = await fetch(`${API}/contacts`, {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({
-        email,
-        listIds: [newsletterListId],
-        updateEnabled: true
+    const res = await fetch(
+      `${API}/contacts`,
+      fetchOpts({
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify({
+          email,
+          listIds: [newsletterListId],
+          updateEnabled: true
+        })
       })
-    });
+    );
     if (!res.ok && res.status !== 201) {
       const json = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
       return { ok: false, error: `Brevo ${res.status}: ${json.message ?? json.code ?? ""}` };

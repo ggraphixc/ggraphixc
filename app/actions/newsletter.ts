@@ -1,11 +1,41 @@
 "use server";
 
+import { getServiceSupabase } from "@/lib/supabase/server";
 import { subscribeNewsletter } from "@/lib/brevo";
 
 export type NewsletterState = {
   status: "idle" | "success" | "error";
   message: string;
 };
+
+/**
+ * Backup sink: store the address in the newsletter_subscribers table so no
+ * signup is ever lost — even if Brevo is down or not configured on this
+ * deployment. Deduped on email (PK). Best-effort: if the table doesn't exist
+ * yet (migration not run) or Supabase env is missing, returns false and the
+ * caller falls back to Brevo alone rather than failing the visitor.
+ */
+// The pre-migration missing-table message is the *expected* state until the
+// owner runs the migration — it must not spam logs. Anything else is a real
+// failure worth surfacing.
+const MISSING_TABLE = /could not find the table|does not exist|42p01/i;
+
+async function backupSubscribe(email: string): Promise<boolean> {
+  try {
+    const sb = getServiceSupabase();
+    const { error } = await sb.from("newsletter_subscribers").upsert(
+      { email, source: "footer", updated_at: new Date().toISOString() },
+      { onConflict: "email" }
+    );
+    if (error && !MISSING_TABLE.test(error.message ?? "")) {
+      console.error("[newsletter] Supabase backup subscribe failed:", error.message);
+    }
+    return !error;
+  } catch (e) {
+    console.error("[newsletter] Supabase backup subscribe threw:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
 
 export async function subscribe(
   _prev: NewsletterState,
@@ -17,25 +47,37 @@ export async function subscribe(
     return { status: "error", message: "Please enter a valid email address." };
   }
 
-  if (!process.env.BREVO_API_KEY) {
-    // Honest failure: previously this claimed the visitor was subscribed when
-    // nothing was stored. The "not connected" wording also signals the owner
-    // to set BREVO_API_KEY on the deployment (e.g. Vercel env vars).
+  const brevoConfigured = Boolean(process.env.BREVO_API_KEY);
+  const saved = await backupSubscribe(email);
+
+  // Honest failure: only when BOTH sinks are unavailable. Previously this
+  // claimed the visitor was subscribed when nothing was stored anywhere.
+  if (!brevoConfigured && !saved) {
     return {
       status: "error",
       message: "Signups aren't active yet — the email service isn't connected."
     };
   }
 
-  const result = await subscribeNewsletter(email);
-  if (!result.ok) {
-    // Surface the failure instead of pretending success. Never expose the raw
-    // error to visitors, but make sure the failure is visible somewhere.
-    console.error("[newsletter] subscribe failed:", result.error);
-    return {
-      status: "error",
-      message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.com instead."
-    };
+  if (brevoConfigured) {
+    const result = await subscribeNewsletter(email);
+    if (!result.ok) {
+      // Surface the failure (server console) instead of pretending success.
+      console.error("[newsletter] Brevo subscribe failed:", result.error);
+      // The signup is preserved in the Supabase backup sink, so the visitor
+      // is still on the list — succeed softly rather than losing them.
+      if (saved) {
+        console.warn("[newsletter] stored in Supabase backup only (Brevo failed)");
+        return {
+          status: "success",
+          message: "You're in! Expect occasional design notes — no spam, ever."
+        };
+      }
+      return {
+        status: "error",
+        message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.com instead."
+      };
+    }
   }
 
   return {

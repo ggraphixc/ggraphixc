@@ -36,18 +36,23 @@ async function counts() {
       return null;
     }
   })();
-  if (!sb) return { projects: 0, testimonials: 0, messages: 0, blog: 0 };
-  const [p, t, m, b] = await Promise.all([
+  if (!sb) return { projects: 0, testimonials: 0, messages: 0, blog: 0, subscribers: null };
+  const [p, t, m, b, ns] = await Promise.all([
     sb.from("projects").select("*", { count: "exact", head: true }),
     sb.from("testimonials").select("*", { count: "exact", head: true }),
     sb.from("inquiries").select("*", { count: "exact", head: true }),
-    sb.from("blog_posts").select("*", { count: "exact", head: true })
+    sb.from("blog_posts").select("*", { count: "exact", head: true }),
+    sb.from("newsletter_subscribers").select("*", { count: "exact", head: true })
   ]);
   return {
     projects: p.count ?? 0,
     testimonials: t.count ?? 0,
     messages: m.count ?? 0,
-    blog: b.count ?? 0
+    blog: b.count ?? 0,
+    // null (not 0) when the table is missing — the migration hasn't been run
+    // yet. Note: for head:true + count queries, a missing table comes back as
+    // error:null with count:null, so count === null must also mean "unknown".
+    subscribers: ns.error || ns.count === null ? null : ns.count
   };
 }
 
@@ -69,7 +74,8 @@ export default async function AdminDashboard({
     { label: "Projects", value: c.projects, href: "/admin/projects", icon: "fa-images" },
     { label: "Blog Posts", value: c.blog, href: "/admin/blog", icon: "fa-pen-nib" },
     { label: "Testimonials", value: c.testimonials, href: "/admin/testimonials", icon: "fa-comment-dots" },
-    { label: "Messages", value: c.messages, href: "/admin/messages", icon: "fa-envelope" }
+    { label: "Messages", value: c.messages, href: "/admin/messages", icon: "fa-envelope" },
+    { label: "Newsletter", value: c.subscribers, href: null, icon: "fa-envelope-open-text" }
   ];
   return (
     <>
@@ -78,15 +84,31 @@ export default async function AdminDashboard({
         Welcome back. Manage your portfolio content from here.
       </p>
       <div className="admin-grid">
-        {cards.map((card) => (
-          <a key={card.href} href={card.href} className="admin-stat" style={{ display: "block" }}>
-            <div style={{ color: "var(--accent)", marginBottom: 10 }}>
-              <i className={`fa-solid ${card.icon}`} />
+        {cards.map((card) => {
+          const inner = (
+            <>
+              <div style={{ color: "var(--accent)", marginBottom: 10 }}>
+                <i className={`fa-solid ${card.icon}`} />
+              </div>
+              <div className="num">{card.value === null ? "—" : card.value}</div>
+              <div style={{ color: "var(--muted)", fontWeight: 600 }}>{card.label}</div>
+              {card.value === null && (
+                <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 6, opacity: 0.75 }}>
+                  Run the migration to activate
+                </div>
+              )}
+            </>
+          );
+          return card.href ? (
+            <a key={card.label} href={card.href} className="admin-stat" style={{ display: "block" }}>
+              {inner}
+            </a>
+          ) : (
+            <div key={card.label} className="admin-stat" style={{ display: "block" }}>
+              {inner}
             </div>
-            <div className="num">{card.value}</div>
-            <div style={{ color: "var(--muted)", fontWeight: 600 }}>{card.label}</div>
-          </a>
-        ))}
+          );
+        })}
       </div>
 
       <div className="admin-card">
