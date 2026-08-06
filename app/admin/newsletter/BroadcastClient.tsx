@@ -1,0 +1,339 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { sendBroadcast, sendTestBroadcast, type BroadcastState } from "@/app/actions/broadcast";
+import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
+
+type Props = {
+  recipients: string[];
+  brevoConfigured: boolean;
+  recipientsError?: string | null;
+  ownerEmail: string;
+  brand: string;
+  signoff: string;
+};
+
+const MAX_SHOWN = 24;
+
+export default function BroadcastClient({
+  recipients,
+  brevoConfigured,
+  recipientsError,
+  ownerEmail,
+  brand,
+  signoff
+}: Props) {
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [result, setResult] = useState<BroadcastState | null>(null);
+  const [busy, setBusy] = useState<"test" | "all" | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Live preview from the current (unsaved) values — the sign-off, projects
+  // CTA and per-subscriber unsubscribe link are appended exactly as in a real
+  // send, so what you see is what subscribers get.
+  const previewHtml = buildWelcomeEmailHtml({
+    brand,
+    headline: subject.trim() || "Your subject line",
+    body: body.trim() || "Your message body goes here. Blank lines become paragraphs.",
+    signoff,
+    unsubscribeHref: "https://ggraphixc.com/unsubscribe?t=preview-token"
+  });
+
+  const recipientsShown = recipients.slice(0, MAX_SHOWN);
+  const recipientsHidden = recipients.length - recipientsShown.length;
+  const canSend = subject.trim() && body.trim() && recipients.length > 0;
+
+  function run(kind: "test" | "all", fn: () => Promise<BroadcastState>) {
+    setBusy(kind);
+    setResult(null);
+    setConfirming(false);
+    startTransition(async () => {
+      const res = await fn();
+      setResult(res);
+      setBusy(null);
+    });
+  }
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 800 }}>Newsletter broadcast</h1>
+          <p style={{ color: "var(--muted)", fontSize: 14 }}>
+            Compose a one-off email and send it to every Brevo Newsletter subscriber.
+          </p>
+        </div>
+        <span className="badge-dot" style={{ fontSize: 13, fontWeight: 700 }}>
+          {!brevoConfigured ? (
+            "Brevo not connected"
+          ) : recipientsError ? (
+            "List unavailable"
+          ) : (
+            <>
+              <i className="fa-solid fa-users" style={{ marginRight: 6 }} />
+              {recipients.length} subscriber{recipients.length === 1 ? "" : "s"}
+            </>
+          )}
+        </span>
+      </div>
+
+      <div className="admin-card" style={{ marginBottom: 18 }}>
+        <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 14 }}>Compose</h3>
+
+        <div className="field">
+          <label htmlFor="b-subject">Subject line</label>
+          <input
+            id="b-subject"
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Design notes: the before/after nobody saw"
+            maxLength={120}
+          />
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
+            {subject.length}/120 — used as both the subject and the email headline.
+          </span>
+        </div>
+
+        <div className="field">
+          <label htmlFor="b-body">Message</label>
+          <textarea
+            id="b-body"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={"Write your newsletter here.\n\nSeparate paragraphs with a blank line."}
+            rows={8}
+            style={{ minHeight: 160 }}
+          />
+          <span style={{ fontSize: 11, color: "var(--muted)" }}>
+            Plain text — a blank line becomes a new paragraph. The sign-off, “See the work” button,
+            and each subscriber’s own unsubscribe link are added automatically.
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flexWrap: "wrap",
+            margin: "4px 0 16px",
+            paddingTop: 16,
+            borderTop: "1px solid var(--border)"
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setShowPreview((p) => !p)}
+            aria-expanded={showPreview}
+          >
+            <i className="fa-solid fa-eye" style={{ marginRight: 6 }} />
+            {showPreview ? "Hide" : "Preview"} email
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => run("test", () => sendTestBroadcast(subject, body))}
+            disabled={busy !== null || !subject.trim() || !body.trim()}
+          >
+            <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }} />
+            {busy === "test" ? "Sending…" : `Send test to ${ownerEmail}`}
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => setConfirming(true)}
+            disabled={busy !== null || !canSend}
+          >
+            <i className="fa-solid fa-bullhorn" style={{ marginRight: 6 }} />
+            {busy === "all" ? "Sending…" : `Send to all ${recipients.length}`}
+          </button>
+        </div>
+
+        {showPreview && (
+          <div>
+            <iframe
+              title="Broadcast email preview"
+              sandbox=""
+              srcDoc={previewHtml}
+              style={{
+                width: "100%",
+                height: 460,
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                background: "#fff"
+              }}
+            />
+            <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>
+              Rendered from your current draft. In a real send, each recipient gets their own
+              signed unsubscribe link.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {!brevoConfigured && (
+        <div className="admin-card" style={{ borderColor: "#7c5cff66" }}>
+          <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 8 }}>
+            <i className="fa-solid fa-circle-info" style={{ marginRight: 6, color: "var(--accent)" }} />
+            <strong>Brevo isn’t connected on this deployment.</strong> Add{" "}
+            <code style={{ background: "var(--surface)", padding: "2px 6px", borderRadius: 6 }}>BREVO_API_KEY</code>{" "}
+            to your environment to see the subscriber list and send broadcasts.
+          </p>
+        </div>
+      )}
+
+      {recipientsError && (
+        <div className="admin-card" style={{ borderColor: "#ff8080", borderWidth: 1.5 }}>
+          <p style={{ fontSize: 14, color: "var(--muted)" }}>
+            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6, color: "#ff8080" }} />
+            Couldn&apos;t load the subscriber list from Brevo ({recipientsError}).
+            Reload the page to try again — no emails have been sent.
+          </p>
+        </div>
+      )}
+
+      {brevoConfigured && !recipientsError && recipients.length === 0 && (
+        <div className="admin-card">
+          <p style={{ color: "var(--muted)", fontSize: 14 }}>
+            The Newsletter list is empty — share the footer signup form to grow it, then come
+            back to broadcast.
+          </p>
+        </div>
+      )}
+
+      {recipients.length > 0 && (
+        <div className="admin-card">
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 8 }}>Recipients</h3>
+          <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 12 }}>
+            Everyone on the Brevo “Newsletter” list — {recipients.length} address
+            {recipients.length === 1 ? "" : "es"} in total.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {recipientsShown.map((email) => (
+              <span
+                key={email}
+                style={{
+                  fontSize: 12.5,
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  color: "var(--muted)"
+                }}
+              >
+                {email}
+              </span>
+            ))}
+            {recipientsHidden > 0 && (
+              <span
+                style={{
+                  fontSize: 12.5,
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  background: "var(--surface)",
+                  border: "1px dashed var(--border)",
+                  color: "var(--muted)"
+                }}
+              >
+                +{recipientsHidden} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <div
+          className="admin-card"
+          style={{
+            borderColor: result.ok ? "var(--accent)" : "#ff8080",
+            borderWidth: 1.5
+          }}
+        >
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>
+            {result.ok ? (
+              <>
+                <i className="fa-solid fa-circle-check" style={{ color: "var(--accent)", marginRight: 8 }} />
+                Done
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ff8080", marginRight: 8 }} />
+                Something didn’t send
+              </>
+            )}
+          </h3>
+          <p style={{ fontSize: 14, marginBottom: result.failures?.length ? 10 : 0 }}>
+            {result.message}
+          </p>
+          {result.failures && result.failures.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "var(--muted)", lineHeight: 1.8 }}>
+              {result.failures.map((f) => (
+                <li key={f.email}>
+                  <strong>{f.email}</strong> — {f.error}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {confirming && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(6,8,14,.7)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            zIndex: 100
+          }}
+          onClick={() => setConfirming(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm broadcast"
+        >
+          <div
+            className="admin-card"
+            style={{ maxWidth: 460, width: "100%", margin: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+              Send to {recipients.length} subscriber{recipients.length === 1 ? "" : "s"}?
+            </h3>
+            <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.6, marginBottom: 8 }}>
+              This emails everyone on the Newsletter list immediately. There’s no undo — and each
+              email counts toward Brevo’s daily limit.
+            </p>
+            <p style={{ fontSize: 13.5, marginBottom: 18 }}>
+              <strong>{subject.trim() || "No subject"}</strong>
+              {body.trim() && <> — {body.trim().slice(0, 90)}{body.trim().length > 90 ? "…" : ""}</>}
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirming(false)} disabled={isPending}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => run("all", () => sendBroadcast(subject, body))}
+                disabled={isPending}
+              >
+                <i className="fa-solid fa-bullhorn" style={{ marginRight: 6 }} />
+                {isPending ? "Sending…" : `Send to all ${recipients.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

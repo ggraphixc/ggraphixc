@@ -145,6 +145,38 @@ export async function subscribeNewsletter(email: string): Promise<BrevoSendResul
 }
 
 /**
+ * Fetch every email on the Newsletter list (paginated, capped). Returns []
+ * when Brevo isn't configured or the list can't be resolved. Throws on a hard
+ * fetch failure so callers can surface "couldn't reach Brevo" honestly
+ * instead of silently showing an empty list (which looks like no subscribers).
+ * Used by the admin broadcast composer and the broadcast action.
+ */
+export async function getNewsletterRecipients(limit = 1000): Promise<string[]> {
+  if (!process.env.BREVO_API_KEY) return [];
+  const id = await getNewsletterListId();
+  if (id === null) return [];
+  const emails: string[] = [];
+  for (let offset = 0; offset < limit; offset += 500) {
+    const res = await fetch(
+      `${API}/contacts/lists/${id}/contacts?limit=500&offset=${offset}`,
+      fetchOpts({ headers: headers() })
+    );
+    if (!res.ok) {
+      throw new Error(`Brevo ${res.status} fetching newsletter recipients`);
+    }
+    const json = (await res.json().catch(() => ({}))) as {
+      contacts?: { email?: string }[];
+    };
+    const page = (json.contacts ?? [])
+      .map((c) => c.email ?? "")
+      .filter(Boolean);
+    emails.push(...page);
+    if (page.length < 500) break;
+  }
+  return emails;
+}
+
+/**
  * Remove an address from Brevo entirely (the dependable unsubscribe).
  *
  * Note: Brevo's "remove from one list" endpoints don't work reliably on all

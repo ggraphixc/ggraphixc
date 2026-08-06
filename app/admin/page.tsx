@@ -75,7 +75,7 @@ export default async function AdminDashboard({
     { label: "Blog Posts", value: c.blog, href: "/admin/blog", icon: "fa-pen-nib" },
     { label: "Testimonials", value: c.testimonials, href: "/admin/testimonials", icon: "fa-comment-dots" },
     { label: "Messages", value: c.messages, href: "/admin/messages", icon: "fa-envelope" },
-    { label: "Newsletter", value: c.subscribers, href: null, icon: "fa-envelope-open-text" }
+    { label: "Newsletter", value: c.subscribers, href: "/admin/newsletter", icon: "fa-envelope-open-text" }
   ];
   return (
     <>
