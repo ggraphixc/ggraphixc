@@ -18,18 +18,23 @@ export async function subscribe(
   }
 
   if (!process.env.BREVO_API_KEY) {
+    // Honest failure: previously this claimed the visitor was subscribed when
+    // nothing was stored. The "not connected" wording also signals the owner
+    // to set BREVO_API_KEY on the deployment (e.g. Vercel env vars).
     return {
-      status: "success",
-      message: "Thanks! (Email service not connected yet — you're on the list.)"
+      status: "error",
+      message: "Signups aren't active yet — the email service isn't connected."
     };
   }
 
   const result = await subscribeNewsletter(email);
   if (!result.ok) {
-    // Never block the visitor over an email-service hiccup.
+    // Surface the failure instead of pretending success. Never expose the raw
+    // error to visitors, but make sure the failure is visible somewhere.
+    console.error("[newsletter] subscribe failed:", result.error);
     return {
-      status: "success",
-      message: "Thanks for subscribing! I'll be in touch with design notes."
+      status: "error",
+      message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.com instead."
     };
   }
 

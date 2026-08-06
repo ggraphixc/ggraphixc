@@ -56,11 +56,12 @@ export async function submitInquiry(
     return { status: "error", message: "Could not save your message. Please try again." };
   }
 
-  // --- Email notifications (best-effort; never fail the form on email errors) ---
+  // --- Email notifications (best-effort; never fail the form on email errors,
+  // but ALWAYS log failures so the owner can see them in the server logs) ---
   const adminEmail = process.env.BREVO_FROM_EMAIL || "hello@ggraphixc.com";
 
   // 1) Alert the site owner.
-  await sendEmail({
+  const adminAlert = await sendEmail({
     to: adminEmail,
     toName: "ggraphixc",
     subject: `New project brief from ${name}`,
@@ -79,8 +80,10 @@ export async function submitInquiry(
       </div>`
   });
 
+  if (!adminAlert.ok) console.error("[email] owner alert failed:", adminAlert.error);
+
   // 2) Auto-reply to the client so they know it landed.
-  await sendEmail({
+  const autoReply = await sendEmail({
     to: email,
     toName: name,
     subject: "Thanks — your brief is with ggraphixc",
@@ -92,6 +95,7 @@ export async function submitInquiry(
         <p style="font-size:13px;color:#999;margin-top:24px">— Godson Otobo, ggraphixc</p>
       </div>`
   });
+  if (!autoReply.ok) console.error("[email] auto-reply failed:", autoReply.error);
 
   return { status: "success", message: "Thanks! Your message is on its way — expect a reply within 24 hours." };
 }
