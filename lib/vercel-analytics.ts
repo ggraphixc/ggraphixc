@@ -39,7 +39,20 @@ async function aggregate(params: Record<string, string>): Promise<{ data?: Aggre
     cache: "no-store"
   });
   if (!res.ok) {
-    throw new Error(`Vercel Analytics API responded ${res.status}`);
+    // Pull Vercel's own explanation out of the body when present.
+    let detail = "";
+    try {
+      const body = await res.json();
+      detail = body?.error?.message || body?.message || "";
+    } catch {}
+    const hints: Record<number, string> = {
+      401: "unauthorized — check the VERCEL_ANALYTICS_TOKEN",
+      402: "payment/plan required — Vercel custom events need Web Analytics on a Pro plan (Hobby doesn't include them), or the account has a billing/usage block",
+      403: "forbidden — the token lacks analytics access",
+      404: "project not found — check the project/team IDs"
+    };
+    const hint = hints[res.status] ? ` — ${hints[res.status]}` : "";
+    throw new Error(`Vercel Analytics API ${res.status}${detail ? `: ${detail}` : ""}${hint}`);
   }
   return res.json();
 }
