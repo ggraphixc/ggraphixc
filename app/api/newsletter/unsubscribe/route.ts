@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { unsubscribeNewsletter } from "@/lib/brevo";
+import { verifyUnsubscribe } from "@/lib/newsletter-link";
 
-// Public endpoint — the /unsubscribe page calls this when a visitor confirms.
+// Public endpoint — called by the /unsubscribe page after the visitor
+// confirms. Requires a valid signed token: the raw email is never accepted on
+// its own, so a random visitor can't unsubscribe someone else.
 export async function POST(req: NextRequest) {
-  let body: { email?: unknown };
+  let body: { token?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
+  const token = typeof body?.token === "string" ? body.token : "";
+  const email = verifyUnsubscribe(token);
+  if (!email) {
+    return NextResponse.json(
+      { error: "This unsubscribe link is invalid — please open it from the original email." },
+      { status: 400 }
+    );
   }
 
   // 1) Brevo — remove the contact (the source of truth for delivery).

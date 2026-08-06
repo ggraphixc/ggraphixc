@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { SiteSetting } from "@/lib/types";
 import { bumpContentCache } from "@/components/admin/cacheBump";
 import { DEFAULT_SETTINGS, SETTING_FIELD_LABELS } from "@/lib/site-settings";
+import { buildWelcomeEmailHtml, DEFAULT_WELCOME } from "@/lib/welcome-email";
 
 type SettingsMap = Record<string, string>;
 
@@ -17,6 +18,16 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Live preview of the welcome email from the current (unsaved) form values.
+  const previewHtml = buildWelcomeEmailHtml({
+    brand: form.brand_name?.trim() || "ggraphixc",
+    headline: form.welcome_email_headline?.trim() || DEFAULT_WELCOME.headline,
+    body: form.welcome_email_body?.trim() || DEFAULT_WELCOME.body,
+    signoff: form.designer_name?.trim() || "ggraphixc",
+    unsubscribeHref: "https://ggraphixc.com/unsubscribe?t=preview-token"
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -90,6 +101,54 @@ export default function AdminSettings() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            margin: "18px 0 16px",
+            paddingTop: 18,
+            borderTop: "1px solid var(--border)"
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setShowPreview((p) => !p)}
+            aria-expanded={showPreview}
+          >
+            <i className="fa-solid fa-eye" style={{ marginRight: 6 }} />
+            {showPreview ? "Hide" : "Preview"} welcome email
+          </button>
+          {showPreview && (
+            <span style={{ fontSize: 11.5, color: "var(--muted)" }}>
+              Renders with your current form values — nothing is saved yet.
+            </span>
+          )}
+        </div>
+
+        {showPreview && (
+          <div style={{ marginBottom: 16 }}>
+            <iframe
+              title="Welcome email preview"
+              sandbox=""
+              srcDoc={previewHtml}
+              style={{
+                width: "100%",
+                height: 440,
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                background: "#fff"
+              }}
+            />
+            <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>
+              The sign-off, projects button, and unsubscribe link are added automatically. In real
+              emails the unsubscribe link is signed per-subscriber.
+            </p>
           </div>
         )}
 

@@ -1,6 +1,9 @@
 // Server-only Brevo (Sendinblue) integration — transactional email + contacts.
 // Docs: https://developers.brevo.com/reference
 
+// escHtml lives in the shared email module (also used by the admin preview).
+export { escHtml } from "@/lib/welcome-email";
+
 const API = "https://api.brevo.com/v3";
 
 // Every Brevo call must finish quickly or fail fast — a hanging fetch would
@@ -165,11 +168,3 @@ export async function unsubscribeNewsletter(email: string): Promise<BrevoSendRes
   }
 }
 
-/** Escape text for use inside HTML email bodies. */
-export function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

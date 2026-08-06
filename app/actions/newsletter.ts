@@ -1,8 +1,10 @@
 "use server";
 
 import { getServiceSupabase } from "@/lib/supabase/server";
-import { subscribeNewsletter, sendEmail, escHtml } from "@/lib/brevo";
+import { subscribeNewsletter, sendEmail } from "@/lib/brevo";
 import { getSettings } from "@/lib/data";
+import { buildWelcomeEmailHtml, DEFAULT_WELCOME } from "@/lib/welcome-email";
+import { signUnsubscribe } from "@/lib/newsletter-link";
 
 export type NewsletterState = {
   status: "idle" | "success" | "error";
@@ -30,18 +32,10 @@ const MISSING_TABLE = /could not find the table|does not exist|42p01/i;
 // Site URL used in email links (matches the contact form's convention).
 const SITE_URL = "https://ggraphixc.com";
 
-// Fallback copy when the owner hasn't customized the settings yet.
-const DEFAULT_WELCOME = {
-  subject: "Welcome to ggraphixc — you're in! 🎉",
-  headline: "You're in — welcome to the design notes 👋",
-  body:
-    "Thanks for subscribing. Once a month you'll get one short email — brand systems, design craft, and the kind of before/after breakdowns that usually stay behind the scenes. No spam, ever."
-};
-
 /**
  * Send a short branded welcome email after a brand-new signup. The subject,
  * headline, and body are editable from Admin → Settings (welcome_email_*);
- * the sign-off, projects CTA, and working unsubscribe link are added
+ * the sign-off, projects CTA, and a signed unsubscribe link are added
  * automatically. Best-effort: a failed welcome must never fail the
  * subscription itself — failures are logged so the owner can see them.
  * Returns early when there's no email engine configured (backup-only mode).
@@ -57,35 +51,14 @@ async function sendWelcomeEmail(email: string): Promise<void> {
     const headline = s.welcome_email_headline?.trim() || DEFAULT_WELCOME.headline;
     const body = s.welcome_email_body?.trim() || DEFAULT_WELCOME.body;
 
-    // Plain-text body → HTML paragraphs (blank lines split paragraphs).
-    const paragraphs = body
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map(
-        (p) =>
-          `<p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 14px">${escHtml(p)}</p>`
-      )
-      .join("\n");
-
-    const unsubscribeHref = `${SITE_URL}/unsubscribe?e=${encodeURIComponent(email)}`;
-
-    const html = `
-      <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto">
-        <div style="padding:28px 0 8px">
-          <span style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7c5cff">${escHtml(brand)}</span>
-        </div>
-        <h2 style="margin:8px 0 16px;font-size:24px">${escHtml(headline)}</h2>
-        ${paragraphs}
-        <p style="margin:18px 0 0">
-          <a href="${SITE_URL}/projects" style="display:inline-block;background:#7c5cff;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 22px;border-radius:999px">See the work →</a>
-        </p>
-        <p style="font-size:13px;color:#999;margin-top:26px">
-          — ${escHtml(signoff)}<br/>
-          <span style="font-size:12px">You're receiving this because you subscribed at ${escHtml(brand)}.</span><br/>
-          <a href="${unsubscribeHref}" style="font-size:12px;color:#999">Unsubscribe from design notes</a>
-        </p>
-      </div>`;
+    const html = buildWelcomeEmailHtml({
+      brand,
+      headline,
+      body,
+      signoff,
+      // Per-subscriber signed token: only this email's holder can unsubscribe.
+      unsubscribeHref: `${SITE_URL}/unsubscribe?t=${signUnsubscribe(email)}`
+    });
 
     const result = await sendEmail({
       to: email,
