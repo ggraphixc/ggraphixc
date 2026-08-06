@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { sendBroadcast, sendTestBroadcast, type BroadcastState } from "@/app/actions/broadcast";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 
@@ -40,6 +41,7 @@ export default function BroadcastClient({
   const [result, setResult] = useState<BroadcastState | null>(null);
   const [busy, setBusy] = useState<"test" | "all" | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // AI draft panel
   const [showAi, setShowAi] = useState(false);
@@ -77,6 +79,8 @@ export default function BroadcastClient({
       const res = await fn();
       setResult(res);
       setBusy(null);
+      // Refresh the server page so the delivery-jobs list shows the new run.
+      if (kind === "all") router.refresh();
     });
   }
 
@@ -485,7 +489,12 @@ export default function BroadcastClient({
           }}
         >
           <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>
-            {result.ok ? (
+            {result.queued ? (
+              <>
+                <i className="fa-solid fa-clock-rotate-left" style={{ color: "var(--accent)", marginRight: 8 }} />
+                Delivering in the background
+              </>
+            ) : result.ok ? (
               <>
                 <i className="fa-solid fa-circle-check" style={{ color: "var(--accent)", marginRight: 8 }} />
                 Done

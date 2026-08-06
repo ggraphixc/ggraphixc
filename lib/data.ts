@@ -371,3 +371,40 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   if (!data) return null;
   return data as BlogPost;
 }
+
+/**
+ * Site search over projects + published posts (used by /search). Title,
+ * description/excerpt and category/tags are matched with ILIKE. Returns empty
+ * arrays on any failure — a search should never 500 the page.
+ */
+export async function searchContent(
+  q: string
+): Promise<{ projects: Project[]; posts: BlogPost[] }> {
+  const sb = await safeService();
+  if (!sb) return { projects: [], posts: [] };
+  // Strip characters that would break PostgREST's .or() condition parsing
+  // (commas, parens, quotes) or act as unintended wildcards.
+  const safeQ = q.replace(/[(),'"]/g, " ").trim();
+  const pattern = `%${safeQ}%`;
+  try {
+    const [pRes, bRes] = await Promise.all([
+      sb
+        .from("projects")
+        .select("id, title, slug, category, image_url, result, description")
+        .or(`title.ilike.${pattern},description.ilike.${pattern},category.ilike.${pattern}`)
+        .order("display_order", { ascending: true }),
+      sb
+        .from("blog_posts")
+        .select("id, title, slug, excerpt, cover_url, tags")
+        .eq("published", true)
+        .or(`title.ilike.${pattern},excerpt.ilike.${pattern},tags.ilike.${pattern}`)
+        .order("display_order", { ascending: true })
+    ]);
+    return {
+      projects: (pRes.data ?? []) as Project[],
+      posts: (bRes.data ?? []) as BlogPost[]
+    };
+  } catch {
+    return { projects: [], posts: [] };
+  }
+}

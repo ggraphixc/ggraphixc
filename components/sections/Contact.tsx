@@ -21,6 +21,14 @@ export default function Contact({
 }) {
   const [state, formAction, pending] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
+  // Time-trap stamp: written imperatively after mount (no re-render), sent with
+  // the form, verified server-side so instant bot submissions (and no-JS bots,
+  // which send the default "0") are rejected.
+  const stampRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (stampRef.current) stampRef.current.value = String(Date.now());
+  }, []);
 
   useEffect(() => {
     if (state.status !== "success") return;
@@ -100,6 +108,12 @@ export default function Contact({
           </div>
 
           <form ref={formRef} action={formAction} className="glass" style={{ padding: 32 }}>
+            {/* Honeypot: hidden from humans, irresistible to bots. */}
+            <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+              <label htmlFor="website">Leave this field empty</label>
+              <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+            </div>
+            <input ref={stampRef} type="hidden" name="rendered_at" defaultValue="0" />
             <div className="field">
               <label htmlFor="name">Full Name</label>
               <input id="name" name="name" required placeholder="Godson Otobo" />

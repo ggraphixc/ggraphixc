@@ -5,6 +5,8 @@ import { getSettings } from "@/lib/data";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 import { signUnsubscribe } from "@/lib/newsletter-link";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getServiceSupabase } from "@/lib/supabase/server";
+import { createBroadcastJob, drainBroadcastJobs } from "@/lib/broadcast-queue";
 
 export type BroadcastState = {
   ok: boolean;
@@ -12,13 +14,10 @@ export type BroadcastState = {
   sent?: number;
   failed?: number;
   total?: number;
+  queued?: boolean;
+  remaining?: number;
   failures?: { email: string; error: string }[];
 };
-
-// Safety ceiling for one broadcast: sequential sends must finish inside the
-// serverless function window (~60s). 100 × ~400ms ≈ 40s worst case. Larger
-// lists are preserved in Brevo and can be reached with a follow-up run.
-const MAX_BROADCAST_RECIPIENTS = 100;
 
 // Site URL used in email links (matches the newsletter/contact conventions).
 const SITE_URL = "https://ggraphixc.vercel.app";
@@ -95,7 +94,11 @@ function validate(subject: string, body: string): string | null {
   return null;
 }
 
-/** Send a broadcast to every address on the Brevo Newsletter list. */
+/** Send a broadcast to every address on the Brevo Newsletter list.
+ *
+ * The campaign is queued (snapshot of the list) and as many batches as fit in
+ * the request window are drained immediately; Vercel Cron finishes the rest in
+ * the background — so lists of any size are fully reached without re-runs. */
 export async function sendBroadcast(subject: string, body: string): Promise<BroadcastState> {
   if (!(await requireAdmin())) {
     return { ok: false, message: "Unauthorized — sign in to the admin portal and try again." };
@@ -122,23 +125,58 @@ export async function sendBroadcast(subject: string, body: string): Promise<Broa
     };
   }
 
-  // Cap the batch so the send loop finishes inside the serverless window.
-  const batch = recipients.slice(0, MAX_BROADCAST_RECIPIENTS);
-  const skipped = recipients.length - batch.length;
-
-  const settings = await getSettings();
-  const res = await sendTo(
-    batch,
-    s,
-    b,
-    settings.brand_name || "ggraphixc",
-    settings.designer_name || "ggraphixc"
-  );
-  if (skipped > 0) {
-    res.total = batch.length;
-    res.message += ` ${skipped} more subscriber${skipped === 1 ? " is" : "s are"} still on the list — run the broadcast again to reach them.`;
+  let jobId: string;
+  try {
+    jobId = (await createBroadcastJob(s, b, recipients)).id;
+  } catch (e) {
+    console.error("[broadcast] could not enqueue:", e instanceof Error ? e.message : e);
+    return { ok: false, message: "Couldn't queue the broadcast — try again in a moment." };
   }
-  return res;
+
+  // Drain this campaign for up to ~40s (the page's maxDuration is 60s); the
+  // cron finishes whatever is left in the background.
+  try {
+    await drainBroadcastJobs(1, 40_000, jobId);
+  } catch (e) {
+    console.error("[broadcast] drain failed:", e instanceof Error ? e.message : e);
+  }
+
+  // Read the job back for an honest progress report.
+  type JobProgress = { total: number; sent: number; failed: number; failures: unknown };
+  let job: JobProgress | null = null;
+  try {
+    const sb = getServiceSupabase();
+    const { data } = await sb
+      .from("broadcast_jobs")
+      .select("total, sent, failed, failures")
+      .eq("id", jobId)
+      .maybeSingle();
+    job = (data as JobProgress | null);
+  } catch {}
+
+  const total = job?.total ?? recipients.length;
+  const sent = job?.sent ?? 0;
+  const failed = job?.failed ?? 0;
+  const remaining = Math.max(0, total - sent - failed);
+  const failures = (job?.failures ?? []) as { email: string; error: string }[];
+
+  const message =
+    remaining > 0
+      ? `Queued for ${total} subscriber${total === 1 ? "" : "s"} — sent ${sent} so far. The remaining ${remaining} are delivering in the background (every 10 minutes).`
+      : failed > 0
+        ? `Broadcast sent to ${sent} of ${total}. ${failed} failed — details below.`
+        : `Broadcast sent to ${sent} subscriber${sent === 1 ? "" : "s"}.`;
+
+  return {
+    ok: failed === 0,
+    sent,
+    failed,
+    total,
+    queued: remaining > 0,
+    remaining,
+    failures: failures.slice(0, 50),
+    message
+  };
 }
 
 /** Send the current draft only to the owner's address — a safe dry run. */

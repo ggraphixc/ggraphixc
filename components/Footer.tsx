@@ -79,6 +79,7 @@ export default async function Footer() {
             <h4>Contact</h4>
             <Link href={`mailto:${email}`}>{email}</Link>
             <Link href="/contact">Start a Project</Link>
+            <Link href="/privacy">Privacy Policy</Link>
             <Link href="/admin">Admin</Link>
           </div>
           <NewsletterForm />

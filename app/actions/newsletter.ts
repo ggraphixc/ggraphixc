@@ -3,6 +3,7 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { subscribeNewsletter } from "@/lib/brevo";
 import { sendWelcomeEmail } from "@/lib/newsletter-email";
+import { isHoneypotFilled, isTooFast, rateLimit, clientIp } from "@/lib/spam-guard";
 
 export type NewsletterState = {
   status: "idle" | "success" | "error";
@@ -48,6 +49,20 @@ export async function subscribe(
   _prev: NewsletterState,
   formData: FormData
 ): Promise<NewsletterState> {
+  // --- Spam guard: honeypot, time trap, per-IP rate limit ---
+  // The honeypot gets a *silent success* so bots learn nothing. The time trap
+  // returns an honest error — a fast-but-legit signup must not be silently
+  // dropped while looking successful.
+  if (isHoneypotFilled(formData.get("website"))) {
+    return { status: "success", message: "You're in! Expect occasional design notes — no spam, ever." };
+  }
+  if (isTooFast(formData.get("rendered_at"))) {
+    return { status: "error", message: "Signup didn't go through — please wait a second and try again." };
+  }
+  if (!rateLimit(await clientIp())) {
+    return { status: "error", message: "Too many signups — please wait a minute and try again." };
+  }
+
   const email = String(formData.get("email") ?? "").trim();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

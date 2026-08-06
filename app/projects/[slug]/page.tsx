@@ -20,13 +20,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
   if (!project) return { title: "Project not found — ggraphixc" };
+  // The branded social-share image comes from ./opengraph-image.tsx (cover +
+  // title, generated per project) — no raw-URL override needed here.
   return {
     title: `${project.title} — ggraphixc`,
     description: project.description ?? undefined,
     openGraph: {
       title: project.title,
-      description: project.description ?? undefined,
-      images: project.image_url ? [{ url: project.image_url }] : []
+      description: project.description ?? undefined
     }
   };
 }

@@ -1,12 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { subscribe, type NewsletterState } from "@/app/actions/newsletter";
 
 const initial: NewsletterState = { status: "idle", message: "" };
 
 export default function NewsletterForm() {
   const [state, formAction, pending] = useActionState(subscribe, initial);
+  // Time-trap stamp: written imperatively after mount (no re-render), verified
+  // server-side so instant/no-JS bot submissions ("0") are rejected.
+  const stampRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (stampRef.current) stampRef.current.value = String(Date.now());
+  }, []);
 
   return (
     <div>
@@ -15,6 +22,12 @@ export default function NewsletterForm() {
         One short email a month — brand systems, design craft, and what&apos;s working.
       </p>
       <form action={formAction} style={{ display: "flex", gap: 8 }}>
+        {/* Honeypot: hidden from humans, irresistible to bots. */}
+        <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+          <label htmlFor="nl-website">Leave this field empty</label>
+          <input id="nl-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </div>
+        <input ref={stampRef} type="hidden" name="rendered_at" defaultValue="0" />
         <input
           type="email"
           name="email"

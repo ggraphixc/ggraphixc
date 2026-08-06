@@ -44,6 +44,11 @@ export default function Header({ brand = "ggraphixc" }: { brand?: string }) {
           </Link>
         </nav>
 
+        <form className="header-search" action="/search" method="get" role="search">
+          <i className="fa-solid fa-magnifying-glass header-search-icon" />
+          <input type="search" name="q" placeholder="Search…" aria-label="Search projects and notes" />
+        </form>
+
         <button
           className={`hamburger ${open ? "open" : ""}`}
           aria-label="Toggle menu"
@@ -58,6 +63,10 @@ export default function Header({ brand = "ggraphixc" }: { brand?: string }) {
 
       {open && (
         <div id="mobile-nav" className="mobile-nav">
+          <form action="/search" method="get" className="header-search" role="search">
+            <i className="fa-solid fa-magnifying-glass header-search-icon" />
+            <input type="search" name="q" placeholder="Search projects & notes…" aria-label="Search projects and notes" />
+          </form>
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>
               {n.label}

@@ -2,6 +2,7 @@
 
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { sendEmail, escHtml } from "@/lib/brevo";
+import { isHoneypotFilled, isTooFast, rateLimit, clientIp } from "@/lib/spam-guard";
 
 export type ContactState = {
   status: "idle" | "success" | "error";
@@ -13,6 +14,20 @@ export async function submitInquiry(
   _prev: ContactState,
   formData: FormData
 ): Promise<ContactState> {
+  // --- Spam guard: honeypot, time trap, per-IP rate limit ---
+  // The honeypot gets a *silent success* so bots learn nothing. The time trap
+  // returns an honest error instead — a fast-but-legit submitter (autofill,
+  // paste) must never believe their brief was sent when it wasn't.
+  if (isHoneypotFilled(formData.get("website"))) {
+    return { status: "success", message: "Thanks! Your message is on its way — expect a reply within 24 hours." };
+  }
+  if (isTooFast(formData.get("rendered_at"))) {
+    return { status: "error", message: "Your message didn't go through — please wait a second and try again." };
+  }
+  if (!rateLimit(await clientIp())) {
+    return { status: "error", message: "Too many messages — please wait a minute and try again." };
+  }
+
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim() || null;

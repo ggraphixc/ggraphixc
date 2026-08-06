@@ -252,6 +252,20 @@ export default function AdminProjects() {
     }
   }
 
+  /** Mint a signed draft-preview link and copy it to the clipboard. */
+  async function copyPreview(slug: string) {
+    try {
+      const res = await fetch(`/api/preview-token?kind=project&slug=${encodeURIComponent(slug)}`);
+      if (!res.ok) throw new Error("Unauthorized or invalid");
+      const { url } = (await res.json()) as { url?: string };
+      if (!url) throw new Error("No url");
+      await navigator.clipboard.writeText(url);
+      setToast({ text: "Preview link copied — share it to review this case study", type: "ok" });
+    } catch {
+      setToast({ text: "Couldn't create a preview link", type: "err" });
+    }
+  }
+
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -461,6 +475,9 @@ export default function AdminProjects() {
                   </td>
                   <td>
                     <div className="row-actions">
+                      <button className="btn btn-ghost btn-sm" onClick={() => copyPreview(p.slug)} title="Copy draft preview link">
+                        <i className="fa-solid fa-link" />
+                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => startEdit(p)}>
                         <i className="fa-solid fa-pen" />
                       </button>

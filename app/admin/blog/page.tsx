@@ -175,6 +175,20 @@ export default function AdminBlog() {
     }
   }
 
+  /** Mint a signed draft-preview link and copy it to the clipboard. */
+  async function copyPreview(slug: string) {
+    try {
+      const res = await fetch(`/api/preview-token?kind=blog&slug=${encodeURIComponent(slug)}`);
+      if (!res.ok) throw new Error("Unauthorized or invalid");
+      const { url } = (await res.json()) as { url?: string };
+      if (!url) throw new Error("No url");
+      await navigator.clipboard.writeText(url);
+      setToast({ text: "Preview link copied — share it to review this draft", type: "ok" });
+    } catch {
+      setToast({ text: "Couldn't create a preview link", type: "err" });
+    }
+  }
+
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -310,6 +324,9 @@ export default function AdminBlog() {
                   </td>
                   <td>
                     <div className="row-actions">
+                      <button className="btn btn-ghost btn-sm" onClick={() => copyPreview(p.slug)} title="Copy draft preview link">
+                        <i className="fa-solid fa-link" />
+                      </button>
                       <button className="btn btn-ghost btn-sm" onClick={() => togglePublish(p)} title="Toggle publish">
                         <i className={`fa-solid ${p.published ? "fa-eye-slash" : "fa-eye"}`} />
                       </button>

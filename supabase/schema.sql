@@ -250,3 +250,27 @@ create table if not exists public.newsletter_subscribers (
 create index if not exists newsletter_subscribers_time_idx
   on public.newsletter_subscribers (created_at desc);
 alter table public.newsletter_subscribers enable row level security;
+
+-- ---------- broadcast_jobs ----------
+-- Delivery queue for newsletter campaigns. The broadcast action snapshots the
+-- recipient list into a job, drains batches within the request window, and
+-- Vercel Cron (/api/cron/broadcast) drains the rest every 10 minutes — so
+-- lists larger than one serverless run can still be fully reached.
+-- RLS on with no policies: only the server (service role) touches jobs.
+create table if not exists public.broadcast_jobs (
+  id uuid primary key default gen_random_uuid(),
+  subject text not null,
+  body text not null,
+  status text not null default 'queued',
+  total int not null default 0,
+  sent int not null default 0,
+  failed int not null default 0,
+  failures jsonb not null default '[]'::jsonb,
+  recipients jsonb not null default '[]'::jsonb,
+  offset int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists broadcast_jobs_status_idx
+  on public.broadcast_jobs (status, created_at);
+alter table public.broadcast_jobs enable row level security;
