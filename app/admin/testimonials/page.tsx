@@ -242,13 +242,13 @@ export default function AdminTestimonials() {
                       </button>
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600 }}>
+                  <td data-label="Name" style={{ fontWeight: 600 }}>
                     <InlineEdit value={t.name} onSave={(v) => quickSave(t.id, { name: v })} />
                   </td>
-                  <td style={{ color: "var(--muted)" }}>
+                  <td data-label="Role" style={{ color: "var(--muted)" }}>
                     <InlineEdit value={t.role ?? ""} onSave={(v) => quickSave(t.id, { role: v })} />
                   </td>
-                  <td style={{ color: "var(--muted)", maxWidth: 340 }}>
+                  <td data-label="Quote" style={{ color: "var(--muted)", maxWidth: 340 }}>
                     <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320 }}>
                       “{t.quote}”
                     </div>

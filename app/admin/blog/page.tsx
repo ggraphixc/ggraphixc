@@ -297,13 +297,13 @@ export default function AdminBlog() {
                       </div>
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>
+                  <td data-label="Title" style={{ fontWeight: 600 }}>
                     <InlineEdit value={p.title} onSave={(v) => quickSave(p.id, { title: v })} />
                   </td>
-                  <td style={{ color: "var(--muted)" }}>
+                  <td data-label="Tags" style={{ color: "var(--muted)" }}>
                     <InlineEdit value={p.tags ?? ""} onSave={(v) => quickSave(p.id, { tags: v || null })} />
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className="badge-soft" style={{ background: p.published ? "rgba(0,210,255,0.12)" : "rgba(255,255,255,0.06)", color: p.published ? "var(--accent)" : "var(--muted)" }}>
                       {p.published ? "published" : "draft"}
                     </span>

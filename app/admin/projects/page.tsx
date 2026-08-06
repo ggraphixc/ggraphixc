@@ -430,26 +430,26 @@ export default function AdminProjects() {
                       </div>
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>
+                  <td data-label="Title" style={{ fontWeight: 600 }}>
                     <InlineEdit
                       value={p.title}
                       onSave={(v) => quickSave(p.id, { title: v })}
                     />
                   </td>
-                  <td style={{ color: "var(--muted)" }}>
+                  <td data-label="Category" style={{ color: "var(--muted)" }}>
                     <InlineEdit
                       value={p.category ?? ""}
                       onSave={(v) => quickSave(p.id, { category: v || null })}
                     />
                   </td>
-                  <td>
+                  <td data-label="Result">
                     <InlineEdit
                       value={p.result ?? ""}
                       onSave={(v) => quickSave(p.id, { result: v || null })}
                       style={{ color: "var(--accent)", fontWeight: 700 }}
                     />
                   </td>
-                  <td>
+                  <td data-label="Featured">
                     <button
                       className={`star-toggle ${p.featured ? "on" : ""}`}
                       onClick={() => quickSave(p.id, { featured: !p.featured })}

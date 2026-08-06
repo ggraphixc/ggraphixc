@@ -69,14 +69,14 @@ export default function AdminMessages() {
             <tbody>
               {items.map((m) => (
                 <tr key={m.id}>
-                  <td style={{ fontWeight: 600 }}>{m.name}</td>
-                  <td style={{ color: "var(--muted)", fontSize: 13 }}>
+                  <td data-label="From" style={{ fontWeight: 600 }}>{m.name}</td>
+                  <td data-label="Contact" style={{ color: "var(--muted)", fontSize: 13 }}>
                     {m.email}
                     {m.phone && <div>{m.phone}</div>}
                   </td>
-                  <td style={{ maxWidth: 320, color: "var(--muted)" }}>{m.message}</td>
-                  <td style={{ color: "var(--muted)" }}>{m.investment_range ?? "—"}</td>
-                  <td>
+                  <td data-label="Message" style={{ maxWidth: 320, color: "var(--muted)" }}>{m.message}</td>
+                  <td data-label="Budget range" style={{ color: "var(--muted)" }}>{m.investment_range ?? "—"}</td>
+                  <td data-label="Status">
                     <select
                       value={m.status}
                       onChange={(e) => setStatus(m.id, e.target.value)}

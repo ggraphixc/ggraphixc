@@ -203,7 +203,7 @@ export default function AdminClients() {
                       </div>
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>
+                  <td data-label="Name" style={{ fontWeight: 600 }}>
                     <InlineEdit value={c.name} onSave={(v) => quickSave(c.id, { name: v })} />
                   </td>
                   <td>

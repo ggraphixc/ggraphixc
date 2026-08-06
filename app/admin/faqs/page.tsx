@@ -184,10 +184,10 @@ export default function AdminFaqs() {
                       </button>
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600, maxWidth: 260 }}>
+                  <td data-label="Question" style={{ fontWeight: 600, maxWidth: 260 }}>
                     <InlineEdit value={f.question} onSave={(v) => quickSave(f.id, { question: v })} />
                   </td>
-                  <td style={{ color: "var(--muted)", maxWidth: 380 }}>
+                  <td data-label="Answer" style={{ color: "var(--muted)", maxWidth: 380 }}>
                     <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 360 }}>
                       {f.answer}
                     </div>

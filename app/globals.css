@@ -1798,11 +1798,90 @@ tr.drop-target td {
   .admin-table td { padding: 10px 8px; }
 }
 
-/* Keep admin tables scrollable on small screens */
+/* Admin tables become stacked cards on small screens — no horizontal scroll.
+   Each cell carries a data-label attribute shown above its value; the drag
+   handle floats top-right and thumbnails stretch full width. */
 @media (max-width: 640px) {
   .admin-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
-  .admin-table-wrap table { min-width: 560px; }
+  .admin-table-wrap .admin-table,
+  .admin-table-wrap tbody {
+    display: block;
+  }
+  .admin-table-wrap thead {
+    display: none;
+  }
+  .admin-table-wrap tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 44px 14px 14px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .admin-table-wrap tbody tr.drop-target {
+    border-color: var(--accent);
+  }
+  .admin-table-wrap tbody tr td {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    border: none;
+    padding: 0;
+    max-width: none;
+    min-width: 0;
+  }
+  .admin-table-wrap tbody tr td[data-label]::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  /* Drag handle + reorder arrows float top-right of the card. */
+  .admin-table-wrap tbody tr td:has(.drag-handle) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    align-items: flex-end;
+    flex-direction: row;
+    gap: 4px;
+    z-index: 2;
+  }
+  /* Thumbnails / covers / logos become a full-width banner. */
+  .admin-table-wrap tbody tr td:has(.thumb-cell) {
+    padding: 0;
+  }
+  .admin-table-wrap tbody .thumb-cell {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  /* Unlabeled cells (action buttons) align right. */
+  .admin-table-wrap tbody tr td:not([data-label]):not(:has(.drag-handle)):not(:has(.thumb-cell)) {
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+  .admin-table-wrap .inline-edit {
+    width: 100%;
+  }
+  .admin-table-wrap td select {
+    width: 100%;
+  }
+  /* Empty-state rows stay plain and left-aligned. */
+  .admin-table-wrap tbody tr:has(td[colspan]) {
+    display: block;
+    padding: 14px;
+  }
+  .admin-table-wrap tbody tr:has(td[colspan]) td {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
 }
