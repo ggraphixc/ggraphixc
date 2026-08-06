@@ -1,7 +1,8 @@
 "use server";
 
 import { getServiceSupabase } from "@/lib/supabase/server";
-import { subscribeNewsletter } from "@/lib/brevo";
+import { subscribeNewsletter, sendEmail, escHtml } from "@/lib/brevo";
+import { getSettings } from "@/lib/data";
 
 export type NewsletterState = {
   status: "idle" | "success" | "error";
@@ -19,6 +20,56 @@ export type NewsletterState = {
 // owner runs the migration — it must not spam logs. Anything else is a real
 // failure worth surfacing.
 const MISSING_TABLE = /could not find the table|does not exist|42p01/i;
+
+/**
+ * Send a short branded welcome email after a brand-new signup. Best-effort:
+ * a failed welcome must never fail the subscription itself — failures are
+ * logged so the owner can see them. Returns early when there's no email
+ * engine configured (the backup-only mode).
+ */
+async function sendWelcomeEmail(email: string): Promise<void> {
+  if (!process.env.BREVO_API_KEY) return; // nothing configured to send with
+  try {
+    const s = await getSettings();
+    const brand = s.brand_name || "ggraphixc";
+    const signoff = s.designer_name || "ggraphixc";
+    const replyTo = s.contact_email || undefined;
+
+    const result = await sendEmail({
+      to: email,
+      replyTo,
+      subject: `Welcome to ${brand} — you're in! 🎉`,
+      html: `
+        <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto">
+          <div style="padding:28px 0 8px">
+            <span style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7c5cff">${escHtml(brand)}</span>
+          </div>
+          <h2 style="margin:8px 0 14px;font-size:24px">You're in — welcome to the design notes 👋</h2>
+          <p style="font-size:15px;line-height:1.7;color:#333">
+            Thanks for subscribing. Once a month you'll get one short email — brand
+            systems, design craft, and the kind of before/after breakdowns that
+            usually stay behind the scenes. No spam, ever.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#333">
+            While you wait for the first issue, you can see how these ideas show up
+            in real work over on the <a href="https://ggraphixc.com/projects" style="color:#7c5cff">projects page</a>.
+          </p>
+          <p style="font-size:13px;color:#999;margin-top:24px">
+            — ${escHtml(signoff)}<br/>
+            <span style="font-size:12px">You're receiving this because you subscribed at ggraphixc.com.</span>
+          </p>
+        </div>`
+    });
+    if (!result.ok) {
+      console.error("[newsletter] welcome email failed:", result.error);
+    } else {
+      // messageId lets the owner trace delivery in the Brevo dashboard.
+      console.log(`[newsletter] welcome email sent to ${email} (messageId ${result.id})`);
+    }
+  } catch (e) {
+    console.error("[newsletter] welcome email threw:", e instanceof Error ? e.message : e);
+  }
+}
 
 async function backupSubscribe(email: string): Promise<boolean> {
   try {
@@ -67,7 +118,9 @@ export async function subscribe(
       // The signup is preserved in the Supabase backup sink, so the visitor
       // is still on the list — succeed softly rather than losing them.
       if (saved) {
-        console.warn("[newsletter] stored in Supabase backup only (Brevo failed)");
+        console.warn(
+          "[newsletter] stored in Supabase backup only (Brevo down) — welcome email not sent"
+        );
         return {
           status: "success",
           message: "You're in! Expect occasional design notes — no spam, ever."
@@ -78,6 +131,17 @@ export async function subscribe(
         message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.com instead."
       };
     }
+
+    // Brevo is healthy — welcome only genuinely new subscribers. A returning
+    // address (updated, not created) already got its welcome on first signup.
+    if (result.created) {
+      await sendWelcomeEmail(email);
+    }
+  } else if (saved) {
+    // Backup-only mode: subscribed in Supabase, but there's no email engine to
+    // send a welcome with. Surface it so the owner knows the signup path works
+    // but delivery is waiting on BREVO_API_KEY.
+    console.warn("[newsletter] subscribed via Supabase backup only — welcome email not sent (no BREVO_API_KEY)");
   }
 
   return {

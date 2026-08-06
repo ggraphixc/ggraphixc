@@ -28,7 +28,7 @@ function from() {
   };
 }
 
-export type BrevoSendResult = { ok: boolean; id?: string; error?: string };
+export type BrevoSendResult = { ok: boolean; id?: string; error?: string; created?: boolean };
 
 /**
  * Send a transactional email via Brevo SMTP API.
@@ -119,7 +119,8 @@ export async function subscribeNewsletter(email: string): Promise<BrevoSendResul
       const json = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
       return { ok: false, error: `Brevo ${res.status}: ${json.message ?? json.code ?? ""}` };
     }
-    return { ok: true };
+    // 201 = contact created (new subscriber), 204 = contact updated (returning).
+    return { ok: true, created: res.status === 201 };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "network error" };
   }
