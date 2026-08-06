@@ -19,6 +19,14 @@ export const DEFAULT_WELCOME = {
     "Thanks for subscribing. Once a month you'll get one short email — brand systems, design craft, and the kind of before/after breakdowns that usually stay behind the scenes. No spam, ever."
 };
 
+// Copy for the "welcome back" email sent when someone resubscribes after
+// having unsubscribed. Not settings-editable (defaults only).
+export const DEFAULT_WELCOME_BACK = {
+  subject: "Welcome back to ggraphixc 🎉",
+  headline: "You're back — welcome home 👋",
+  body: "Great to see you again. You're on the list, so the next design note will land right in this inbox — no action needed from you."
+};
+
 export type WelcomeEmailParts = {
   brand: string;
   headline: string;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { subscribeNewsletter } from "@/lib/brevo";
 import { verifyUnsubscribe } from "@/lib/newsletter-link";
+import { sendWelcomeEmail } from "@/lib/newsletter-email";
 
 // Public endpoint — the "changed your mind?" flow on the unsubscribe done
 // page. Requires the same signed token the unsubscribe link carried, so only
@@ -28,6 +29,12 @@ export async function POST(req: NextRequest) {
       { error: "Couldn't resubscribe you just now — please try again in a minute." },
       { status: 500 }
     );
+  }
+
+  // A genuinely new contact (unsubscribed earlier = deleted) gets a
+  // "welcome back" email; an already-present address is left alone.
+  if (brevo.created) {
+    await sendWelcomeEmail(email, "back");
   }
 
   // 2) Supabase backup — best-effort upsert (deduped on email PK).
