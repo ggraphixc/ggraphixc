@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { track } from "@vercel/analytics";
 import { submitInquiry, type ContactState } from "@/app/actions/contact";
 
 const RANGES = ["< $1k", "$1k - $5k", "$5k - $15k", "$15k+"];
@@ -22,7 +23,14 @@ export default function Contact({
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.status === "success") formRef.current?.reset();
+    if (state.status !== "success") return;
+    formRef.current?.reset();
+    // Funnel analytics: did this visitor chat with the concierge first?
+    try {
+      track("contact_submit", {
+        afterChat: sessionStorage.getItem("cc_chat_open") === "1"
+      });
+    } catch {}
   }, [state.status]);
 
   return (

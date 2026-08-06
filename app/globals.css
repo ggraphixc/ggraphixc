@@ -1540,6 +1540,74 @@ tr.drop-target td {
   background: #22c55e;
   border: 2px solid var(--bg);
 }
+
+/* Attention chip that points at the chat button (container + two sibling
+   buttons: primary opens the chat, ✕ dismisses for the session) */
+.concierge-hint {
+  position: fixed;
+  bottom: 36px;
+  right: 100px;
+  z-index: 1499;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: vt-fade-in 0.35s var(--cb);
+}
+.concierge-hint-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  background: rgba(13, 13, 16, 0.96);
+  border: 1px solid rgba(0, 210, 255, 0.35);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  min-height: 44px;
+  max-width: min(320px, calc(100vw - 140px));
+  transition: transform 0.3s var(--cb), border-color 0.3s;
+  position: relative;
+}
+.concierge-hint-open:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 210, 255, 0.6);
+}
+.concierge-hint-open::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 13px;
+  height: 13px;
+  background: rgba(13, 13, 16, 0.96);
+  border-right: 1px solid rgba(0, 210, 255, 0.35);
+  border-top: 1px solid rgba(0, 210, 255, 0.35);
+}
+.concierge-hint-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: 0.25s;
+}
+.concierge-hint-close:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+@media (max-width: 480px) {
+  .concierge-hint {
+    display: none; /* keep phones clean — the button is already prominent */
+  }
+}
 .concierge-panel {
   position: fixed;
   bottom: 98px;

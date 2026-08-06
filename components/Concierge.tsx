@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
 
 type Msg = { role: "user" | "bot"; parts: string };
 
@@ -26,6 +27,7 @@ export default function Concierge({
     parts: `Hey! I'm the ${brand} concierge 🤖 Ask me about services, process, timelines, or rough budgets — or just say hi.`
   };
   const [open, setOpen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([welcome]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -37,10 +39,50 @@ export default function Concierge({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, open, busy]);
 
+  // Attention chip: show the "Ask the concierge" hint shortly after load,
+  // auto-hide after a while, and never show again once dismissed (per session).
+  useEffect(() => {
+    let dismissed = false;
+    try {
+      dismissed = sessionStorage.getItem("cc_hint_dismissed") === "1";
+    } catch {}
+    if (dismissed) return;
+    const t1 = setTimeout(() => setShowHint(true), 2500);
+    const t2 = setTimeout(() => setShowHint(false), 9000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  function dismissHint() {
+    setShowHint(false);
+    try {
+      sessionStorage.setItem("cc_hint_dismissed", "1");
+    } catch {}
+  }
+
+  function toggleOpen() {
+    if (!open) {
+      setShowHint(false);
+      try {
+        // Track unique chats per session, not every reopen.
+        const wasOpen = sessionStorage.getItem("cc_chat_open") === "1";
+        sessionStorage.setItem("cc_chat_open", "1");
+        if (!wasOpen) track("concierge_opened");
+      } catch {
+        // Storage unavailable (private mode) — track the open anyway.
+        track("concierge_opened");
+      }
+    }
+    setOpen(!open);
+  }
+
   async function send(e?: React.FormEvent) {
     e?.preventDefault();
     const text = input.trim();
     if (!text || busy) return;
+    track("concierge_message");
     const next: Msg[] = [...messages, { role: "user", parts: text }];
     setMessages(next);
     setInput("");
@@ -125,6 +167,7 @@ export default function Concierge({
                       href={`/projects/${p.slug}`}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={() => track("concierge_card_click", { project: p.slug })}
                     >
                       {!imgBroken ? (
                         <img
@@ -162,9 +205,25 @@ export default function Concierge({
         </div>
       )}
 
+      {showHint && !open && (
+        <div className="concierge-hint">
+          <button type="button" className="concierge-hint-open" onClick={toggleOpen}>
+            <span aria-hidden="true">👋</span> Have a question? Ask the {brand} concierge
+          </button>
+          <button
+            type="button"
+            className="concierge-hint-close"
+            aria-label="Dismiss hint"
+            onClick={dismissHint}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <button
         className="concierge-fab"
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         aria-label={open ? "Close chat" : "Open AI concierge"}
         aria-expanded={open}
       >
