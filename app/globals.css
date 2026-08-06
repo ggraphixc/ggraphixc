@@ -377,6 +377,14 @@ summary:focus-visible {
 .nav-cta::after {
   display: none;
 }
+/* The CTA is an <a> inside .nav-links, whose link rules have higher specificity
+   than .btn-primary — force the white-on-gradient treatment (text + background)
+   for both normal and hover states, or the muted link color wins. */
+.nav-links a.nav-cta,
+.nav-links a.nav-cta:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), var(--royal));
+}
 .hamburger {
   display: none;
   flex-direction: column;
