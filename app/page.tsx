@@ -24,7 +24,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero headline={settings.hero_headline} lead={settings.hero_lead} roleTitle={settings.role_title} />
+      <Hero
+        headline={settings.hero_headline}
+        lead={settings.hero_lead}
+        roleTitle={settings.role_title}
+        badgeTagline={settings.hero_badge_tagline}
+      />
       <Stats
         stats={{
           projects: settings.stats_projects,

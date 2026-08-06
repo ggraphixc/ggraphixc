@@ -4,11 +4,13 @@ import HeroCanvas from "@/components/three/HeroCanvas";
 export default function Hero({
   headline,
   lead,
-  roleTitle = "Graphics Designer"
+  roleTitle = "Graphics Designer",
+  badgeTagline = "Brand & Visual Systems"
 }: {
   headline: string;
   lead: string;
   roleTitle?: string;
+  badgeTagline?: string;
 }) {
   return (
     <section className="hero" id="top">
@@ -19,7 +21,7 @@ export default function Hero({
           <div className="hero-badge badge-handle">
             <span className="badge-dot" aria-hidden="true" />
             <span>{roleTitle}</span>
-            <span className="badge-sub">· Brand &amp; Visual Systems</span>
+            {badgeTagline && <span className="badge-sub">· {badgeTagline}</span>}
           </div>
         </Reveal>
         <Reveal delay={80}>

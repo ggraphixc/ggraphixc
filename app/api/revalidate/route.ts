@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { resetKnowledgeCache } from "@/app/api/ai/concierge/route";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
@@ -32,5 +33,7 @@ export async function GET() {
 
   // Revalidate the whole site under the root layout (home, projects, blog, …).
   revalidatePath("/", "layout");
+  // Drop the concierge's portfolio cache so admin edits answer correctly next ask.
+  resetKnowledgeCache();
   return NextResponse.json({ ok: true });
 }

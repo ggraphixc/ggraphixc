@@ -5,6 +5,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   brand_name: "ggraphixc",
   designer_name: "Godson Otobo",
   role_title: "Graphics Designer",
+  hero_badge_tagline: "Brand & Visual Systems",
   hero_headline: "I Design Brands, Visuals & Digital Experiences",
   hero_lead:
     "Godson Otobo (ggraphixc) builds brand identities, creative systems, and conversion-ready design for ambitious brands that want to look premium and earn trust.",
@@ -35,6 +36,7 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   ["brand_name", "Brand name", "Shown in the header, footer, and page titles."],
   ["designer_name", "Your name", "Used in page titles, the About section, and the footer credit."],
   ["role_title", "Role title", "e.g. Graphics Designer — shown in the hero badge."],
+  ["hero_badge_tagline", "Hero badge tagline", "e.g. Brand & Visual Systems — the small text after the role in the hero badge. Leave empty to hide it."],
   ["contact_phone", "Phone number", "Used for the tel: link in the contact section."],
   ["whatsapp_number", "WhatsApp number", "Digits only with country code, e.g. 2348000000000 — enables a wa.me chat button."],
   ["location", "Location", "e.g. Lagos, Nigeria — shown in the contact section."],

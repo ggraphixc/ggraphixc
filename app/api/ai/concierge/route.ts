@@ -1,6 +1,73 @@
 import { NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini";
-import { getSettings } from "@/lib/data";
+import { getSettings, getProjects, getTestimonials, getFaqs } from "@/lib/data";
+
+const truncate = (s: string, n: number) =>
+  s.length > n ? `${s.slice(0, n - 1)}…` : s;
+
+/**
+ * Build a compact, bounded fact sheet from the live portfolio so the concierge
+ * answers from real content (projects, testimonials, FAQs) instead of generic
+ * copy. Every list is capped so the system prompt stays small and cheap.
+ */
+function buildKnowledge(): string {
+  const parts: string[] = [];
+  const MAX = 12;
+  const projects = projectsCache;
+  if (projects.length > 0) {
+    const rows = projects
+      .slice(0, MAX)
+      .map(
+        (p) =>
+          `- ${p.title} (${p.category || "Design"})${p.result ? ` — ${p.result}` : ""}: ${truncate(p.description || "", 140)}`
+      )
+      .join("\n");
+    parts.push(`Real portfolio projects:\n${rows}`);
+  }
+  const testimonials = testimonialsCache;
+  if (testimonials.length > 0) {
+    const rows = testimonials
+      .slice(0, 4)
+      .map((t) => `- "${truncate(t.quote || "", 160)}" — ${t.name || "Client"}${t.role ? `, ${t.role}` : ""}`)
+      .join("\n");
+    parts.push(`Client testimonials:\n${rows}`);
+  }
+  const faqs = faqsCache;
+  if (faqs.length > 0) {
+    const rows = faqs
+      .slice(0, 8)
+      .map((f) => `- Q: ${truncate(f.question || "", 120)}\n  A: ${truncate(f.answer || "", 200)}`)
+      .join("\n");
+    parts.push(`Official FAQ:\n${rows}`);
+  }
+  return parts.join("\n\n");
+}
+
+// Module-level caches refreshed once per server instance. Portfolio data is
+// edited in the admin, not per-request, so a 10-minute refresh is plenty. The
+// /api/revalidate endpoint resets these when admin content is published.
+let projectsCache: Awaited<ReturnType<typeof getProjects>> = [];
+let testimonialsCache: Awaited<ReturnType<typeof getTestimonials>> = [];
+let faqsCache: Awaited<ReturnType<typeof getFaqs>> = [];
+let knowledgeLoadedAt = 0;
+
+export function resetKnowledgeCache() {
+  knowledgeLoadedAt = 0;
+}
+
+async function loadKnowledge() {
+  const now = Date.now();
+  if (now - knowledgeLoadedAt < 10 * 60_000) return;
+  try {
+    const [p, t, f] = await Promise.all([getProjects(), getTestimonials(), getFaqs()]);
+    projectsCache = p;
+    testimonialsCache = t;
+    faqsCache = f;
+    knowledgeLoadedAt = now;
+  } catch {
+    // Keep whatever we already have; never break the concierge on a DB hiccup.
+  }
+}
 
 function buildSystemPrompt(s: Record<string, string>): string {
   const brand = s.brand_name || "ggraphixc";
@@ -12,7 +79,10 @@ function buildSystemPrompt(s: Record<string, string>): string {
 
 What ${brand} does: brand identity, creative systems, logo design, packaging, social media kits, campaign visual direction, web/UI design, and motion graphics.
 
-Your job: help prospective clients decide whether to reach out, and steer them toward the contact form at /contact. Answer questions about services, process (brief → moodboard → concepts → refinement → handoff), typical timelines (identity systems usually 2-4 weeks, social kits 1-2 weeks), and pricing ranges (rough: brand identity $1k-$5k+, social kits $1k-$3k, full campaigns $5k+). Be warm, concise (2-4 sentences), and never invent specific facts or portfolio claims. If asked something you don't know, say so and suggest emailing ${email}. Always end by nudging them to start a project via the contact form.`;
+Your job: help prospective clients decide whether to reach out, and steer them toward the contact form at /contact. Answer questions about services, process (brief → moodboard → concepts → refinement → handoff), typical timelines (identity systems usually 2-4 weeks, social kits 1-2 weeks), and pricing ranges (rough: brand identity $1k-$5k+, social kits $1k-$3k, full campaigns $5k+). Be warm, concise (2-4 sentences), and never invent specific facts or portfolio claims. If asked something you don't know, say so and suggest emailing ${email}. Always end by nudging them to start a project via the contact form.
+
+Real portfolio facts — use these when visitors ask about specific work, proof, or whether ${brand} has done something:
+${buildKnowledge()}`;
 }
 
 // Per-IP in-memory rate limit: 15 requests / minute. Enough for a portfolio site.
@@ -37,6 +107,7 @@ function rateLimit(ip: string): boolean {
 }
 
 export async function POST(request: Request) {
+  await loadKnowledge();
   const settings = await getSettings();
   const email = settings.contact_email || "hello@ggraphixc.com";
   const designer = settings.designer_name || "Godson Otobo";
