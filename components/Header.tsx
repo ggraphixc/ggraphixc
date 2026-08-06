@@ -13,7 +13,7 @@ const NAV = [
   { label: "FAQ", href: "/#faq" }
 ];
 
-export default function Header() {
+export default function Header({ brand = "ggraphixc" }: { brand?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -27,10 +27,10 @@ export default function Header() {
   return (
     <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-shell">
-        <Link href="/" className="brand" aria-label="ggraphixc home">
+        <Link href="/" className="brand" aria-label={`${brand} home`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
-          ggraphixc
+          {brand}
         </Link>
 
         <nav className="nav-links" aria-label="Primary">

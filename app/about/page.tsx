@@ -3,10 +3,13 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "About — ggraphixc",
-  description: "About Godson Otobo (ggraphixc) — a graphics designer focused on clarity, craft, and brands that earn trust."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return {
+    title: `About — ${s.brand_name}`,
+    description: `About ${s.designer_name} (${s.brand_name}) — a ${s.role_title.toLowerCase()} focused on clarity, craft, and brands that earn trust.`
+  };
+}
 
 export const revalidate = 300;
 

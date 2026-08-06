@@ -4,19 +4,25 @@ import SiteChrome from "@/components/SiteChrome";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
+import { getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "ggraphixc — Godson Otobo | Graphics Designer",
-  description:
-    "Godson Otobo (ggraphixc) builds brand identities, creative systems, and conversion-ready design for ambitious brands.",
-  metadataBase: new URL("https://ggraphixc.com"),
-  openGraph: {
-    title: "ggraphixc — Godson Otobo | Graphics Designer",
-    description:
-      "Brand identity, creative systems, and conversion-ready design by Godson Otobo.",
-    type: "website"
-  }
-};
+// Site identity (brand/name/description) comes from Admin → Settings.
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  const title = `${s.brand_name} — ${s.designer_name} | ${s.role_title}`;
+  const description = s.meta_description;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  return {
+    title,
+    description,
+    metadataBase: new URL(site),
+    openGraph: {
+      title,
+      description,
+      type: "website"
+    }
+  };
+}
 
 // Speculation Rules API: browsers pre-render same-origin pages in the background
 // so navigation (paired with View Transitions) feels instant. Admin routes are
@@ -34,10 +40,12 @@ const speculationRules = {
   ]
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // suppressHydrationWarning: the inline script below intentionally adds the
   // `js` class to <html> before React hydrates (progressive-enhancement toggle);
   // React would otherwise flag it as an attribute mismatch on every load.
+  const s = await getSettings();
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -61,25 +69,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
-              name: "Godson Otobo",
-              alternateName: "ggraphixc",
-              jobTitle: "Graphics Designer",
-              url: "https://ggraphixc.com",
-              description:
-                "Brand identity, creative systems, and conversion-ready design by Godson Otobo (ggraphixc).",
+              name: s.designer_name,
+              alternateName: s.brand_name,
+              jobTitle: s.role_title,
+              url: site,
+              description: s.meta_description,
               knowsAbout: [
                 "Brand Identity",
                 "Creative Systems",
                 "Product UI",
                 "Social & Campaign Design"
               ],
-              email: "hello@ggraphixc.com"
+              email: s.contact_email
             })
           }}
         />
       </head>
       <body>
-        <SiteChrome header={<Header />} footer={<Footer />}>{children}</SiteChrome>
+        <SiteChrome header={<Header brand={s.brand_name} />} footer={<Footer />}>{children}</SiteChrome>
         <Analytics />
       </body>
     </html>

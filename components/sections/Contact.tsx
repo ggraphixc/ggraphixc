@@ -7,7 +7,17 @@ const RANGES = ["< $1k", "$1k - $5k", "$5k - $15k", "$15k+"];
 
 const initial: ContactState = { status: "idle", message: "" };
 
-export default function Contact() {
+export default function Contact({
+  email = "hello@ggraphixc.com",
+  phone = "",
+  whatsapp = "",
+  location = ""
+}: {
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
+  location?: string;
+}) {
   const [state, formAction, pending] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -35,12 +45,26 @@ export default function Contact() {
               plan.
             </p>
             <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-              <a href="mailto:hello@ggraphixc.com" className="btn btn-outline" style={{ justifyContent: "flex-start" }}>
-                <i className="fa-solid fa-envelope" /> hello@ggraphixc.com
+              <a href={`mailto:${email}`} className="btn btn-outline" style={{ justifyContent: "flex-start" }}>
+                <i className="fa-solid fa-envelope" /> {email}
               </a>
-              <a href="tel:+2340000000000" className="btn btn-ghost" style={{ justifyContent: "flex-start" }}>
-                <i className="fa-solid fa-phone" /> WhatsApp &amp; calls welcome
-              </a>
+              {(whatsapp || phone) && (
+                <a
+                  href={whatsapp ? `https://wa.me/${whatsapp}` : `tel:${phone}`}
+                  className="btn btn-ghost"
+                  style={{ justifyContent: "flex-start" }}
+                  target={whatsapp ? "_blank" : undefined}
+                  rel={whatsapp ? "noreferrer" : undefined}
+                >
+                  <i className={whatsapp ? "fa-brands fa-whatsapp" : "fa-solid fa-phone"} />
+                  {whatsapp ? (phone ? `WhatsApp · ${phone}` : "Chat on WhatsApp") : phone}
+                </a>
+              )}
+              {location && (
+                <span style={{ color: "var(--muted)", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <i className="fa-solid fa-location-dot" style={{ color: "var(--accent)" }} /> {location}
+                </span>
+              )}
             </div>
             <div
               style={{

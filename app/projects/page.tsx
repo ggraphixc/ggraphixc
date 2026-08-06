@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import ProjectsBrowser from "@/components/sections/ProjectsBrowser";
-import { getProjects } from "@/lib/data";
+import { getProjects, getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "Projects — ggraphixc",
-  description: "Selected brand, product, and campaign design work by Godson Otobo (ggraphixc)."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return {
+    title: `Projects — ${s.brand_name}`,
+    description: `Selected brand, product, and campaign design work by ${s.designer_name} (${s.brand_name}).`
+  };
+}
 
 export const revalidate = 300;
 

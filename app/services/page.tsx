@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import { getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "Services — ggraphixc",
-  description:
-    "Brand identity, creative systems, web/UI design, and campaign visuals by Godson Otobo (ggraphixc)."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return {
+    title: `Services — ${s.brand_name}`,
+    description: `Brand identity, creative systems, web/UI design, and campaign visuals by ${s.designer_name} (${s.brand_name}).`
+  };
+}
 
 const SERVICES = [
   {

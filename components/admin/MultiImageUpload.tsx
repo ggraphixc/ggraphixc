@@ -66,26 +66,11 @@ export default function MultiImageUpload({
       {error && <p style={{ color: "#ff8080", fontSize: 12, marginTop: 8 }}>{error}</p>}
 
       {urls.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-            gap: 12,
-            marginTop: 14
-          }}
-        >
+        <div className="admin-gallery-grid">
           {urls.map((url) => (
-            <div
-              key={url}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                overflow: "hidden",
-                position: "relative"
-              }}
-            >
+            <div key={url} className="g-item">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" style={{ width: "100%", height: 80, objectFit: "cover", display: "block" }} />
+              <img src={url} alt="" className="g-thumb" />
               <button
                 className="btn btn-danger btn-sm"
                 onClick={() => remove(url)}

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import BlogExplorer from "@/components/BlogExplorer";
-import { getPublishedBlog } from "@/lib/data";
+import { getPublishedBlog, getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "Blog — ggraphixc",
-  description: "Design notes, brand systems, and process from Godson Otobo (ggraphixc)."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  return {
+    title: `Blog — ${s.brand_name}`,
+    description: `Design notes, brand systems, and process from ${s.designer_name} (${s.brand_name}).`
+  };
+}
 
 export const revalidate = 300;
 

@@ -1,6 +1,20 @@
 import Reveal from "@/components/Reveal";
 
-export default function About({ text }: { text: string }) {
+export default function About({
+  text,
+  designerName = "Godson Otobo",
+  roleTitle = "Brand & Visual Systems Designer"
+}: {
+  text: string;
+  designerName?: string;
+  roleTitle?: string;
+}) {
+  const initials = designerName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
     <section className="section" id="about">
       <div className="container">
@@ -32,7 +46,7 @@ export default function About({ text }: { text: string }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/about/portrait.jpg"
-                alt="Godson Otobo — ggraphixc"
+                alt={designerName}
                 loading="lazy"
                 style={{
                   position: "absolute",
@@ -72,11 +86,11 @@ export default function About({ text }: { text: string }) {
                     flexShrink: 0
                   }}
                 >
-                  GO
+                  {initials}
                 </span>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>Godson Otobo</div>
-                  <div style={{ color: "var(--muted)", fontSize: 12.5 }}>Brand &amp; Visual Systems Designer</div>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>{designerName}</div>
+                  <div style={{ color: "var(--muted)", fontSize: 12.5 }}>{roleTitle}</div>
                 </div>
               </div>
             </div>

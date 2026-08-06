@@ -23,16 +23,18 @@ const COLS = [
   }
 ];
 
-const SOCIALS = [
-  { icon: "fa-brands fa-behance", label: "Behance", href: "https://behance.net" },
-  { icon: "fa-brands fa-instagram", label: "Instagram", href: "https://instagram.com" },
-  { icon: "fa-brands fa-x-twitter", label: "X (Twitter)", href: "https://x.com" },
-  { icon: "fa-brands fa-linkedin-in", label: "LinkedIn", href: "https://linkedin.com" }
+const SOCIALS: { key: string; icon: string; label: string }[] = [
+  { key: "social_behance", icon: "fa-brands fa-behance", label: "Behance" },
+  { key: "social_instagram", icon: "fa-brands fa-instagram", label: "Instagram" },
+  { key: "social_x", icon: "fa-brands fa-x-twitter", label: "X (Twitter)" },
+  { key: "social_linkedin", icon: "fa-brands fa-linkedin-in", label: "LinkedIn" }
 ];
 
 export default async function Footer() {
   const settings = await getSettings();
+  const brand = settings.brand_name || "ggraphixc";
   const email = settings.contact_email || "hello@ggraphixc.com";
+  const socials = SOCIALS.filter((s) => settings[s.key]);
 
   return (
     <footer className="site-footer">
@@ -42,10 +44,10 @@ export default async function Footer() {
             <Link href="/" className="brand" style={{ marginBottom: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
-              ggraphixc
+              {brand}
             </Link>
             <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 300, lineHeight: 1.7 }}>
-              Premium brand identity, creative systems, and conversion-ready design by Godson Otobo.
+              {settings.footer_description}
             </p>
             <a
               href={`mailto:${email}`}
@@ -53,13 +55,15 @@ export default async function Footer() {
             >
               {email}
             </a>
-            <div className="footer-social">
-              {SOCIALS.map((s) => (
-                <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label}>
-                  <i className={s.icon} />
-                </a>
-              ))}
-            </div>
+            {socials.length > 0 && (
+              <div className="footer-social">
+                {socials.map((s) => (
+                  <a key={s.key} href={settings[s.key]} target="_blank" rel="noreferrer" aria-label={s.label}>
+                    <i className={s.icon} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
           {COLS.map((col) => (
             <div key={col.title}>
@@ -80,8 +84,8 @@ export default async function Footer() {
           <NewsletterForm />
         </div>
         <div className="footer-bottom">
-          <span>© 2026 ggraphixc. All rights reserved.</span>
-          <span>Designed by Godson Otobo</span>
+          <span>{settings.copyright_text}</span>
+          <span>{settings.footer_credit}</span>
         </div>
       </div>
     </footer>

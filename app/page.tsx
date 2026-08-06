@@ -24,7 +24,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero headline={settings.hero_headline} lead={settings.hero_lead} />
+      <Hero headline={settings.hero_headline} lead={settings.hero_lead} roleTitle={settings.role_title} />
       <Stats
         stats={{
           projects: settings.stats_projects,
@@ -34,7 +34,11 @@ export default async function HomePage() {
         }}
       />
       <Clients />
-      <About text={settings.about_text} />
+      <About
+        text={settings.about_text}
+        designerName={settings.designer_name}
+        roleTitle={settings.role_title}
+      />
       <Services />
       <Work projects={projects} />
       <Testimonials items={testimonials} />
@@ -81,7 +85,12 @@ export default async function HomePage() {
       )}
 
       <FAQ />
-      <Contact />
+      <Contact
+        email={settings.contact_email}
+        phone={settings.contact_phone}
+        whatsapp={settings.whatsapp_number}
+        location={settings.location}
+      />
     </>
   );
 }

@@ -103,27 +103,12 @@ export default function GalleryManager({ projectId }: { projectId: string }) {
       {error && <p style={{ color: "#ff8080", fontSize: 12, marginTop: 8 }}>{error}</p>}
 
       {images.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-            gap: 12,
-            marginTop: 14
-          }}
-        >
+        <div className="admin-gallery-grid">
           {images.map((img) => (
-            <div
-              key={img.id}
-              style={{
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                overflow: "hidden",
-                position: "relative"
-              }}
-            >
+            <div key={img.id} className="g-item">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.image_url} alt={img.alt_text ?? ""} style={{ width: "100%", height: 80, objectFit: "cover", display: "block" }} />
-              <div style={{ display: "flex", gap: 4, padding: 6 }}>
+              <img src={img.image_url} alt={img.alt_text ?? ""} className="g-thumb" />
+              <div className="g-actions">
                 <button className="btn btn-ghost btn-sm" onClick={() => move(img.id, -1)} aria-label="Move earlier">
                   ←
                 </button>
