@@ -45,18 +45,21 @@ async function aggregate(params: Record<string, string>): Promise<{ data?: Aggre
 }
 
 // Short in-memory cache so a force-dynamic dashboard doesn't hammer the Vercel
-// API on every visit (mirrors the concierge knowledge-cache pattern).
-let statsCache: { at: number; stats: ConciergeStats } | null = null;
+// API on every visit (mirrors the concierge knowledge-cache pattern). Keyed by
+// the requested range so toggling 7/30 days always re-queries correctly.
+let statsCache: { at: number; days: number; stats: ConciergeStats } | null = null;
 const TTL_MS = 60_000;
 
-export async function getConciergeStats(): Promise<ConciergeStats> {
+export async function getConciergeStats(days: 7 | 30 = 30): Promise<ConciergeStats> {
   const until = new Date();
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const sinceS = since.toISOString().slice(0, 10);
   const untilS = until.toISOString().slice(0, 10);
   const empty: EventCount = { count: 0, visitors: 0 };
 
-  if (statsCache && Date.now() - statsCache.at < TTL_MS) return statsCache.stats;
+  if (statsCache && Date.now() - statsCache.at < TTL_MS && statsCache.days === days) {
+    return statsCache.stats;
+  }
 
   if (!process.env.VERCEL_ANALYTICS_TOKEN || !process.env.VERCEL_PROJECT_ID) {
     return {
@@ -107,7 +110,7 @@ export async function getConciergeStats(): Promise<ConciergeStats> {
       contactAfterChat,
       contactNoChat
     };
-    statsCache = { at: Date.now(), stats };
+    statsCache = { at: Date.now(), days, stats };
     return stats;
   } catch (err) {
     return {

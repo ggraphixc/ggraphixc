@@ -1141,6 +1141,33 @@ summary:focus-visible {
 }
 
 /* ---------- Admin: concierge activity stats ---------- */
+.range-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+}
+.range-toggle a {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  min-height: 32px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: 0.25s;
+}
+.range-toggle a:hover {
+  color: var(--text);
+}
+.range-toggle a.active {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.18), rgba(0, 91, 234, 0.18));
+  border: 1px solid rgba(0, 210, 255, 0.3);
+  color: var(--accent);
+}
 .cstats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

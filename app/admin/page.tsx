@@ -49,10 +49,16 @@ async function counts() {
   };
 }
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  searchParams
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
+  const sp = await searchParams;
+  const days: 7 | 30 = sp.days === "7" ? 7 : 30;
   const c = await counts();
   const s = await getSettings();
-  const stats = await getConciergeStats();
+  const stats = await getConciergeStats(days);
   const opened = stats.events.concierge_opened?.count ?? 0;
   const afterChat = stats.contactAfterChat.count;
   const chatRate = opened > 0 ? Math.round((afterChat / opened) * 100) : 0;
@@ -86,11 +92,20 @@ export default async function AdminDashboard() {
             <h3 style={{ fontSize: 18, fontWeight: 800 }}>Concierge activity</h3>
             <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>
               {stats.configured
-                ? "Chat + contact funnel from Vercel Analytics — last 30 days."
+                ? `Chat + contact funnel from Vercel Analytics — ${stats.period.since} → ${stats.period.until}.`
                 : "Live chat & contact funnel from Vercel Analytics."}
             </p>
           </div>
-          {stats.configured && <span className="badge-soft">{stats.period.since} → {stats.period.until}</span>}
+          {stats.configured && (
+            <div className="range-toggle" role="group" aria-label="Date range">
+              <a href="/admin?days=7" className={days === 7 ? "active" : ""} aria-current={days === 7 ? "true" : undefined}>
+                7 days
+              </a>
+              <a href="/admin?days=30" className={days === 30 ? "active" : ""} aria-current={days === 30 ? "true" : undefined}>
+                30 days
+              </a>
+            </div>
+          )}
         </div>
 
         {!stats.configured ? (
