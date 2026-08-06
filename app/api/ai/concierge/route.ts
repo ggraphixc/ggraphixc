@@ -126,7 +126,7 @@ function buildSystemPrompt(s: Record<string, string>): string {
   const brand = s.brand_name || "ggraphixc";
   const designer = s.designer_name || "Godson Otobo";
   const role = s.role_title || "Graphics Designer";
-  const email = s.contact_email || "hello@ggraphixc.com";
+  const email = s.contact_email || "hello@ggraphixc.vercel.app";
   const location = s.location ? ` Based in ${s.location}.` : "";
   // Owner-controlled pricing: when set, quote it verbatim instead of rough ranges.
   const pricing = s.pricing_note?.trim()
@@ -166,7 +166,7 @@ function rateLimit(ip: string): boolean {
 export async function POST(request: Request) {
   await loadKnowledge();
   const settings = await getSettings();
-  const email = settings.contact_email || "hello@ggraphixc.com";
+  const email = settings.contact_email || "hello@ggraphixc.vercel.app";
   const designer = settings.designer_name || "Godson Otobo";
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   if (!rateLimit(ip)) {

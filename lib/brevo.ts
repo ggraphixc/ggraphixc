@@ -26,7 +26,7 @@ function headers(): Record<string, string> {
 
 function from() {
   return {
-    email: process.env.BREVO_FROM_EMAIL || "hello@ggraphixc.com",
+    email: process.env.BREVO_FROM_EMAIL || "hello@ggraphixc.vercel.app",
     name: process.env.BREVO_FROM_NAME || "ggraphixc"
   };
 }

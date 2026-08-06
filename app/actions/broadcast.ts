@@ -22,7 +22,7 @@ export type BroadcastState = {
 const MAX_BROADCAST_RECIPIENTS = 100;
 
 // Site URL used in email links (matches the newsletter/contact conventions).
-const SITE_URL = "https://ggraphixc.com";
+const SITE_URL = "https://ggraphixc.vercel.app";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -186,7 +186,7 @@ export async function sendTestBroadcast(subject: string, body: string): Promise<
   const target =
     settings.contact_email?.trim() ||
     process.env.BREVO_FROM_EMAIL ||
-    "hello@ggraphixc.com";
+    "hello@ggraphixc.vercel.app";
 
   const res = await sendTo(
     [target],

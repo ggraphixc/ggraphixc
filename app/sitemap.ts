@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getProjects, getPublishedBlog } from "@/lib/data";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
 
 export const revalidate = 300;
 

@@ -29,7 +29,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const paragraphs = post.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",

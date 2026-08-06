@@ -84,7 +84,7 @@ export async function subscribe(
       }
       return {
         status: "error",
-        message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.com instead."
+        message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.vercel.app instead."
       };
     }
 

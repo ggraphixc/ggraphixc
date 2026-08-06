@@ -58,7 +58,7 @@ export async function submitInquiry(
 
   // --- Email notifications (best-effort; never fail the form on email errors,
   // but ALWAYS log failures so the owner can see them in the server logs) ---
-  const adminEmail = process.env.BREVO_FROM_EMAIL || "hello@ggraphixc.com";
+  const adminEmail = process.env.BREVO_FROM_EMAIL || "hello@ggraphixc.vercel.app";
 
   // 1) Alert the site owner.
   const adminAlert = await sendEmail({
@@ -91,7 +91,7 @@ export async function submitInquiry(
       <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto">
         <h2 style="margin:0 0 12px">Thanks, ${escHtml(name)} 👋</h2>
         <p style="font-size:15px;line-height:1.7;color:#333">Your project brief just landed safely. I usually reply within <strong>24 hours</strong> with a clear plan and a quote.</p>
-        <p style="font-size:15px;line-height:1.7;color:#333">While you wait, you can browse a few <a href="https://ggraphixc.com/projects">case studies</a> to see how we might work together.</p>
+        <p style="font-size:15px;line-height:1.7;color:#333">While you wait, you can browse a few <a href="https://ggraphixc.vercel.app/projects">case studies</a> to see how we might work together.</p>
         <p style="font-size:13px;color:#999;margin-top:24px">— Godson Otobo, ggraphixc</p>
       </div>`
   });

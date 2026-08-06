@@ -3,7 +3,7 @@ import { getPublishedBlog } from "@/lib/data";
 export const dynamic = "force-static";
 export const revalidate = 300;
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
 
 function escXml(s: string): string {
   return s

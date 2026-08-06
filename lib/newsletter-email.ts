@@ -12,7 +12,7 @@ import {
 import { signUnsubscribe } from "@/lib/newsletter-link";
 
 // Site URL used in email links (matches the contact form's convention).
-const SITE_URL = "https://ggraphixc.com";
+const SITE_URL = "https://ggraphixc.vercel.app";
 
 /**
  * Send a short branded welcome (or welcome-back) email. The welcome subject,

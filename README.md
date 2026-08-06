@@ -61,7 +61,7 @@ GOOGLE_API_KEY=...
 ```
 
 Get a free key at https://aistudio.google.com/apikey. Both features degrade gracefully
-when the key is absent (the concierge suggests emailing hello@ggraphixc.com instead).
+when the key is absent (the concierge suggests emailing hello@ggraphixc.vercel.app instead).
 
 ## Features
 

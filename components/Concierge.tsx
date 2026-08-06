@@ -17,7 +17,7 @@ type RecommendedProject = {
 
 export default function Concierge({
   brand = "ggraphixc",
-  email = "hello@ggraphixc.com"
+  email = "hello@ggraphixc.vercel.app"
 }: {
   brand?: string;
   email?: string;

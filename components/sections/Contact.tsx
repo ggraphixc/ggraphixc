@@ -9,7 +9,7 @@ const RANGES = ["< $1k", "$1k - $5k", "$5k - $15k", "$15k+"];
 const initial: ContactState = { status: "idle", message: "" };
 
 export default function Contact({
-  email = "hello@ggraphixc.com",
+  email = "hello@ggraphixc.vercel.app",
   phone = "",
   whatsapp = "",
   location = ""

@@ -49,7 +49,7 @@ export default async function ProjectCaseStudy({
   const prev = idx > 0 ? allProjects[idx - 1] : null;
   const next = idx >= 0 && idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   const projectLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",

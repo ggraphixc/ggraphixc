@@ -171,7 +171,7 @@ const settings = {
   stats_clients: "60+",
   stats_experience: "6+",
   stats_satisfaction: "98%",
-  contact_email: "hello@ggraphixc.com"
+  contact_email: "hello@ggraphixc.vercel.app"
 };
 
 const blog = [

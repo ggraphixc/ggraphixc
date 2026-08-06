@@ -52,7 +52,7 @@ export default function AdminLogin() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@ggraphixc.com"
+            placeholder="you@ggraphixc.vercel.app"
             autoComplete="email"
           />
         </div>

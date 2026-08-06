@@ -26,7 +26,7 @@ export default function AdminSettings() {
     headline: form.welcome_email_headline?.trim() || DEFAULT_WELCOME.headline,
     body: form.welcome_email_body?.trim() || DEFAULT_WELCOME.body,
     signoff: form.designer_name?.trim() || "ggraphixc",
-    unsubscribeHref: "https://ggraphixc.com/unsubscribe?t=preview-token"
+    unsubscribeHref: "https://ggraphixc.vercel.app/unsubscribe?t=preview-token"
   });
 
   useEffect(() => {

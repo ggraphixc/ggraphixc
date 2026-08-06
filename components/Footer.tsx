@@ -33,7 +33,7 @@ const SOCIALS: { key: string; icon: string; label: string }[] = [
 export default async function Footer() {
   const settings = await getSettings();
   const brand = settings.brand_name || "ggraphixc";
-  const email = settings.contact_email || "hello@ggraphixc.com";
+  const email = settings.contact_email || "hello@ggraphixc.vercel.app";
   const socials = SOCIALS.filter((s) => settings[s.key]);
 
   return (

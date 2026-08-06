@@ -17,7 +17,7 @@ export default async function UnsubscribePage() {
         </div>
       }
     >
-      <UnsubscribeClient brand={s.brand_name || "ggraphixc"} contactEmail={s.contact_email || "hello@ggraphixc.com"} />
+      <UnsubscribeClient brand={s.brand_name || "ggraphixc"} contactEmail={s.contact_email || "hello@ggraphixc.vercel.app"} />
     </Suspense>
   );
 }

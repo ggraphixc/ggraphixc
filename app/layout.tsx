@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
   const title = `${s.brand_name} — ${s.designer_name} | ${s.role_title}`;
   const description = s.meta_description;
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   return {
     title,
     description,
@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // `js` class to <html> before React hydrates (progressive-enhancement toggle);
   // React would otherwise flag it as an attribute mismatch on every load.
   const s = await getSettings();
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.com";
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -91,7 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* AI concierge chat — every public page. Hidden inside /admin. */}
         <ConciergePortal
           brand={s.brand_name || "ggraphixc"}
-          email={s.contact_email || "hello@ggraphixc.com"}
+          email={s.contact_email || "hello@ggraphixc.vercel.app"}
         />
         <Analytics />
       </body>
