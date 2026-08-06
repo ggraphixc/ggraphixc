@@ -4,6 +4,14 @@ import { useState, useTransition } from "react";
 import { sendBroadcast, sendTestBroadcast, type BroadcastState } from "@/app/actions/broadcast";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 
+type PickableProject = {
+  slug: string;
+  title: string;
+  category: string;
+  result: string;
+  description: string;
+};
+
 type Props = {
   recipients: string[];
   brevoConfigured: boolean;
@@ -11,6 +19,7 @@ type Props = {
   ownerEmail: string;
   brand: string;
   signoff: string;
+  projects?: PickableProject[];
 };
 
 const MAX_SHOWN = 24;
@@ -21,7 +30,8 @@ export default function BroadcastClient({
   recipientsError,
   ownerEmail,
   brand,
-  signoff
+  signoff,
+  projects = []
 }: Props) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -35,9 +45,11 @@ export default function BroadcastClient({
   const [showAi, setShowAi] = useState(false);
   const [aiTopic, setAiTopic] = useState("");
   const [aiTone, setAiTone] = useState("Friendly");
+  const [aiProject, setAiProject] = useState(""); // "" = auto (latest project)
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiDone, setAiDone] = useState(false);
+  const [aiSubjects, setAiSubjects] = useState<string[]>([]);
   // A finished draft waits here when the message already has content, so it
   // can't silently overwrite what the owner typed.
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
@@ -50,7 +62,7 @@ export default function BroadcastClient({
     headline: subject.trim() || "Your subject line",
     body: body.trim() || "Your message body goes here. Blank lines become paragraphs.",
     signoff,
-    unsubscribeHref: "https://ggraphixc.com/unsubscribe?t=preview-token"
+    unsubscribeHref: "https://ggraphixc.vercel.app/unsubscribe?t=preview-token"
   });
 
   const recipientsShown = recipients.slice(0, MAX_SHOWN);
@@ -78,15 +90,35 @@ export default function BroadcastClient({
     setAiError(null);
     setAiDone(false);
     setPendingDraft(null);
+    setAiSubjects([]);
     try {
+      const picked = projects.find((p) => p.slug === aiProject);
       const res = await fetch("/api/ai/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: aiTopic.trim(), tone: aiTone })
+        body: JSON.stringify({
+          topic: aiTopic.trim(),
+          tone: aiTone,
+          project: picked
+            ? {
+                title: picked.title,
+                category: picked.category,
+                result: picked.result,
+                description: picked.description
+              }
+            : undefined
+        })
       });
-      const json = (await res.json().catch(() => ({}))) as { body?: string; error?: string };
+      const json = (await res.json().catch(() => ({}))) as {
+        body?: string;
+        subjects?: string[];
+        error?: string;
+      };
       if (!res.ok || !json.body) {
         throw new Error(json.error || "The AI draft failed.");
+      }
+      if (Array.isArray(json.subjects) && json.subjects.length > 0) {
+        setAiSubjects(json.subjects);
       }
       // Never overwrite what the owner already wrote without asking.
       if (body.trim()) {
@@ -220,7 +252,8 @@ export default function BroadcastClient({
           >
             <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
               Describe the topic in a line — the AI drafts the message paragraphs in your brand&apos;s
-              voice. You keep the subject line and final word.
+              voice and suggests subject lines. Optionally feature a real portfolio project as the
+              concrete example. You keep the final word.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
               <div className="field" style={{ flex: "2 1 260px", marginBottom: 0 }}>
@@ -248,6 +281,24 @@ export default function BroadcastClient({
                   <option>Story-driven</option>
                 </select>
               </div>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginTop: 10 }}>
+              <div className="field" style={{ flex: "2 1 260px", marginBottom: 0 }}>
+                <label htmlFor="ai-project">Feature a project</label>
+                <select
+                  id="ai-project"
+                  value={aiProject}
+                  onChange={(e) => setAiProject(e.target.value)}
+                  disabled={projects.length === 0}
+                >
+                  <option value="">Auto — latest project</option>
+                  {projects.map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
@@ -269,6 +320,27 @@ export default function BroadcastClient({
                 <i className="fa-solid fa-circle-check" style={{ marginRight: 6 }} />
                 Draft inserted into the message — tweak it, then preview before sending.
               </p>
+            )}
+            {aiSubjects.length > 0 && !aiBusy && (
+              <div style={{ marginTop: 12 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", marginBottom: 8 }}>
+                  SUBJECT IDEAS — CLICK ONE TO USE IT
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {aiSubjects.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setSubject(s)}
+                      style={{ maxWidth: "100%" }}
+                    >
+                      <i className="fa-solid fa-arrow-right-to-bracket" style={{ marginRight: 6 }} />
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
             {pendingDraft && !aiBusy && (
               <div

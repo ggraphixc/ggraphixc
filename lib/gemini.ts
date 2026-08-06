@@ -29,6 +29,12 @@ export type GeminiCall = {
   temperature?: number;
   maxOutputTokens?: number;
   responseMimeType?: "application/json" | "text/plain";
+  /**
+   * Thinking budget for reasoning models (gemini-3-flash, …). Set 0 for
+   * simple drafting tasks: the model can't spend tokens on chain-of-thought,
+   * so the answer isn't truncated mid-JSON. Omit to keep the default.
+   */
+  thinkingBudget?: number;
 };
 
 export type GeminiResult = { text: string } | { error: string };
@@ -58,7 +64,12 @@ export async function callGemini(opts: GeminiCall): Promise<GeminiResult> {
               generationConfig: {
                 temperature: opts.temperature ?? 0.7,
                 maxOutputTokens: opts.maxOutputTokens ?? 700,
-                responseMimeType: opts.responseMimeType ?? "text/plain"
+                responseMimeType: opts.responseMimeType ?? "text/plain",
+                // Reasoning models default to spending the budget on thinking,
+                // which truncates the answer — drafting callers opt out.
+                ...(opts.thinkingBudget !== undefined
+                  ? { thinkingConfig: { thinkingBudget: opts.thinkingBudget } }
+                  : {})
               }
             })
           }
@@ -66,7 +77,16 @@ export async function callGemini(opts: GeminiCall): Promise<GeminiResult> {
 
         if (res.ok) {
           const json = await res.json();
-          const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+          // Reasoning models (e.g. gemini-flash-latest aliasing a thinking
+          // model) return their chain-of-thought as parts with `thought: true`
+          // BEFORE the answer — parts[0] would be the thinking, not the reply.
+          // Filter those out and join the actual answer parts.
+          const parts: { text?: string; thought?: boolean }[] =
+            json?.candidates?.[0]?.content?.parts ?? [];
+          const text = parts
+            .filter((p) => !p.thought && typeof p.text === "string")
+            .map((p) => p.text as string)
+            .join("\n");
           if (text.trim()) return { text };
           lastError = "Empty response from model";
         } else {

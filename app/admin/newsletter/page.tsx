@@ -1,5 +1,5 @@
 import { getNewsletterRecipients } from "@/lib/brevo";
-import { getSettings } from "@/lib/data";
+import { getProjects, getSettings } from "@/lib/data";
 import BroadcastClient from "./BroadcastClient";
 
 // The recipient list and settings change with every Brevo/DB mutation.
@@ -20,7 +20,10 @@ export default async function AdminNewsletter() {
     // owner why the composer can't load recipients.
     recipientsError = e instanceof Error ? e.message : "Unknown error";
   }
-  const settings = await getSettings().catch(() => null);
+  const [settings, projects] = await Promise.all([
+    getSettings().catch(() => null),
+    getProjects().catch(() => [])
+  ]);
   return (
     <BroadcastClient
       recipients={recipients}
@@ -29,10 +32,17 @@ export default async function AdminNewsletter() {
       ownerEmail={
         settings?.contact_email?.trim() ||
         process.env.BREVO_FROM_EMAIL ||
-        "hello@ggraphixc.com"
+        "hello@ggraphixc.vercel.app"
       }
       brand={settings?.brand_name || "ggraphixc"}
       signoff={settings?.designer_name || "ggraphixc"}
+      projects={projects.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        category: p.category ?? "",
+        result: p.result ?? "",
+        description: p.description ?? ""
+      }))}
     />
   );
 }
