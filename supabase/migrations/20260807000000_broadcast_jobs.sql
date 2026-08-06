@@ -17,7 +17,7 @@ create table if not exists public.broadcast_jobs (
   failed int not null default 0,
   failures jsonb not null default '[]'::jsonb, -- [{ email, error }]
   recipients jsonb not null default '[]'::jsonb, -- snapshot of the list at enqueue time
-  offset int not null default 0,              -- next recipient index to send
+  next_index int not null default 0,          -- next recipient index to send
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

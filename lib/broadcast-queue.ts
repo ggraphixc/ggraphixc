@@ -13,7 +13,7 @@
 //    never double-send the same batch.
 //  - Crash recovery: a job left 'sending' for > STALE_MS (e.g. a function
 //    killed mid-batch) is flipped back to 'queued' and re-claimed; progress
-//    already committed is preserved because the offset advances per email.
+//    already committed is preserved because the next_index advances per email.
 //  - Budget-aware: the loop stops early when the time budget is nearly spent,
 //    so a slow Brevo can't blow the serverless function window.
 
@@ -43,7 +43,7 @@ export type BroadcastJobRow = {
 
 type JobRecord = BroadcastJobRow & {
   recipients: string[];
-  offset: number;
+  next_index: number;
 };
 
 export type DrainSummary = {
@@ -142,7 +142,7 @@ async function claimJob(
 
 /**
  * Drain jobs until the time budget is nearly spent (or maxJobs is reached).
- * Progress is committed per email (offset advances in the loop and is saved at
+ * Progress is committed per email (next_index advances in the loop and is saved at
  * the end), so a mid-drain timeout only delays — never duplicates — delivery.
  */
 export async function drainBroadcastJobs(
@@ -171,7 +171,7 @@ export async function drainBroadcastJobs(
     jobId = undefined;
 
     const recipients = Array.isArray(job.recipients) ? job.recipients : [];
-    let offset = job.offset ?? 0;
+    let offset = job.next_index ?? 0;
     let sent = job.sent ?? 0;
     let failed = job.failed ?? 0;
     const failures = [...(job.failures ?? [])] as { email: string; error: string }[];
@@ -206,7 +206,7 @@ export async function drainBroadcastJobs(
         sent,
         failed,
         failures: failures.slice(-200),
-        offset,
+        next_index: offset,
         status: finished ? "done" : "sending",
         updated_at: new Date().toISOString()
       })
