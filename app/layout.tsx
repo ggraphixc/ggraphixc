@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -23,9 +25,9 @@ const speculationRules = {
   prerender: [
     {
       source: "document",
+      // `where` accepts exactly ONE predicate — combine conditions with `and`.
       where: {
-        href_matches: "/*",
-        not: { href_matches: "/admin*" }
+        and: [{ href_matches: "/*" }, { not: { href_matches: "/admin*" } }]
       },
       eagerness: "moderate"
     }
@@ -33,8 +35,11 @@ const speculationRules = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // suppressHydrationWarning: the inline script below intentionally adds the
+  // `js` class to <html> before React hydrates (progressive-enhancement toggle);
+  // React would otherwise flag it as an attribute mismatch on every load.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -74,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <SiteChrome>{children}</SiteChrome>
+        <SiteChrome header={<Header />} footer={<Footer />}>{children}</SiteChrome>
         <Analytics />
       </body>
     </html>
