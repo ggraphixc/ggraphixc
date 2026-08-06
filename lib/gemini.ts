@@ -97,7 +97,7 @@ export async function callGemini(opts: GeminiCall): Promise<GeminiResult> {
  * string values, which make JSON.parse throw.
  */
 export function extractJson<T = unknown>(text: string): T | null {
-  let cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
 
   try {
     return JSON.parse(cleaned) as T;

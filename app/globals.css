@@ -1669,30 +1669,54 @@ tr.drop-target td {
     max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
+    padding: 12px 16px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
-    overflow-x: auto;
+    gap: 8px 12px;
     backdrop-filter: blur(16px);
     background: rgba(15, 15, 18, 0.92);
   }
   .admin-side .brand { margin: 0; flex-shrink: 0; }
+  /* Nav links wrap onto their own row(s) so every section is visible on
+     mobile — no hidden horizontal scroll. */
   .admin-nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
-    flex-shrink: 0;
+    order: 3;
+    width: 100%;
   }
-  .admin-nav a { margin-bottom: 0; white-space: nowrap; min-height: 40px; padding: 10px 14px; }
+  .admin-nav a {
+    margin-bottom: 0;
+    white-space: nowrap;
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
   .admin-side > .btn { margin: 0 0 0 auto; width: auto; flex-shrink: 0; }
-  .admin-main { padding: 24px; }
+  .admin-main { padding: 20px; }
   .admin-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .admin-main { padding: 16px; }
 }
 
 @media (max-width: 760px) {
   .nav-links { display: none; }
   .nav-cta { display: none; }
   .hamburger { display: flex; }
+  /* Hero badge: stop stretching to a fixed 220px+ min-width — let it hug its
+     text so it reads as a small status pill on narrow screens. */
+  .hero-badge {
+    min-width: 0;
+    padding: 10px 18px;
+    min-height: 48px;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    margin-bottom: 24px;
+    gap: 8px;
+  }
   .mobile-nav {
     display: flex;
     flex-direction: column;
@@ -1745,8 +1769,29 @@ tr.drop-target td {
   .gallery-grid { grid-template-columns: 1fr; }
   .section-title { font-size: clamp(26px, 8vw, 36px); }
   .section-lead { font-size: 15.5px; }
-  .hero h1 { font-size: clamp(36px, 11vw, 52px); }
-  .hero-proof { gap: 12px; }
+  /* --- Mobile hero refinements --- */
+  .hero { padding: 132px 0 64px; }
+  .hero-badge {
+    padding: 8px 14px;
+    min-height: 44px;
+    font-size: 11.5px;
+    border-width: 1.5px;
+    margin-bottom: 20px;
+  }
+  .badge-handle::before,
+  .badge-handle::after {
+    width: 9px;
+    height: 9px;
+  }
+  /* Keep the phone badge truly compact — drop the sub-line so it reads as a
+     small status pill instead of a wide banner. */
+  .hero-badge .badge-sub {
+    display: none;
+  }
+  .hero h1 { font-size: clamp(33px, 10vw, 46px); }
+  .hero p.lead { font-size: 15px; margin: 16px 0 24px; line-height: 1.65; }
+  .hero-actions { gap: 10px; }
+  .hero-proof { font-size: 12.5px; margin-top: 28px; gap: 8px; }
   .footer-bottom { flex-direction: column; gap: 8px; }
   .admin-table { font-size: 13px; }
   .admin-table th,

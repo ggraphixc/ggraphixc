@@ -51,7 +51,7 @@ export default function AdminMessages() {
         Inquiries submitted through your contact form.
       </p>
 
-      <div className="admin-card" style={{ overflowX: "auto" }}>
+      <div className="admin-card admin-table-wrap">
         {loading ? (
           <p style={{ color: "var(--muted)" }}>Loading…</p>
         ) : (

@@ -16,9 +16,8 @@ export default function Hero({
         <Reveal>
           <div className="hero-badge badge-handle">
             <span className="badge-dot" aria-hidden="true" />
-            <span>
-              Graphics Designer · Brand &amp; Visual Systems
-            </span>
+            <span>Graphics Designer</span>
+            <span className="badge-sub">· Brand &amp; Visual Systems</span>
           </div>
         </Reveal>
         <Reveal delay={80}>
