@@ -82,6 +82,23 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
           >
             ›
           </button>
+          {/* Filmstrip: one dot per image — click to jump. Scrolls horizontally
+              when a gallery has many images so it never overflows the screen. */}
+          <div className="lb-dots">
+            {images.map((img, i) => (
+              <button
+                key={img.id}
+                type="button"
+                className={`lb-dot ${i === open ? "active" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(i);
+                }}
+                aria-label={`Go to image ${i + 1}`}
+                aria-current={i === open ? "true" : undefined}
+              />
+            ))}
+          </div>
         </div>
       )}
     </>
