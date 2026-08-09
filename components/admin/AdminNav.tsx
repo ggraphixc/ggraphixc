@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 const LINKS = [
   { href: "/admin", label: "Dashboard", icon: "fa-gauge" },
   { href: "/admin/projects", label: "Projects", icon: "fa-images" },
+  { href: "/admin/services", label: "Services", icon: "fa-briefcase" },
   { href: "/admin/blog", label: "Blog", icon: "fa-pen-nib" },
   { href: "/admin/testimonials", label: "Testimonials", icon: "fa-comment-dots" },
   { href: "/admin/messages", label: "Messages", icon: "fa-envelope" },

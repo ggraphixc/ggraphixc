@@ -9,17 +9,18 @@ import Testimonials from "@/components/sections/Testimonials";
 import FAQ from "@/components/sections/FAQ";
 import Contact from "@/components/sections/Contact";
 import Reveal from "@/components/Reveal";
-import { getProjects, getTestimonials, getSettings, getPublishedBlog } from "@/lib/data";
+import { getProjects, getTestimonials, getSettings, getPublishedBlog, getServices } from "@/lib/data";
 
 // ISR: rebuild this page at most every 5 minutes (admin edits purge instantly).
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [settings, projects, testimonials, posts] = await Promise.all([
+  const [settings, projects, testimonials, posts, services] = await Promise.all([
     getSettings(),
     getProjects(),
     getTestimonials(),
-    getPublishedBlog()
+    getPublishedBlog(),
+    getServices()
   ]);
 
   return (
@@ -29,6 +30,8 @@ export default async function HomePage() {
         lead={settings.hero_lead}
         roleTitle={settings.role_title}
         badgeTagline={settings.hero_badge_tagline}
+        proofBrands={settings.stats_clients}
+        proofYears={settings.stats_experience}
       />
       <Stats
         stats={{
@@ -45,7 +48,7 @@ export default async function HomePage() {
         roleTitle={settings.role_title}
         portrait={settings.profile_image || "/images/about/portrait.jpg"}
       />
-      <Services />
+      <Services items={services} />
       <Work projects={projects} />
       <Testimonials items={testimonials} />
 

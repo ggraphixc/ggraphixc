@@ -1,6 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS } from "@/lib/site-settings";
-import type { Project, ProjectImage, Testimonial, SiteSetting, BlogPost, Client, Faq } from "@/lib/types";
+import type { Project, ProjectImage, Testimonial, SiteSetting, BlogPost, Client, Faq, Service } from "@/lib/types";
 
 export const SAMPLE_PROJECTS: Project[] = [
   {
@@ -335,6 +335,84 @@ export async function getClients(): Promise<Client[]> {
     .order("display_order", { ascending: true });
   if (error || !data || data.length === 0) return SAMPLE_CLIENTS;
   return data as Client[];
+}
+
+export const SAMPLE_SERVICES: Service[] = [
+  {
+    id: "s1",
+    icon: "fa-palette",
+    title: "Brand Identity",
+    subtitle: "Identities that endure",
+    description:
+      "Logos, color systems, typography, and brand guidelines that make you instantly recognizable.",
+    features: "Logo Design & Identity\nBrand Strategy\nBrand Guidelines\nStationery Design\nBrand Collateral\nRebranding",
+    display_order: 1,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "s2",
+    icon: "fa-layer-group",
+    title: "Creative Systems",
+    subtitle: "Creative systems that scale",
+    description:
+      "Reusable templates, icon libraries, and asset kits so your team stays on-brand at scale.",
+    features: "Social Media Kits\nTemplate Systems\nIcon Libraries\nAd Creative Variants\nMotion Graphics\nCampaign Direction",
+    display_order: 2,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "s3",
+    icon: "fa-object-group",
+    title: "Product & UI Design",
+    subtitle: "Digital experiences that convert",
+    description:
+      "Clean interfaces and component libraries that remove friction from first tap to conversion.",
+    features: "Landing Page Design\nWebsite Redesign\nE-Commerce Design\nDashboard & Product UI\nDesign Systems\nInteraction & Motion",
+    display_order: 3,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "s4",
+    icon: "fa-bullhorn",
+    title: "Social & Campaign",
+    subtitle: "Campaigns that get seen",
+    description:
+      "Scroll-stopping ad creative, carousels, and motion graphics built around real goals.",
+    features: "Social Media Kits\nAd Creative Variants\nCarousel Design\nMotion Graphics\nCampaign Direction\nTemplate Systems",
+    display_order: 4,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "s5",
+    icon: "fa-wand-magic-sparkles",
+    title: "Packaging & Print",
+    subtitle: "Tactile, premium deliverables",
+    description: "Tactile, premium packaging and print design that feels as good as it looks.",
+    features: "Packaging Design\nLabel Design\nPrint Collateral\nDie-Cut & Finishing\nRetail Display\nProduct Launch Kits",
+    display_order: 5,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "s6",
+    icon: "fa-compass-drafting",
+    title: "Art Direction",
+    subtitle: "A consistent visual direction",
+    description: "A consistent visual direction across every touchpoint, from shoots to launch.",
+    features: "Creative Direction\nPhotoshoot Art Direction\nMood & Style Boards\nVisual Language\nTone of Voice\nLaunch Strategy",
+    display_order: 6,
+    created_at: new Date().toISOString()
+  }
+];
+
+export async function getServices(): Promise<Service[]> {
+  const sb = await safeService();
+  if (!sb) return SAMPLE_SERVICES;
+  const { data, error } = await sb
+    .from("services")
+    .select("*")
+    .order("display_order", { ascending: true });
+  if (error || !data || data.length === 0) return SAMPLE_SERVICES;
+  return data as Service[];
 }
 
 export async function getFaqs(): Promise<Faq[]> {

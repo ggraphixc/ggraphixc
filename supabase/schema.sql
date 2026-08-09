@@ -220,6 +220,30 @@ insert into public.faqs (question, answer, display_order) values
    5)
 on conflict ((lower(question))) do nothing;
 
+-- ---------- services ----------
+-- Admin-managed service cards shown on the homepage grid and the /services
+-- page. Icon is a Font Awesome class (e.g. 'fa-palette'); features is a
+-- newline-separated list rendered as check chips on the /services page.
+create table if not exists public.services (
+  id uuid primary key default gen_random_uuid(),
+  icon text not null default 'fa-wand-magic-sparkles',
+  title text not null,
+  subtitle text,
+  description text not null,
+  features text,
+  display_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.services enable row level security;
+drop policy if exists "public read services" on public.services;
+create policy "public read services" on public.services for select using (true);
+drop policy if exists "admin write services" on public.services;
+create policy "admin write services" on public.services for all to authenticated using (true) with check (true);
+create index if not exists services_order_idx on public.services (display_order);
+-- Unique on lower(title) so re-running this migration never duplicates rows
+-- (same pattern as clients/faqs).
+create unique index if not exists services_title_key on public.services (lower(title));
+
 -- ---------- analytics_events ----------
 -- Self-hosted source for the admin Concierge activity panel. Written by the
 -- /api/track endpoint (service role). RLS on with no policies: the public anon

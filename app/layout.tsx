@@ -17,6 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     metadataBase: new URL(site),
+    icons: {
+      // Dynamic favicon: /icon serves the uploaded favicon_image (Admin →
+      // Settings) or the default brand mark. No apple entry: iOS requires a
+      // 180×180 PNG and /icon serves SVG, so an apple icon would silently fail.
+      icon: "/icon"
+    },
     openGraph: {
       title,
       description,

@@ -125,7 +125,7 @@ export default function Contact({
               </div>
               <div className="field">
                 <label htmlFor="phone">Phone / WhatsApp</label>
-                <input id="phone" name="phone" placeholder="+234 ..." />
+                <input id="phone" name="phone" placeholder="Your phone number" />
               </div>
             </div>
             <div className="field">

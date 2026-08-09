@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   // Brand imagery — uploaded from Admin → Settings (Cloudinary, compressed).
   logo_image: "/images/brand/ggraphixc-logo.png",
   profile_image: "/images/about/portrait.jpg",
+  favicon_image: "",
   // Canonical site URL used in emails, feeds, and share links.
   site_url: "https://ggraphixc.vercel.app",
   meta_description:
@@ -83,6 +84,7 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   ["contact_email", "Contact email", "Used across the site (footer + contact links) and in the privacy page."],
   ["logo_image", "Logo image", "Shown in the header and footer. Upload a PNG/WebP with transparency — compressed automatically."],
   ["profile_image", "Profile / portrait image", "The portrait shown in the About section."],
+  ["favicon_image", "Favicon / browser icon", "The small icon in the browser tab and bookmarks. Upload a square PNG or ICO — leave empty to keep the default."],
   ["site_url", "Site URL", "Your public domain, e.g. https://yourstudio.com — used in emails, the RSS feed, and share links."],
   [
     "google_api_key",

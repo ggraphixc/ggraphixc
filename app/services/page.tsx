@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import { getSettings } from "@/lib/data";
+import { getSettings, getServices } from "@/lib/data";
+
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
@@ -11,68 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const SERVICES = [
-  {
-    icon: "fa-palette",
-    title: "Graphic Design",
-    subtitle: "Visual stories that captivate",
-    description:
-      "From logos to posters, illustrations to print materials — compelling visuals that communicate your message and leave a lasting impression.",
-    features: [
-      "Logo Design & Identity",
-      "Poster & Print Design",
-      "Illustration & Art Direction",
-      "Packaging Design",
-      "Social Media Graphics",
-      "Marketing Materials"
-    ]
-  },
-  {
-    icon: "fa-globe",
-    title: "Web / UI Design",
-    subtitle: "Digital experiences that convert",
-    description:
-      "Beautiful, responsive websites and interfaces designed to engage visitors and drive results — from landing pages to full product UIs.",
-    features: [
-      "Landing Page Design",
-      "Website Redesign",
-      "E-Commerce Design",
-      "Dashboard & Product UI",
-      "Design Systems",
-      "Interaction & Motion"
-    ]
-  },
-  {
-    icon: "fa-brush",
-    title: "Branding",
-    subtitle: "Identities that endure",
-    description:
-      "Comprehensive brand identity systems that tell your story and create consistency across every touchpoint — from strategy to guidelines.",
-    features: [
-      "Brand Strategy",
-      "Logo & Visual Identity",
-      "Brand Guidelines",
-      "Stationery Design",
-      "Brand Collateral",
-      "Rebranding"
-    ]
-  },
-  {
-    icon: "fa-wand-magic-sparkles",
-    title: "Campaign & Social",
-    subtitle: "Creative systems that scale",
-    description:
-      "Modular social kits, ad creative, and campaign direction engineered to ship fast and stay on-brand — even without a design team.",
-    features: [
-      "Social Media Kits",
-      "Ad Creative Variants",
-      "Motion Graphics",
-      "Campaign Direction",
-      "Template Systems",
-      "Icon Libraries"
-    ]
-  }
-];
+function featuresOf(s: { features: string | null }): string[] {
+  return (s.features ?? "")
+    .split(/\n+/)
+    .map((f) => f.trim())
+    .filter(Boolean);
+}
 
 const PROCESS = [
   { step: "01", title: "Discovery", description: "Understanding your goals, audience, and requirements through detailed consultation." },
@@ -81,7 +27,8 @@ const PROCESS = [
   { step: "04", title: "Delivery", description: "Polishing, refining, and delivering final assets ready for implementation." }
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await getServices();
   return (
     <>
       <section className="section" style={{ paddingTop: 170, paddingBottom: 60 }}>
@@ -103,8 +50,8 @@ export default function ServicesPage() {
 
       <section className="section" style={{ paddingTop: 20 }}>
         <div className="container">
-          {SERVICES.map((s, index) => (
-            <Reveal key={s.title} delay={index * 60}>
+          {services.map((s, index) => (
+            <Reveal key={s.id} delay={index * 60}>
               <div
                 className="glass service-row"
                 style={{
@@ -123,11 +70,14 @@ export default function ServicesPage() {
                   <h2 style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, fontSize: "clamp(24px, 3vw, 34px)" }}>
                     {s.title}
                   </h2>
-                  <p style={{ color: "var(--accent)", fontWeight: 700, fontSize: 14, margin: "8px 0 12px" }}>
-                    {s.subtitle}
-                  </p>
+                  {s.subtitle && (
+                    <p style={{ color: "var(--accent)", fontWeight: 700, fontSize: 14, margin: "8px 0 12px" }}>
+                      {s.subtitle}
+                    </p>
+                  )}
                   <p style={{ color: "var(--muted)", lineHeight: 1.8 }}>{s.description}</p>
                 </div>
+                {featuresOf(s).length > 0 && (
                 <div>
                   <div
                     className="service-features"
@@ -141,7 +91,7 @@ export default function ServicesPage() {
                       padding: 24
                     }}
                   >
-                    {s.features.map((f) => (
+                    {featuresOf(s).map((f) => (
                       <span key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 600, lineHeight: 1.5 }}>
                         <span
                           style={{
@@ -158,6 +108,7 @@ export default function ServicesPage() {
                     ))}
                   </div>
                 </div>
+                )}
               </div>
             </Reveal>
           ))}

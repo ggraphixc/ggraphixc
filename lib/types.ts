@@ -51,6 +51,18 @@ export type Faq = {
   created_at: string;
 };
 
+export type Service = {
+  id: string;
+  icon: string;
+  title: string;
+  subtitle: string | null;
+  description: string;
+  /** Newline-separated list of feature chips (rendered on /services). */
+  features: string | null;
+  display_order: number;
+  created_at: string;
+};
+
 export type Inquiry = {
   id: string;
   name: string;
@@ -92,6 +104,7 @@ export type Database = {
       inquiries: { Row: Inquiry; Insert: Omit<Inquiry, "id" | "created_at" | "status">; Update: Partial<Inquiry> };
       clients: { Row: Client; Insert: Omit<Client, "id" | "created_at">; Update: Partial<Client> };
       faqs: { Row: Faq; Insert: Omit<Faq, "id" | "created_at">; Update: Partial<Faq> };
+      services: { Row: Service; Insert: Omit<Service, "id" | "created_at">; Update: Partial<Service> };
       site_settings: { Row: SiteSetting; Insert: Omit<SiteSetting, "updated_at">; Update: Partial<SiteSetting> };
       blog_posts: { Row: BlogPost; Insert: Omit<BlogPost, "id" | "created_at">; Update: Partial<BlogPost> };
     };

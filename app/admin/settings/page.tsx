@@ -9,7 +9,7 @@ import { buildWelcomeEmailHtml, DEFAULT_WELCOME } from "@/lib/welcome-email";
 import ImageUpload from "@/components/admin/ImageUpload";
 
 // Keys rendered with the image-upload widget instead of a plain text input.
-const IMAGE_KEYS = new Set(["logo_image", "profile_image"]);
+const IMAGE_KEYS = new Set(["logo_image", "profile_image", "favicon_image"]);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
 
 type SettingsMap = Record<string, string>;
@@ -97,7 +97,11 @@ export default function AdminSettings() {
                   <label>{label}</label>
                   {isImage ? (
                     <>
-                      <ImageUpload value={form[key] || null} onChange={(url) => set(key, url || "")} folder={key === "logo_image" ? "brand" : "about"} />
+                      <ImageUpload
+                        value={form[key] || null}
+                        onChange={(url) => set(key, url || "")}
+                        folder={key === "logo_image" ? "brand" : key === "favicon_image" ? "brand" : "about"}
+                      />
                       <input
                         type="text"
                         value={form[key] ?? ""}

@@ -5,12 +5,16 @@ export default function Hero({
   headline,
   lead,
   roleTitle = "Graphics Designer",
-  badgeTagline = "Brand & Visual Systems"
+  badgeTagline = "Brand & Visual Systems",
+  proofBrands = "40+",
+  proofYears = "6+"
 }: {
   headline: string;
   lead: string;
   roleTitle?: string;
   badgeTagline?: string;
+  proofBrands?: string;
+  proofYears?: string;
 }) {
   return (
     <section className="hero" id="top">
@@ -47,10 +51,10 @@ export default function Hero({
                 <i key={i} className="fa-solid fa-star" />
               ))}
             </span>
-            <span>5.0 rated by <strong>40+ brands</strong></span>
+            <span>5.0 rated by <strong>{proofBrands} brands</strong></span>
             <span className="divider" aria-hidden="true" />
             <span>
-              <strong>6+ years</strong> of visual craft
+              <strong>{proofYears} years</strong> of visual craft
             </span>
           </div>
         </Reveal>
