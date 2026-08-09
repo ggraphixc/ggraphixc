@@ -1660,17 +1660,25 @@ tr.drop-target td {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 24px;
   cursor: zoom-out;
   animation: vt-fade-in 0.3s var(--cb);
 }
 .lightbox img {
-  max-width: 92vw;
-  max-height: 82vh;
-  object-fit: contain; /* fills the viewing canvas (snaps), never crops */
-  display: block; /* kills the inline baseline gap inside the card */
+  /* The image fits the whole viewing canvas (object-fit contain) and is
+     zoomed/panned via a CSS transform driven by the pan-zoom gesture state. */
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* fills the canvas (snaps), never crops */
+  display: block;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+  transform-origin: center;
+  will-change: transform;
+  transition: transform 0.28s var(--cb);
+  touch-action: none; /* let our gestures own pan/pinch */
+  user-select: none;
+  cursor: zoom-in;
 }
 .lightbox .lb-btn {
   position: absolute;
@@ -2486,13 +2494,78 @@ tr.drop-target td {
    Lightbox — filmstrip + fully responsive sizing
    ============================================================ */
 .lb-card {
-  /* Anchors the absolutely-positioned chrome (counter/close/arrows/dots) to
-     the media canvas instead of the viewport, and flex-centers the image so
-     it snaps to the canvas (object-fit: contain) at every size. */
+  /* The full-screen viewing canvas: fills the lightbox edge-to-edge, flex-
+     centers the image, and clips the zoomed/panning image at the screen
+     edges. Anchors the chrome (counter/close/arrows/dots/zoom). */
   position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+.lb-card[data-zoomed="true"] img {
+  cursor: grab;
+}
+.lb-card[data-zoomed="true"] img:active {
+  cursor: grabbing;
+}
+/* While a finger/mouse drag or pinch is active, disable the transform
+   transition so the image tracks the pointer exactly (no lag). */
+.lb-card[data-gesturing="true"] img {
+  transition: none;
+}
+/* Zoom control pill (− / % / +) — centered above the filmstrip dots so it
+   never collides with them at any screen width. */
+.lb-zoom {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(10, 10, 12, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+.lb-zoom button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s;
+}
+.lb-zoom button:hover:not(:disabled) {
+  background: rgba(0, 210, 255, 0.18);
+  border-color: var(--accent);
+}
+.lb-zoom button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.lb-zoom .lb-zoom-pct {
+  width: auto;
+  min-width: 52px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-family: inherit;
+  color: rgba(245, 245, 247, 0.75);
 }
 .lb-dots {
   position: absolute;
@@ -2541,30 +2614,28 @@ tr.drop-target td {
 @media (max-width: 640px) {
   .lightbox {
     inset: 0;
-    padding: 14px;
-    background: #040508; /* fully opaque: the page never shows through, so the
-                            image reads as snapped to the viewing canvas */
+    padding: 0; /* edge-to-edge: the viewer occupies the whole screen */
+    background: #040508; /* fully opaque — the page never shows through */
   }
   .lb-card {
-    /* The image SNAPS to the viewing canvas: the card fills the full width,
-       the image fills the card edge-to-edge (object-fit contain), and the
-       card height hugs the image — a landscape shot now fills the screen
-       instead of floating as a small strip. */
+    /* Edge-to-edge canvas: fills the screen; the image fits inside with
+       object-fit contain and can be pinch/double-tap zoomed + panned. */
     width: 100%;
+    height: 100%;
     padding: 0;
-    overflow: hidden;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-strong);
-    background: #0c0d11;
-    box-shadow: var(--shadow-lg);
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
   .lightbox img {
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
     height: auto;
-    max-height: calc(100dvh - 120px); /* bounded — chrome stays clear, a very
-                                         tall image never dominates */
     object-fit: contain;
     border-radius: 0;
+    box-shadow: none;
     display: block;
   }
   .lightbox .lb-btn {
@@ -2632,14 +2703,23 @@ tr.drop-target td {
 /* Very short screens (landscape phones, small devices): shrink the image so
    the whole card + chrome always fit between the screen edges. */
 @media (max-height: 480px) and (max-width: 640px) {
-  .lightbox img {
-    max-height: calc(100dvh - 90px); /* tighter cap for landscape phones */
-  }
+  /* Landscape phones: keep the chrome close to the edges. */
   .lightbox {
-    padding: 10px;
+    padding: 0;
   }
-  .lb-card {
-    border-radius: var(--radius-lg);
+  .lightbox .lb-count {
+    top: 8px;
+    left: 8px;
+  }
+  .lightbox .lb-close {
+    top: 8px;
+    right: 8px;
+  }
+  .lb-dots {
+    bottom: 10px;
+  }
+  .lb-zoom {
+    bottom: 54px;
   }
 }
 
