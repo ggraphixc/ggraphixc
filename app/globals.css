@@ -2557,7 +2557,8 @@ tr.drop-target td {
   }
   .lightbox img {
     max-width: calc(100vw - 56px);
-    max-height: calc(100dvh - 140px); /* flexible cap — card hugs the image */
+    max-height: calc(100dvh - 150px); /* flexible cap — card hugs the image,
+                                         chrome always clear */
     border-radius: var(--radius-lg);
     display: block; /* kills the inline-image baseline gap inside the card */
   }
@@ -2604,8 +2605,8 @@ tr.drop-target td {
   }
   .gallery-grid .g-item {
     aspect-ratio: auto;
-    height: 58vh;
-    max-height: 460px;
+    height: auto; /* flexible: hug the image's own ratio (no fixed-height
+                     canvas with dead space for landscape shots) */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2618,8 +2619,22 @@ tr.drop-target td {
     width: auto;
     height: auto;
     max-width: 100%;
-    max-height: 100%;
+    max-height: calc(70dvh - 20px); /* bounded, so a tall image never dominates */
     object-fit: contain;
+  }
+}
+
+/* Very short screens (landscape phones, small devices): shrink the image so
+   the whole card + chrome always fit between the screen edges. */
+@media (max-height: 480px) and (max-width: 640px) {
+  .lightbox img {
+    max-height: calc(100dvh - 110px);
+  }
+  .lb-card {
+    padding: 6px;
+  }
+  .lightbox {
+    padding: 12px;
   }
 }
 

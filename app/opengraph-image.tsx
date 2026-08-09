@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getSettings } from "@/lib/data";
+import { loadOgFont } from "@/lib/og-font";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -7,19 +8,6 @@ export const alt = "Design studio";
 // Rebuild periodically so settings edits (brand/designer/headline) show up in
 // shared-link images without a full redeploy.
 export const revalidate = 300;
-
-async function loadManrope() {
-  try {
-    const css = await fetch(
-      "https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap"
-    ).then((r) => r.text());
-    const url = css.match(/url\((https:\/\/[^)]+)\)/)?.[1];
-    if (!url) return null;
-    return await fetch(url).then((r) => r.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
 
 export default async function OpengraphImage() {
   const s = await getSettings().catch(() => null);
@@ -33,7 +21,7 @@ export default async function OpengraphImage() {
   const mid = Math.ceil(words.length / 2);
   const line1 = words.slice(0, mid).join(" ");
   const line2 = words.slice(mid).join(" ");
-  const fontData = await loadManrope();
+  const fontData = await loadOgFont(800);
 
   return new ImageResponse(
     (

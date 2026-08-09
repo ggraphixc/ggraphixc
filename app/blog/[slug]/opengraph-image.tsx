@@ -1,23 +1,11 @@
 import { ImageResponse } from "next/og";
 import { getBlogPost, getSettings } from "@/lib/data";
+import { loadOgFont } from "@/lib/og-font";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "ggraphixc design note";
 export const revalidate = 300;
-
-async function loadManrope() {
-  try {
-    const css = await fetch(
-      "https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap"
-    ).then((r) => r.text());
-    const url = css.match(/url\((https:\/\/[^)]+)\)/)?.[1];
-    if (!url) return null;
-    return await fetch(url).then((r) => r.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
 
 export default async function BlogOgImage({
   params
@@ -38,7 +26,7 @@ export default async function BlogOgImage({
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 
-  const fontData = await loadManrope();
+  const fontData = await loadOgFont(800);
 
   return new ImageResponse(
     (
