@@ -43,6 +43,7 @@ export default async function HomePage() {
         text={settings.about_text}
         designerName={settings.designer_name}
         roleTitle={settings.role_title}
+        portrait={settings.profile_image || "/images/about/portrait.jpg"}
       />
       <Services />
       <Work projects={projects} />

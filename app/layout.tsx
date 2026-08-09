@@ -87,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
-        <SiteChrome header={<Header brand={s.brand_name} />} footer={<Footer />}>{children}</SiteChrome>
+        <SiteChrome header={<Header brand={s.brand_name} logo={s.logo_image} />} footer={<Footer />}>{children}</SiteChrome>
         {/* AI concierge chat — every public page. Hidden inside /admin. */}
         <ConciergePortal
           brand={s.brand_name || "ggraphixc"}

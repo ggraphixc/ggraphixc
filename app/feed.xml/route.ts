@@ -1,4 +1,4 @@
-import { getPublishedBlog } from "@/lib/data";
+import { getPublishedBlog, getSettings } from "@/lib/data";
 
 export const dynamic = "force-static";
 export const revalidate = 300;
@@ -15,7 +15,9 @@ function escXml(s: string): string {
 }
 
 export async function GET() {
-  const posts = await getPublishedBlog();
+  const [posts, s] = await Promise.all([getPublishedBlog(), getSettings().catch(() => null)]);
+  const brand = s?.brand_name || "ggraphixc";
+  const designer = s?.designer_name || "Godson Otobo";
 
   const items = posts
     .map((p) => {
@@ -35,9 +37,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>ggraphixc — Design Notes</title>
+    <title>${escXml(brand)} — Design Notes</title>
     <link>${BASE}/blog</link>
-    <description>Design notes, brand systems, and process from Godson Otobo (ggraphixc).</description>
+    <description>Design notes, brand systems, and process from ${escXml(designer)} (${escXml(brand)}).</description>
     <atom:link href="${BASE}/feed.xml" rel="self" type="application/rss+xml" />
     <language>en</language>
 ${items}

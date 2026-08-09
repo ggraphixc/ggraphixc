@@ -6,6 +6,7 @@ import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 import { signUnsubscribe } from "@/lib/newsletter-link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getServiceSupabase } from "@/lib/supabase/server";
+import { resolveSiteUrl } from "@/lib/site-settings";
 import { createBroadcastJob, drainBroadcastJobs } from "@/lib/broadcast-queue";
 
 export type BroadcastState = {
@@ -19,8 +20,6 @@ export type BroadcastState = {
   failures?: { email: string; error: string }[];
 };
 
-// Site URL used in email links (matches the newsletter/contact conventions).
-const SITE_URL = "https://ggraphixc.vercel.app";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Per-recipient email HTML — same layout as the welcome email, but each
@@ -30,6 +29,7 @@ function composeHtml(
   body: string,
   brand: string,
   signoff: string,
+  siteUrl: string,
   email: string
 ): string {
   return buildWelcomeEmailHtml({
@@ -37,7 +37,8 @@ function composeHtml(
     headline: subject,
     body,
     signoff,
-    unsubscribeHref: `${SITE_URL}/unsubscribe?t=${signUnsubscribe(email)}`
+    unsubscribeHref: `${siteUrl}/unsubscribe?t=${signUnsubscribe(email)}`,
+    projectsHref: `${siteUrl}/projects`
   });
 }
 
@@ -51,7 +52,8 @@ async function sendTo(
   subject: string,
   body: string,
   brand: string,
-  signoff: string
+  signoff: string,
+  siteUrl: string
 ): Promise<BroadcastState> {
   const failures: { email: string; error: string }[] = [];
   let sent = 0;
@@ -63,7 +65,7 @@ async function sendTo(
     const result = await sendEmail({
       to: email,
       subject,
-      html: composeHtml(subject, body, brand, signoff, email)
+      html: composeHtml(subject, body, brand, signoff, siteUrl, email)
     });
     if (result.ok) {
       sent++;
@@ -191,16 +193,18 @@ export async function sendTestBroadcast(subject: string, body: string): Promise<
 
   const settings = await getSettings();
   const target =
-    settings.contact_email?.trim() ||
     process.env.BREVO_FROM_EMAIL ||
+    settings.contact_email?.trim() ||
     "hello@ggraphixc.vercel.app";
+  const siteUrl = resolveSiteUrl(settings.site_url);
 
   const res = await sendTo(
     [target],
     s,
     b,
     settings.brand_name || "ggraphixc",
-    settings.designer_name || "ggraphixc"
+    settings.designer_name || "ggraphixc",
+    siteUrl
   );
   res.message = res.ok
     ? `Test email sent to ${target}. Check your inbox — then hit “Send to all”.`

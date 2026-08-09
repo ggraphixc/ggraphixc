@@ -47,7 +47,7 @@ export function buildWelcomeEmailHtml({
   body,
   signoff,
   unsubscribeHref,
-  projectsHref = "https://ggraphixc.vercel.app/projects"
+  projectsHref = `${process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app"}/projects`
 }: WelcomeEmailParts): string {
   const paragraphs = body
     .split(/\n\s*\n/)

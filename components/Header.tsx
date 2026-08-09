@@ -13,7 +13,7 @@ const NAV = [
   { label: "FAQ", href: "/#faq" }
 ];
 
-export default function Header({ brand = "ggraphixc" }: { brand?: string }) {
+export default function Header({ brand = "ggraphixc", logo = "/images/brand/ggraphixc-logo.png" }: { brand?: string; logo?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -29,7 +29,7 @@ export default function Header({ brand = "ggraphixc" }: { brand?: string }) {
       <div className="header-shell">
         <Link href="/" className="brand" aria-label={`${brand} home`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
+          <img src={logo} alt="" className="brand-mark" />
           {brand}
         </Link>
 

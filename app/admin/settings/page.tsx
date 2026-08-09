@@ -6,6 +6,11 @@ import type { SiteSetting } from "@/lib/types";
 import { bumpContentCache } from "@/components/admin/cacheBump";
 import { DEFAULT_SETTINGS, SETTING_FIELD_LABELS } from "@/lib/site-settings";
 import { buildWelcomeEmailHtml, DEFAULT_WELCOME } from "@/lib/welcome-email";
+import ImageUpload from "@/components/admin/ImageUpload";
+
+// Keys rendered with the image-upload widget instead of a plain text input.
+const IMAGE_KEYS = new Set(["logo_image", "profile_image"]);
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
 
 type SettingsMap = Record<string, string>;
 
@@ -26,7 +31,7 @@ export default function AdminSettings() {
     headline: form.welcome_email_headline?.trim() || DEFAULT_WELCOME.headline,
     body: form.welcome_email_body?.trim() || DEFAULT_WELCOME.body,
     signoff: form.designer_name?.trim() || "ggraphixc",
-    unsubscribeHref: "https://ggraphixc.vercel.app/unsubscribe?t=preview-token"
+    unsubscribeHref: `${SITE_URL}/unsubscribe?t=preview-token`
   });
 
   useEffect(() => {
@@ -86,17 +91,31 @@ export default function AdminSettings() {
           <div className="admin-form-grid">
             {FIELD_LABELS.map(([key, label, hint], i) => {
               const isSecret = key === "google_api_key";
+              const isImage = IMAGE_KEYS.has(key);
               return (
                 <div key={key} className="field">
                   <label>{label}</label>
-                  <input
-                    type={isSecret ? "password" : "text"}
-                    value={form[key] ?? ""}
-                    onChange={(e) => set(key, e.target.value)}
-                    placeholder={isSecret ? "Paste your Google AI key…" : hint}
-                    autoComplete={isSecret ? "off" : undefined}
-                    style={i >= 3 ? { fontWeight: 700 } : undefined}
-                  />
+                  {isImage ? (
+                    <>
+                      <ImageUpload value={form[key] || null} onChange={(url) => set(key, url || "")} folder={key === "logo_image" ? "brand" : "about"} />
+                      <input
+                        type="text"
+                        value={form[key] ?? ""}
+                        onChange={(e) => set(key, e.target.value)}
+                        placeholder="…or paste an image URL"
+                        style={{ marginTop: 8 }}
+                      />
+                    </>
+                  ) : (
+                    <input
+                      type={isSecret ? "password" : "text"}
+                      value={form[key] ?? ""}
+                      onChange={(e) => set(key, e.target.value)}
+                      placeholder={isSecret ? "Paste your Google AI key…" : hint}
+                      autoComplete={isSecret ? "off" : undefined}
+                      style={i >= 3 ? { fontWeight: 700 } : undefined}
+                    />
+                  )}
                   <span style={{ fontSize: 11, color: "var(--muted)", marginTop: -6 }}>{hint}</span>
                 </div>
               );

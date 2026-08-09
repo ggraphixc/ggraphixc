@@ -22,9 +22,9 @@ import { sendEmail } from "@/lib/brevo";
 import { getSettings } from "@/lib/data";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 import { signUnsubscribe } from "@/lib/newsletter-link";
+import { resolveSiteUrl } from "@/lib/site-settings";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SITE_URL = "https://ggraphixc.vercel.app";
 // A job stuck in 'sending' longer than this is presumed crashed and reclaimable.
 const STALE_MS = 10 * 60 * 1000;
 
@@ -77,6 +77,7 @@ function composeHtml(
   body: string,
   brand: string,
   signoff: string,
+  siteUrl: string,
   email: string
 ): string {
   return buildWelcomeEmailHtml({
@@ -84,7 +85,8 @@ function composeHtml(
     headline: subject,
     body,
     signoff,
-    unsubscribeHref: `${SITE_URL}/unsubscribe?t=${signUnsubscribe(email)}`
+    unsubscribeHref: `${siteUrl}/unsubscribe?t=${signUnsubscribe(email)}`,
+    projectsHref: `${siteUrl}/projects`
   });
 }
 
@@ -160,6 +162,7 @@ export async function drainBroadcastJobs(
   const settings = await getSettings().catch(() => null);
   const brand = settings?.brand_name || "ggraphixc";
   const signoff = settings?.designer_name || "ggraphixc";
+  const siteUrl = resolveSiteUrl(settings?.site_url);
 
   const deadline = Date.now() + timeBudgetMs;
   let summary: DrainSummary = { ran: false, reason: "none" };
@@ -187,7 +190,7 @@ export async function drainBroadcastJobs(
         const res = await sendEmail({
           to: email,
           subject: job.subject,
-          html: composeHtml(job.subject, job.body, brand, signoff, email)
+          html: composeHtml(job.subject, job.body, brand, signoff, siteUrl, email)
         });
         if (res.ok) {
           sent++;

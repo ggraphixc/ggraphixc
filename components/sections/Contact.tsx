@@ -116,7 +116,7 @@ export default function Contact({
             <input ref={stampRef} type="hidden" name="rendered_at" defaultValue="0" />
             <div className="field">
               <label htmlFor="name">Full Name</label>
-              <input id="name" name="name" required placeholder="Godson Otobo" />
+              <input id="name" name="name" required placeholder="Your full name" />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="contact-row">
               <div className="field">

@@ -1,6 +1,19 @@
 // Shared site-setting defaults. Kept in a dependency-free module so both the
 // server data layer (lib/data.ts) and the admin settings page (a client
 // component) can import it without pulling server-only code into the bundle.
+
+/**
+ * Resolve the canonical site URL. Precedence: NEXT_PUBLIC_SITE_URL env wins
+ * (it's infrastructure-level), then the editable site_url setting, then the
+ * legacy default. Kept here (dependency-free) so server modules and client
+ * components share one rule.
+ */
+export function resolveSiteUrl(setting?: string): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL || setting?.trim() || "https://ggraphixc.vercel.app"
+  );
+}
+
 export const DEFAULT_SETTINGS: Record<string, string> = {
   brand_name: "ggraphixc",
   designer_name: "Godson Otobo",
@@ -21,6 +34,11 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   contact_phone: "",
   whatsapp_number: "",
   location: "",
+  // Brand imagery — uploaded from Admin → Settings (Cloudinary, compressed).
+  logo_image: "/images/brand/ggraphixc-logo.png",
+  profile_image: "/images/about/portrait.jpg",
+  // Canonical site URL used in emails, feeds, and share links.
+  site_url: "https://ggraphixc.vercel.app",
   meta_description:
     "Godson Otobo (ggraphixc) builds brand identities, creative systems, and conversion-ready design for ambitious brands.",
   footer_description:
@@ -62,7 +80,10 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   ["stats_clients", "Clients stat", "e.g. 60+"],
   ["stats_experience", "Experience stat", "e.g. 6+"],
   ["stats_satisfaction", "Satisfaction stat", "e.g. 98%"],
-  ["contact_email", "Contact email", "Used across the site (footer + contact links)."],
+  ["contact_email", "Contact email", "Used across the site (footer + contact links) and in the privacy page."],
+  ["logo_image", "Logo image", "Shown in the header and footer. Upload a PNG/WebP with transparency — compressed automatically."],
+  ["profile_image", "Profile / portrait image", "The portrait shown in the About section."],
+  ["site_url", "Site URL", "Your public domain, e.g. https://yourstudio.com — used in emails, the RSS feed, and share links."],
   [
     "google_api_key",
     "Google AI API key (Gemini)",

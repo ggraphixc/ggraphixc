@@ -3,11 +3,13 @@ import Reveal from "@/components/Reveal";
 export default function About({
   text,
   designerName = "Godson Otobo",
-  roleTitle = "Brand & Visual Systems Designer"
+  roleTitle = "Brand & Visual Systems Designer",
+  portrait = "/images/about/portrait.jpg"
 }: {
   text: string;
   designerName?: string;
   roleTitle?: string;
+  portrait?: string;
 }) {
   const initials = designerName
     .split(" ")
@@ -45,7 +47,7 @@ export default function About({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/about/portrait.jpg"
+                src={portrait}
                 alt={designerName}
                 loading="lazy"
                 style={{

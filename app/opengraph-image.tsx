@@ -1,8 +1,12 @@
 import { ImageResponse } from "next/og";
+import { getSettings } from "@/lib/data";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "ggraphixc — Godson Otobo | Graphics Designer";
+export const alt = "Design studio";
+// Rebuild periodically so settings edits (brand/designer/headline) show up in
+// shared-link images without a full redeploy.
+export const revalidate = 300;
 
 async function loadManrope() {
   try {
@@ -18,6 +22,17 @@ async function loadManrope() {
 }
 
 export default async function OpengraphImage() {
+  const s = await getSettings().catch(() => null);
+  const brand = s?.brand_name || "ggraphixc";
+  const designer = (s?.designer_name || "Godson Otobo").toUpperCase();
+  const role = (s?.role_title || "Graphics Designer").toUpperCase();
+  const headline = s?.hero_headline || "I Design Brands, Visuals & Digital Experiences";
+  // Split the headline into two balanced lines so long settings copy never
+  // overflows the 1200×630 canvas at the large font size.
+  const words = headline.split(" ");
+  const mid = Math.ceil(words.length / 2);
+  const line1 = words.slice(0, mid).join(" ");
+  const line2 = words.slice(mid).join(" ");
   const fontData = await loadManrope();
 
   return new ImageResponse(
@@ -71,13 +86,13 @@ export default async function OpengraphImage() {
             }}
           />
           <div style={{ fontSize: 30, fontWeight: 800, color: "#f5f5f7", letterSpacing: -1 }}>
-            ggraphixc
+            {brand}
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", position: "relative" }}>
           <div style={{ fontSize: 26, color: "#00d2ff", fontWeight: 700, marginBottom: 18 }}>
-            GODSON OTOBO · GRAPHICS DESIGNER
+            {`${designer} · ${role}`}
           </div>
           <div
             style={{
@@ -90,9 +105,8 @@ export default async function OpengraphImage() {
               letterSpacing: -2
             }}
           >
-            I Design Brands, Visuals &amp;
-            <br />
-            Digital Experiences
+            <span>{line1}</span>
+            {line2 && <span style={{ marginTop: 4 }}>{line2}</span>}
           </div>
         </div>
 

@@ -43,7 +43,7 @@ export default async function Footer() {
           <div>
             <Link href="/" className="brand" style={{ marginBottom: 16 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/brand/ggraphixc-logo.png" alt="" className="brand-mark" />
+              <img src={settings.logo_image || "/images/brand/ggraphixc-logo.png"} alt="" className="brand-mark" />
               {brand}
             </Link>
             <p style={{ color: "var(--muted)", fontSize: 14, maxWidth: 300, lineHeight: 1.7 }}>
@@ -79,13 +79,17 @@ export default async function Footer() {
             <h4>Contact</h4>
             <Link href={`mailto:${email}`}>{email}</Link>
             <Link href="/contact">Start a Project</Link>
-            <Link href="/privacy">Privacy Policy</Link>
             <Link href="/admin">Admin</Link>
           </div>
           <NewsletterForm />
         </div>
         <div className="footer-bottom">
           <span>{settings.copyright_text}</span>
+          <span className="footer-legal">
+            <Link href="/privacy">Privacy Policy</Link>
+            <span className="divider" aria-hidden="true" />
+            <Link href="/admin">Admin</Link>
+          </span>
           <span>{settings.footer_credit}</span>
         </div>
       </div>

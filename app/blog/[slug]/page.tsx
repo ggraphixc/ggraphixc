@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
-import { getBlogPost, getPublishedBlog } from "@/lib/data";
+import { getBlogPost, getPublishedBlog, getSettings } from "@/lib/data";
 
 export const revalidate = 300;
 
@@ -24,7 +24,7 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await getBlogPost(slug);
+  const [post, settings] = await Promise.all([getBlogPost(slug), getSettings()]);
   if (!post) notFound();
 
   const paragraphs = post.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -37,10 +37,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     description: post.excerpt ?? undefined,
     image: post.cover_url ? [post.cover_url] : undefined,
     datePublished: post.created_at,
-    author: { "@type": "Person", name: "Godson Otobo", url: base },
+    author: { "@type": "Person", name: settings.designer_name || "Godson Otobo", url: base },
     publisher: {
       "@type": "Organization",
-      name: "ggraphixc",
+      name: settings.brand_name || "ggraphixc",
       url: base
     },
     mainEntityOfPage: `${base}/blog/${post.slug}`

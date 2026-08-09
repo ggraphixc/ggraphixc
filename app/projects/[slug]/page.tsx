@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import ProjectGallery from "@/components/ProjectGallery";
-import { getProjects, getProjectBySlug, getProjectGallery } from "@/lib/data";
+import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
 
 export const revalidate = 300;
 
@@ -41,9 +41,10 @@ export default async function ProjectCaseStudy({
   const project = await getProjectBySlug(slug);
   if (!project) notFound();
 
-  const [allProjects, gallery] = await Promise.all([
+  const [allProjects, gallery, settings] = await Promise.all([
     getProjects(),
-    getProjectGallery(project.id)
+    getProjectGallery(project.id),
+    getSettings()
   ]);
 
   const idx = allProjects.findIndex((p) => p.id === project.id);
@@ -57,7 +58,7 @@ export default async function ProjectCaseStudy({
     name: project.title,
     description: project.description ?? undefined,
     image: project.image_url ?? undefined,
-    creator: { "@type": "Person", name: "Godson Otobo", url: base },
+    creator: { "@type": "Person", name: settings.designer_name || "Godson Otobo", url: base },
     url: `${base}/projects/${project.slug}`,
     genre: project.category ?? undefined
   };

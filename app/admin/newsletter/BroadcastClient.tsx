@@ -64,7 +64,7 @@ export default function BroadcastClient({
     headline: subject.trim() || "Your subject line",
     body: body.trim() || "Your message body goes here. Blank lines become paragraphs.",
     signoff,
-    unsubscribeHref: "https://ggraphixc.vercel.app/unsubscribe?t=preview-token"
+    unsubscribeHref: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app"}/unsubscribe?t=preview-token`
   });
 
   const recipientsShown = recipients.slice(0, MAX_SHOWN);

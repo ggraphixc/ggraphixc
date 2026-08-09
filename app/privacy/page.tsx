@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import { getSettings } from "@/lib/data";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy — ggraphixc",
-  description: "How ggraphixc collects, uses, and protects your data."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings();
+  const brand = s.brand_name || "ggraphixc";
+  return {
+    title: `Privacy Policy — ${brand}`,
+    description: `How ${brand} collects, uses, and protects your data.`
+  };
+}
+
+export const revalidate = 300;
 
 const SECTIONS: { h: string; body: string }[] = [
   {
@@ -45,7 +52,14 @@ const SECTIONS: { h: string; body: string }[] = [
   }
 ];
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const s = await getSettings();
+  const brand = s.brand_name || "ggraphixc";
+  const contactEmail = s.contact_email || "hello@ggraphixc.vercel.app";
+  const SECTIONS_DYNAMIC = SECTIONS.map((sec) => ({
+    ...sec,
+    body: sec.body.replaceAll("hello@ggraphixc.vercel.app", contactEmail).replaceAll("the studio", brand)
+  }));
   return (
     <section className="section" style={{ paddingTop: 160 }}>
       <div className="container" style={{ maxWidth: 760 }}>
@@ -64,11 +78,11 @@ export default function PrivacyPage() {
         </Reveal>
 
         <div style={{ marginTop: 40, display: "flex", flexDirection: "column", gap: 0 }}>
-          {SECTIONS.map((s, i) => (
-            <Reveal key={s.h} delay={i * 40}>
+          {SECTIONS_DYNAMIC.map((sec, i) => (
+            <Reveal key={sec.h} delay={i * 40}>
               <div style={{ padding: "26px 0", borderTop: "1px solid var(--border)" }}>
-                <h2 style={{ fontSize: 19, fontWeight: 800, marginBottom: 10 }}>{s.h}</h2>
-                <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.8 }}>{s.body}</p>
+                <h2 style={{ fontSize: 19, fontWeight: 800, marginBottom: 10 }}>{sec.h}</h2>
+                <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.8 }}>{sec.body}</p>
               </div>
             </Reveal>
           ))}
@@ -77,8 +91,8 @@ export default function PrivacyPage() {
         <Reveal>
           <p style={{ marginTop: 40, color: "var(--muted)", fontSize: 14, lineHeight: 1.8 }}>
             Questions? Email{" "}
-            <a href="mailto:hello@ggraphixc.vercel.app" style={{ color: "var(--accent)" }}>
-              hello@ggraphixc.vercel.app
+            <a href={`mailto:${contactEmail}`} style={{ color: "var(--accent)" }}>
+              {contactEmail}
             </a>{" "}
             — or{" "}
             <Link href="/contact" style={{ color: "var(--accent)" }}>

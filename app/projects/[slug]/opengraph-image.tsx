@@ -1,9 +1,10 @@
 import { ImageResponse } from "next/og";
-import { getProjectBySlug } from "@/lib/data";
+import { getProjectBySlug, getSettings } from "@/lib/data";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "ggraphixc case study";
+export const revalidate = 300;
 
 async function loadManrope() {
   try {
@@ -24,7 +25,10 @@ export default async function ProjectOgImage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const [project, s] = await Promise.all([getProjectBySlug(slug), getSettings().catch(() => null)]);
+  const brand = s?.brand_name || "ggraphixc";
+  const designer = s?.designer_name || "Godson Otobo";
+  const role = s?.role_title || "Graphics Designer";
   const title = project?.title ?? "ggraphixc case study";
   const cover = project?.image_url?.startsWith("http") ? project.image_url : null;
   const category = project?.category ?? "Case Study";
@@ -89,7 +93,7 @@ export default async function ProjectOgImage({
             }}
           />
           <div style={{ fontSize: 26, fontWeight: 800, color: "#f5f5f7", letterSpacing: -1 }}>
-            ggraphixc
+            {brand}
           </div>
         </div>
 
@@ -151,6 +155,7 @@ export default async function ProjectOgImage({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={cover}
+              alt=""
               width={380}
               height={300}
               style={{ borderRadius: 22, objectFit: "cover", border: "1px solid rgba(255,255,255,0.12)", flexShrink: 0 }}
@@ -179,7 +184,7 @@ export default async function ProjectOgImage({
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
           <div style={{ fontSize: 19, fontWeight: 700, color: "#9aa0a8" }}>
-            Godson Otobo · Graphics Designer
+            {`${designer} · ${role}`}
           </div>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#00d2ff" }} />
           <div style={{ fontSize: 19, fontWeight: 700, color: "#9aa0a8" }}>

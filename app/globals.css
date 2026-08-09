@@ -1043,6 +1043,24 @@ summary:focus-visible {
   flex-wrap: wrap;
   gap: 10px;
 }
+.footer-legal {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-legal a {
+  color: var(--muted);
+  transition: color 0.2s var(--cb);
+}
+.footer-legal a:hover {
+  color: var(--accent);
+}
+.footer-legal .divider {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
 
 /* ---------- Admin portal ---------- */
 .admin-shell {

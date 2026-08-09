@@ -10,9 +10,9 @@ import {
   DEFAULT_WELCOME_BACK
 } from "@/lib/welcome-email";
 import { signUnsubscribe } from "@/lib/newsletter-link";
+import { resolveSiteUrl } from "@/lib/site-settings";
 
-// Site URL used in email links (matches the contact form's convention).
-const SITE_URL = "https://ggraphixc.vercel.app";
+
 
 /**
  * Send a short branded welcome (or welcome-back) email. The welcome subject,
@@ -32,6 +32,7 @@ export async function sendWelcomeEmail(
     const brand = s.brand_name || "ggraphixc";
     const signoff = s.designer_name || "ggraphixc";
     const replyTo = s.contact_email || undefined;
+    const siteUrl = resolveSiteUrl(s.site_url);
 
     // Welcome copy is editable; welcome-back uses defaults.
     const subject =
@@ -53,7 +54,8 @@ export async function sendWelcomeEmail(
       body,
       signoff,
       // Per-subscriber signed token: only this email's holder can unsubscribe.
-      unsubscribeHref: `${SITE_URL}/unsubscribe?t=${signUnsubscribe(email)}`
+      unsubscribeHref: `${siteUrl}/unsubscribe?t=${signUnsubscribe(email)}`,
+      projectsHref: `${siteUrl}/projects`
     });
 
     const result = await sendEmail({

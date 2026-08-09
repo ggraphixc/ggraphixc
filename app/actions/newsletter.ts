@@ -3,6 +3,7 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { subscribeNewsletter } from "@/lib/brevo";
 import { sendWelcomeEmail } from "@/lib/newsletter-email";
+import { getSettings } from "@/lib/data";
 import { isHoneypotFilled, isTooFast, rateLimit, clientIp } from "@/lib/spam-guard";
 
 export type NewsletterState = {
@@ -97,9 +98,11 @@ export async function subscribe(
           message: "You're in! Expect occasional design notes — no spam, ever."
         };
       }
+      const settings = await getSettings().catch(() => null);
+      const supportEmail = settings?.contact_email || "hello@ggraphixc.vercel.app";
       return {
         status: "error",
-        message: "Couldn't subscribe you just now — try again, or email hello@ggraphixc.vercel.app instead."
+        message: `Couldn't subscribe you just now — try again, or email ${supportEmail} instead.`
       };
     }
 
