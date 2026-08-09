@@ -7,7 +7,7 @@ import { signUnsubscribe } from "@/lib/newsletter-link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { resolveSiteUrl } from "@/lib/site-settings";
-import { createBroadcastJob, drainBroadcastJobs } from "@/lib/broadcast-queue";
+import { createBroadcastJob, drainBroadcastJobs, getPendingSummary } from "@/lib/broadcast-queue";
 
 export type BroadcastState = {
   ok: boolean;
@@ -135,8 +135,8 @@ export async function sendBroadcast(subject: string, body: string): Promise<Broa
     return { ok: false, message: "Couldn't queue the broadcast — try again in a moment." };
   }
 
-  // Drain this campaign for up to ~40s (the page's maxDuration is 60s); the
-  // cron finishes whatever is left in the background.
+  // Drain this campaign for up to ~40s (the page's maxDuration is 60s).
+  // Whatever is left is finished by “Continue sending” or the daily cron.
   try {
     await drainBroadcastJobs(1, 40_000, jobId);
   } catch (e) {
@@ -164,7 +164,7 @@ export async function sendBroadcast(subject: string, body: string): Promise<Broa
 
   const message =
     remaining > 0
-      ? `Queued for ${total} subscriber${total === 1 ? "" : "s"} — sent ${sent} so far. The remaining ${remaining} are delivering in the background (every 10 minutes).`
+      ? `Queued for ${total} subscriber${total === 1 ? "" : "s"} — sent ${sent} so far. The remaining ${remaining} are waiting in the queue — hit “Continue sending” to deliver them now (or the daily background sweep finishes them).`
       : failed > 0
         ? `Broadcast sent to ${sent} of ${total}. ${failed} failed — details below.`
         : `Broadcast sent to ${sent} subscriber${sent === 1 ? "" : "s"}.`;
@@ -181,7 +181,46 @@ export async function sendBroadcast(subject: string, body: string): Promise<Broa
   };
 }
 
-/** Send the current draft only to the owner's address — a safe dry run. */
+/**
+ * Drain any queued campaigns right now, on demand. Vercel Hobby cron runs only
+ * once a day, so this is the primary way large broadcasts finish quickly: the
+ * admin clicks “Continue sending” and the same drain loop used by the cron
+ * pushes the next batch out within the request window (~40s).
+ */
+export async function continueDeliveries(): Promise<BroadcastState> {
+  if (!(await requireAdmin())) {
+    return { ok: false, message: "Unauthorized — sign in to the admin portal and try again." };
+  }
+
+  let summary;
+  try {
+    summary = await drainBroadcastJobs(3, 40_000);
+  } catch (e) {
+    console.error("[broadcast] continue-deliveries drain failed:", e instanceof Error ? e.message : e);
+    return { ok: false, message: "Couldn't drain the queue — try again in a moment." };
+  }
+
+  if (!summary.ran) {
+    return { ok: true, message: "Nothing queued — all campaigns are already delivered." };
+  }
+
+  // Read back the aggregate pending work across ALL jobs (not just the most
+  // recent few) so the message stays honest even with a big backlog.
+  const pending = await getPendingSummary().catch(() => ({ remaining: 0, anyPending: false }));
+
+  return {
+    ok: true,
+    sent: summary.sent,
+    failed: summary.failed,
+    total: summary.total,
+    remaining: pending.remaining,
+    queued: pending.anyPending,
+    message: pending.anyPending
+      ? `Delivered ${summary.sent ?? 0} more. ${pending.remaining} still queued — hit “Continue sending” again, or the daily sweep finishes them.`
+      : `All queued campaigns delivered (${summary.sent ?? 0} sent${summary.failed ? `, ${summary.failed} failed` : ""}).`
+  };
+}
+
 export async function sendTestBroadcast(subject: string, body: string): Promise<BroadcastState> {
   if (!(await requireAdmin())) {
     return { ok: false, message: "Unauthorized — sign in to the admin portal and try again." };

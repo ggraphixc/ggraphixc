@@ -1,7 +1,8 @@
 import { getNewsletterRecipients } from "@/lib/brevo";
 import { getProjects, getSettings } from "@/lib/data";
-import { getRecentJobs } from "@/lib/broadcast-queue";
+import { getPendingSummary, getRecentJobs } from "@/lib/broadcast-queue";
 import BroadcastClient from "./BroadcastClient";
+import ContinueSendingButton from "./ContinueSendingButton";
 
 // The recipient list and settings change with every Brevo/DB mutation.
 export const dynamic = "force-dynamic";
@@ -21,10 +22,11 @@ export default async function AdminNewsletter() {
     // owner why the composer can't load recipients.
     recipientsError = e instanceof Error ? e.message : "Unknown error";
   }
-  const [settings, projects, recentJobs] = await Promise.all([
+  const [settings, projects, recentJobs, pending] = await Promise.all([
     getSettings().catch(() => null),
     getProjects().catch(() => []),
-    getRecentJobs(6)
+    getRecentJobs(6),
+    getPendingSummary().catch(() => ({ remaining: 0, anyPending: false }))
   ]);
   return (
     <>
@@ -47,7 +49,7 @@ export default async function AdminNewsletter() {
           description: p.description ?? ""
         }))}
       />
-      <DeliveryJobs jobs={recentJobs} />
+      <DeliveryJobs jobs={recentJobs} pending={pending.anyPending} remaining={pending.remaining} />
     </>
   );
 }
@@ -64,14 +66,29 @@ function fmtWhen(iso: string): string {
   return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function DeliveryJobs({ jobs }: { jobs: Awaited<ReturnType<typeof getRecentJobs>> }) {
-  if (jobs.length === 0) return null;
+function DeliveryJobs({
+  jobs,
+  pending,
+  remaining
+}: {
+  jobs: Awaited<ReturnType<typeof getRecentJobs>>;
+  pending: boolean;
+  remaining: number;
+}) {
+  if (jobs.length === 0 && !pending) return null;
   return (
     <div className="admin-card">
-      <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Recent deliveries</h3>
-      <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 12 }}>
-        Campaigns finish in the background — refresh this page to see progress.
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+        <div>
+          <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Recent deliveries</h3>
+          <p style={{ color: "var(--muted)", fontSize: 13 }}>
+            {pending
+              ? `${remaining} email${remaining === 1 ? "" : "s"} still queued — hit “Continue sending” to deliver the next batch now (or wait for the daily background sweep).`
+              : "All done — every queued campaign has been delivered."}
+          </p>
+        </div>
+        {pending && <ContinueSendingButton />}
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {jobs.map((j) => {
           const st = STATUS_STYLE[j.status] ?? STATUS_STYLE.queued;

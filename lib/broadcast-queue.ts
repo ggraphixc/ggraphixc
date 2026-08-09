@@ -3,9 +3,12 @@
 // Why a queue: a serverless function must finish in ~60s, which caps a direct
 // send loop at ~100 emails. Instead the admin action snapshots the recipient
 // list into a broadcast_jobs row, then drains as many emails as fit in the
-// request window; Vercel Cron hits /api/cron/broadcast every 10 minutes to
-// keep draining unfinished jobs until they're done. Lists of any size are
-// therefore fully reachable without manual re-runs.
+// request window. Two things finish the rest:
+//  1. The admin can click “Continue sending” on the newsletter page — the
+//     same drain loop runs on demand (primary path).
+//  2. Vercel Cron hits /api/cron/broadcast once daily as a safety net (Hobby
+//     plans are limited to one cron run per day).
+// Lists of any size are therefore fully reachable without manual re-runs.
 //
 // Safety properties:
 //  - Atomic claim: a job is claimed with a conditional UPDATE (status →
@@ -26,6 +29,9 @@ import { resolveSiteUrl } from "@/lib/site-settings";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // A job stuck in 'sending' longer than this is presumed crashed and reclaimable.
+// Note: with a once-daily Hobby cron, a crashed job could linger up to a day
+// before the cron reclaims it — but every “Continue sending” click also runs
+// this recovery, so the on-demand path is the primary crash-recovery mechanism.
 const STALE_MS = 10 * 60 * 1000;
 
 export type BroadcastJobRow = {
@@ -219,6 +225,34 @@ export async function drainBroadcastJobs(
   }
 
   return summary;
+}
+
+/**
+ * Aggregate the still-pending work across ALL jobs (not just the most recent
+ * window): how many addresses remain unsent and whether any job is still
+ * queued or mid-send. Used by “Continue sending” and the delivery panel so a
+ * large backlog can never hide behind a truncated list.
+ */
+export async function getPendingSummary(): Promise<{
+  remaining: number;
+  anyPending: boolean;
+}> {
+  let sb;
+  try {
+    sb = getServiceSupabase();
+  } catch {
+    return { remaining: 0, anyPending: false };
+  }
+  const { data, error } = await sb
+    .from("broadcast_jobs")
+    .select("status, total, sent, failed")
+    .in("status", ["queued", "sending"]);
+  if (error || !data) return { remaining: 0, anyPending: false };
+  const remaining = data.reduce(
+    (acc, j) => acc + Math.max(0, (j.total ?? 0) - (j.sent ?? 0) - (j.failed ?? 0)),
+    0
+  );
+  return { remaining, anyPending: data.length > 0 };
 }
 
 /** Recent jobs for the admin newsletter page (newest first). */

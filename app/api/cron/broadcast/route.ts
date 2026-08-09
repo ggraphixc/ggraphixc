@@ -19,8 +19,9 @@ async function handler(request: Request) {
   if (!authorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  // Drain up to 3 jobs (or until the ~35s budget is nearly spent); the next
-  // 10-minute tick picks up whatever is still queued.
+  // Drain up to 3 jobs (or until the ~35s budget is nearly spent). This runs
+  // once a day on Hobby plans as a safety net; the admin's “Continue sending”
+  // button is the primary way large broadcasts finish quickly.
   const result = await drainBroadcastJobs(3, 35_000);
   return NextResponse.json(result);
 }

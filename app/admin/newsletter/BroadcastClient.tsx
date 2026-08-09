@@ -492,7 +492,7 @@ export default function BroadcastClient({
             {result.queued ? (
               <>
                 <i className="fa-solid fa-clock-rotate-left" style={{ color: "var(--accent)", marginRight: 8 }} />
-                Delivering in the background
+                Partially sent — queued
               </>
             ) : result.ok ? (
               <>
