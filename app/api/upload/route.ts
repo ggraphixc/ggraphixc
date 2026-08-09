@@ -75,6 +75,25 @@ export async function POST(req: Request) {
       );
       stream.end(buffer);
     });
+
+    // Record the upload in the media library (best-effort — a failure to log
+    // must never fail the upload itself). The table is created by migration
+    // 20260809000000; before that runs, the insert errors harmlessly.
+    try {
+      const { createClient } = await import("@supabase/supabase-js");
+      const sb = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY as string);
+      if (supabaseUrl && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        await sb.from("media").insert({
+          url: result.secure_url,
+          filename: file.name,
+          folder: rawFolder,
+          size_kb: Math.round(file.size / 1024)
+        });
+      }
+    } catch (e) {
+      console.warn("[media] could not log upload:", e instanceof Error ? e.message : e);
+    }
+
     return NextResponse.json({ secure_url: result.secure_url });
   } catch (e) {
     console.error("[cloudinary] upload failed", e);

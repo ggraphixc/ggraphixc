@@ -19,6 +19,7 @@ export default async function ContactPage() {
         phone={settings.contact_phone}
         whatsapp={settings.whatsapp_number}
         location={settings.location}
+        wizard
       />
     </div>
   );

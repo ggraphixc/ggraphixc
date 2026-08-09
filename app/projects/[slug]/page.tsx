@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import ProjectGallery from "@/components/ProjectGallery";
+import PageViewTracker from "@/components/PageViewTracker";
 import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
 
 export const revalidate = 300;
@@ -65,6 +66,7 @@ export default async function ProjectCaseStudy({
 
   return (
     <>
+      <PageViewTracker kind="project" slug={project.slug} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectLd) }} />
       <section className="cs-hero">
         <div className="hero-glow" />
@@ -172,7 +174,7 @@ export default async function ProjectCaseStudy({
                 padding: "44px 40px",
                 textAlign: "center",
                 background:
-                  "linear-gradient(135deg, rgba(0,210,255,0.07), rgba(0,91,234,0.1)), rgba(255,255,255,0.02)"
+                  "linear-gradient(135deg, rgba(0,210,255,0.07), rgba(0,91,234,0.1)), var(--glass)"
               }}
             >
               <h2 style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, fontSize: "clamp(24px, 3.5vw, 36px)" }}>

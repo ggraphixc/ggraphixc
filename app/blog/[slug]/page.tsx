@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
+import PageViewTracker from "@/components/PageViewTracker";
 import { getBlogPost, getPublishedBlog, getSettings } from "@/lib/data";
 
 export const revalidate = 300;
@@ -27,7 +28,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const [post, settings] = await Promise.all([getBlogPost(slug), getSettings()]);
   if (!post) notFound();
 
-  const paragraphs = post.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  // Parse content: lines starting with "## " become section headings (rendered
+  // as h2 with an id for the table of contents); everything else is a paragraph.
+  const blocks = post.content.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  const sections: { id: string; heading: string }[] = [];
+  const rendered: { type: "h2" | "p"; text: string; id?: string }[] = blocks.map((block) => {
+    const m = block.match(/^##\s+(.+)$/);
+    if (m) {
+      const heading = m[1].trim();
+      const id = heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      sections.push({ id, heading });
+      return { type: "h2" as const, text: heading, id };
+    }
+    return { type: "p" as const, text: block };
+  });
+
+  // Reading time: ~200 words per minute, minimum 1 minute.
+  const wordCount = post.content.trim().split(/\s+/).filter(Boolean).length;
+  const readMinutes = Math.max(1, Math.round(wordCount / 200));
 
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   const articleLd = {
@@ -48,6 +66,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <article className="section" style={{ paddingTop: 160 }}>
+      <PageViewTracker kind="post" slug={post.slug} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <div className="container" style={{ maxWidth: 760 }}>
         <Reveal>
@@ -57,6 +76,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.tags && <div style={{ margin: "16px 0 4px" }}><span className="kicker">{post.tags}</span></div>}
           <h1 className="section-title" style={{ fontSize: "clamp(30px, 5vw, 52px)" }}>{post.title}</h1>
           {post.excerpt && <p className="section-lead" style={{ fontSize: 19 }}>{post.excerpt}</p>}
+          <div className="post-meta" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", color: "var(--muted)", fontSize: 13, marginTop: 16 }}>
+            <span>
+              <i className="fa-regular fa-clock" style={{ marginRight: 6 }} />
+              {readMinutes} min read
+            </span>
+            <span className="divider" style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--border-strong)" }} aria-hidden="true" />
+            <span>
+              <i className="fa-regular fa-calendar" style={{ marginRight: 6 }} />
+              {new Date(post.created_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+            </span>
+          </div>
         </Reveal>
 
         {post.cover_url && (
@@ -68,10 +98,58 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </Reveal>
         )}
 
-        <div style={{ marginTop: 34, fontSize: 17, lineHeight: 1.8, color: "#d9d9de" }}>
-          {paragraphs.map((para, i) => (
-            <p key={i} style={{ marginBottom: 20 }}>{para}</p>
-          ))}
+        <div
+          className="post-layout"
+          style={{
+            display: "grid",
+            gridTemplateColumns: sections.length > 0 ? "minmax(0,1fr) 220px" : "minmax(0,1fr)",
+            gap: 40,
+            alignItems: "start"
+          }}
+        >
+          <div style={{ marginTop: 34, fontSize: 17, lineHeight: 1.8, color: "var(--text)" }}>
+            {rendered.map((block, i) =>
+              block.type === "h2" ? (
+                <h2 key={i} id={block.id} style={{ fontSize: 24, fontWeight: 800, margin: "36px 0 14px", scrollMarginTop: 100 }}>
+                  {block.text}
+                </h2>
+              ) : (
+                <p key={i} style={{ marginBottom: 20 }}>{block.text}</p>
+              )
+            )}
+          </div>
+          {sections.length > 0 && (
+            <nav
+              className="post-toc"
+              aria-label="Table of contents"
+              style={{
+                position: "sticky",
+                top: 110,
+                padding: "18px 20px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border)",
+                background: "var(--glass)",
+                fontSize: 13.5,
+                marginTop: 34
+              }}
+            >
+              <div style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--accent)", marginBottom: 12 }}>
+                On this page
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {sections.map((sec) => (
+                  <a
+                    key={sec.id}
+                    href={`#${sec.id}`}
+                    style={{ color: "var(--muted)", fontWeight: 600, lineHeight: 1.4, transition: "color 0.2s var(--cb)" }}
+                    className="toc-link"
+                  >
+                    {sec.heading}
+                  </a>
+                ))}
+              </div>
+            </nav>
+          )}
         </div>
 
         <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid var(--border)" }}>

@@ -62,7 +62,7 @@ export default function BlogExplorer({ posts }: { posts: BlogPost[] }) {
                 borderRadius: 100,
                 border: "1px solid",
                 borderColor: tag === t ? "var(--accent)" : "var(--border)",
-                background: tag === t ? "rgba(0,210,255,0.12)" : "rgba(255,255,255,0.03)",
+                background: tag === t ? "rgba(0,210,255,0.12)" : "var(--glass)",
                 color: tag === t ? "var(--accent)" : "var(--muted)",
                 fontWeight: 700
               }}

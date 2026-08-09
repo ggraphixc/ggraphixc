@@ -158,7 +158,7 @@ export default async function ServicesPage() {
               style={{
                 padding: "48px 40px",
                 textAlign: "center",
-                background: "linear-gradient(135deg, rgba(0,210,255,0.07), rgba(0,91,234,0.1)), rgba(255,255,255,0.02)"
+                background: "linear-gradient(135deg, rgba(0,210,255,0.07), rgba(0,91,234,0.1)), var(--glass)"
               }}
             >
               <h2 style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, fontSize: "clamp(24px, 3.5vw, 36px)" }}>

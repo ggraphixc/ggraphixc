@@ -38,7 +38,7 @@ export default async function SearchPage({
               padding: "6px 6px 6px 20px",
               borderRadius: 999,
               border: "1px solid var(--border)",
-              background: "rgba(255,255,255,0.03)",
+              background: "var(--glass)",
               maxWidth: 560
             }}
           >

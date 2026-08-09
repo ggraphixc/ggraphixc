@@ -60,6 +60,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         />
+        {/* Theme bootstrap: apply the saved theme (localStorage → system
+            preference → dark) before first paint so there's no flash of the
+            wrong theme. suppressHydrationWarning on <html> tolerates the
+            attribute being set before React hydrates. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','dark')}})()"
+          }}
+        />
         {/* Mark the document as JS-enabled before paint so the scroll-reveal
             enhancement can hide content safely; if the observer never fires
             (e.g. a hydration failure), force-show everything after load. */}

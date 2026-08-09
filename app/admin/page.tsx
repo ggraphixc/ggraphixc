@@ -1,5 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/data";
+import { getPopularContent } from "@/lib/analytics";
 import { getConciergeStats, type EventCount } from "@/lib/vercel-analytics";
 
 // The dashboard shows live counts per request — render dynamically.
@@ -66,6 +67,29 @@ export default async function AdminDashboard({
   const c = await counts();
   const s = await getSettings();
   const stats = await getConciergeStats(days);
+  const [popular, sb] = await Promise.all([getPopularContent(30), (async () => {
+    try {
+      return getServiceSupabase();
+    } catch {
+      return null;
+    }
+  })()]);
+  // Resolve view slugs to titles for the popular-content panel.
+  let popularRows: { kind: string; slug: string; count: number; title: string }[] = [];
+  if (popular.length > 0 && sb) {
+    const pSlugs = popular.filter((p) => p.kind === "project").map((p) => p.slug);
+    const bSlugs = popular.filter((p) => p.kind === "post").map((p) => p.slug);
+    const [pRes, bRes] = await Promise.all([
+      pSlugs.length ? sb.from("projects").select("slug, title").in("slug", pSlugs) : Promise.resolve({ data: [] }),
+      bSlugs.length ? sb.from("blog_posts").select("slug, title").in("slug", bSlugs) : Promise.resolve({ data: [] })
+    ]);
+    const titleOf = new Map<string, string>();
+    (pRes.data as { slug: string; title: string }[]).forEach((r) => titleOf.set(`project:${r.slug}`, r.title));
+    (bRes.data as { slug: string; title: string }[]).forEach((r) => titleOf.set(`post:${r.slug}`, r.title));
+    popularRows = popular
+      .slice(0, 8)
+      .map((p) => ({ kind: p.kind, slug: p.slug, count: p.count, title: titleOf.get(`${p.kind}:${p.slug}`) ?? p.slug }));
+  }
   const opened = stats.events.concierge_opened?.count ?? 0;
   const afterChat = stats.contactAfterChat.count;
   const chatRate = opened > 0 ? Math.round((afterChat / opened) * 100) : 0;
@@ -165,6 +189,35 @@ export default async function AdminDashboard({
           </>
         )}
       </div>
+
+      {popularRows.length > 0 && (
+        <div className="admin-card">
+          <div style={{ marginBottom: 14 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800 }}>Popular content</h3>
+            <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 4 }}>
+              Most-viewed projects &amp; posts over the last 30 days (from self-hosted analytics).
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {popularRows.map((row) => (
+              <div
+                key={`${row.kind}:${row.slug}`}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--glass)" }}
+              >
+                <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: row.kind === "project" ? "var(--accent)" : "#ffb454", flexShrink: 0, width: 64 }}>
+                  {row.kind}
+                </span>
+                <span style={{ fontWeight: 600, fontSize: 14, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {row.title}
+                </span>
+                <span style={{ fontSize: 13, color: "var(--muted)", whiteSpace: "nowrap" }}>
+                  <strong>{row.count}</strong> views
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="admin-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>

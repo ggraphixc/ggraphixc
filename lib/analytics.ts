@@ -25,7 +25,8 @@ export const TRACKED_EVENTS = [
   "concierge_opened",
   "concierge_message",
   "concierge_card_click",
-  "contact_submit"
+  "contact_submit",
+  "page_view"
 ] as const;
 
 export type TrackableEvent = (typeof TRACKED_EVENTS)[number];
@@ -52,6 +53,41 @@ type Row = { event_name: string; event_data: { afterChat?: boolean } | null };
  * renders. `available` is false only when the analytics_events table doesn't
  * exist yet (migration not run) — the caller then falls back to Vercel.
  */
+export type PageView = { kind: "project" | "post"; slug: string; count: number };
+
+/**
+ * Most-viewed projects + blog posts over the last `days`, aggregated from the
+ * page_view events (data: { kind, slug }). Ties to the tables' titles happen
+ * in the caller (it can join names from projects/blog_posts).
+ */
+export async function getPopularContent(days = 30): Promise<PageView[]> {
+  let sb;
+  try {
+    sb = getServiceSupabase();
+  } catch {
+    return [];
+  }
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await sb
+    .from("analytics_events")
+    .select("event_data")
+    .eq("event_name", "page_view")
+    .gte("created_at", since)
+    .limit(5000);
+  if (error || !data) return [];
+  const counts = new Map<string, PageView>();
+  for (const row of data as { event_data: { kind?: string; slug?: string } | null }[]) {
+    const kind = row.event_data?.kind;
+    const slug = row.event_data?.slug;
+    if ((kind !== "project" && kind !== "post") || !slug) continue;
+    const key = `${kind}:${slug}`;
+    const cur = counts.get(key) ?? { kind, slug, count: 0 };
+    cur.count++;
+    counts.set(key, cur);
+  }
+  return Array.from(counts.values()).sort((a, b) => b.count - a.count);
+}
+
 export async function getSelfHostedStats(days: 7 | 30 = 30): Promise<
   ConciergeStats & { available: boolean }
 > {

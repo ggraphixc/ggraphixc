@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/client-track";
 import { submitInquiry, type ContactState } from "@/app/actions/contact";
+import BriefWizard from "@/components/BriefWizard";
 
 const RANGES = ["< $1k", "$1k - $5k", "$5k - $15k", "$15k+"];
 
@@ -12,12 +13,15 @@ export default function Contact({
   email = "hello@ggraphixc.vercel.app",
   phone = "",
   whatsapp = "",
-  location = ""
+  location = "",
+  wizard = false
 }: {
   email?: string;
   phone?: string;
   whatsapp?: string;
   location?: string;
+  // Guided 3-step intake instead of the single long form (used on /contact).
+  wizard?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
@@ -91,7 +95,7 @@ export default function Contact({
                 padding: 18,
                 border: "1px solid var(--border)",
                 borderRadius: "var(--radius-md)",
-                background: "rgba(255,255,255,0.02)"
+                background: "var(--glass)"
               }}
             >
               <span style={{ color: "var(--muted)", fontSize: 13, fontWeight: 600 }}>What happens next:</span>
@@ -107,6 +111,9 @@ export default function Contact({
             </div>
           </div>
 
+          {wizard ? (
+            <BriefWizard />
+          ) : (
           <form ref={formRef} action={formAction} className="glass" style={{ padding: 32 }}>
             {/* Honeypot: hidden from humans, irresistible to bots. */}
             <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
@@ -157,6 +164,7 @@ export default function Contact({
               </p>
             )}
           </form>
+          )}
         </div>
       </div>
     </section>

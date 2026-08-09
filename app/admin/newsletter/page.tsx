@@ -104,7 +104,7 @@ function DeliveryJobs({
                 padding: "12px 14px",
                 borderRadius: 12,
                 border: "1px solid var(--border)",
-                background: "rgba(255,255,255,0.015)"
+                background: "var(--glass)"
               }}
             >
               <span

@@ -19,6 +19,7 @@ const EMPTY: FormState = {
   content: "",
   tags: null,
   published: false,
+  published_at: null,
   display_order: 0
 };
 
@@ -108,6 +109,7 @@ export default function AdminBlog() {
       content: p.content,
       tags: p.tags,
       published: p.published,
+      published_at: p.published_at,
       display_order: p.display_order
     });
     setMsg("");
@@ -139,6 +141,9 @@ export default function AdminBlog() {
       content: form.content.trim(),
       tags: form.tags?.trim() || null,
       published: form.published,
+      // Only store a schedule when it's in the future — otherwise the post is
+      // simply live (published_at=null means "visible now").
+      published_at: form.published_at && new Date(form.published_at).getTime() > Date.now() ? new Date(form.published_at).toISOString() : null,
       display_order: form.display_order
     };
     let error;
@@ -247,10 +252,23 @@ export default function AdminBlog() {
             <input type="number" value={form.display_order} onChange={(e) => set("display_order", Number(e.target.value))} />
           </div>
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, color: "var(--muted)", fontSize: 14 }}>
-          <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} />
-          Published (visible on the public blog)
-        </label>
+        <div className="admin-form-grid">
+          <label style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--muted)", fontSize: 14 }}>
+            <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} />
+            Published (visible on the public blog)
+          </label>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>Schedule publish (optional)</label>
+            <input
+              type="datetime-local"
+              value={form.published_at ? new Date(form.published_at).toISOString().slice(0, 16) : ""}
+              onChange={(e) => set("published_at", e.target.value ? new Date(e.target.value).toISOString() : null)}
+            />
+            <span style={{ fontSize: 11, color: "var(--muted)", marginTop: -6 }}>
+              Leave empty to publish immediately. With a future date, the post appears automatically from that moment (needs the post to stay checked as published).
+            </span>
+          </div>
+        </div>
         {msg && <p style={{ color: "#ff8080", fontSize: 13, marginBottom: 10 }}>{msg}</p>}
         <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>
           {busy ? "Saving..." : editing ? "Update" : "Add Post"}
@@ -318,9 +336,25 @@ export default function AdminBlog() {
                     <InlineEdit value={p.tags ?? ""} onSave={(v) => quickSave(p.id, { tags: v || null })} />
                   </td>
                   <td data-label="Status">
-                    <span className="badge-soft" style={{ background: p.published ? "rgba(0,210,255,0.12)" : "rgba(255,255,255,0.06)", color: p.published ? "var(--accent)" : "var(--muted)" }}>
-                      {p.published ? "published" : "draft"}
-                    </span>
+                    {(() => {
+                      const isScheduled =
+                        p.published && p.published_at && new Date(p.published_at).getTime() > Date.now();
+                      return (
+                        <span
+                          className="badge-soft"
+                          style={{
+                            background: isScheduled ? "rgba(255,180,84,0.12)" : p.published ? "rgba(0,210,255,0.12)" : "var(--glass-strong)",
+                            color: isScheduled ? "#ffb454" : p.published ? "var(--accent)" : "var(--muted)"
+                          }}
+                        >
+                          {isScheduled
+                            ? `scheduled ${new Date(p.published_at as string).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+                            : p.published
+                              ? "published"
+                              : "draft"}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td>
                     <div className="row-actions">

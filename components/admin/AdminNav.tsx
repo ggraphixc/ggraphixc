@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/admin/subscribers", label: "Subscribers", icon: "fa-envelope-open-text" },
   { href: "/admin/clients", label: "Clients", icon: "fa-handshake" },
   { href: "/admin/faqs", label: "FAQs", icon: "fa-circle-question" },
+  { href: "/admin/media", label: "Media", icon: "fa-photo-film" },
   { href: "/admin/backup", label: "Backup", icon: "fa-database" },
   { href: "/admin/settings", label: "Settings", icon: "fa-gear" }
 ];

@@ -122,7 +122,7 @@ export function UnsubscribeClient({
                   padding: 16,
                   border: "1px solid var(--border)",
                   borderRadius: 12,
-                  background: "rgba(255,255,255,0.03)"
+                  background: "var(--glass)"
                 }}
               >
                 <p style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>Changed your mind?</p>

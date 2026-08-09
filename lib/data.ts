@@ -244,6 +244,7 @@ export const SAMPLE_BLOG: BlogPost[] = [
       "Most brands lose time because every new post, deck, or ad starts from scratch. A small system — logo rules, color tokens, a type scale, and a few templates — lets your team move fast without a designer in the loop for every task.\n\nStart with the 20% of assets you actually reuse: social templates, an icon set, and a one-page brand sheet. Everything else can be derived from those.",
     tags: "Brand, Systems",
     published: true,
+    published_at: null,
     display_order: 1,
     created_at: new Date().toISOString()
   },
@@ -257,6 +258,7 @@ export const SAMPLE_BLOG: BlogPost[] = [
       "Clarity beats cleverness. Lead with one focal subject, keep text to three words max, and use high contrast so it reads at a glance. Test two versions and keep the one people actually stop for.",
     tags: "Social, Motion",
     published: true,
+    published_at: null,
     display_order: 2,
     created_at: new Date().toISOString()
   }
@@ -271,7 +273,12 @@ export async function getPublishedBlog(): Promise<BlogPost[]> {
     .eq("published", true)
     .order("display_order", { ascending: true });
   if (error || !data || data.length === 0) return SAMPLE_BLOG;
-  return data as BlogPost[];
+  const now = Date.now();
+  // Scheduled publishing: a post with a future published_at stays hidden until
+  // its date passes. Combined with ISR revalidate=300 it appears automatically.
+  return (data as BlogPost[]).filter(
+    (p) => !p.published_at || new Date(p.published_at).getTime() <= now
+  );
 }
 
 export const SAMPLE_CLIENTS: Client[] = [

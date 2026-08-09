@@ -34,7 +34,7 @@ export default function ProjectsBrowser({ projects }: { projects: Project[] }) {
               borderRadius: 100,
               border: "1px solid",
               borderColor: active === c ? "var(--accent)" : "var(--border)",
-              background: active === c ? "rgba(0,210,255,0.12)" : "rgba(255,255,255,0.03)",
+              background: active === c ? "rgba(0,210,255,0.12)" : "var(--glass)",
               color: active === c ? "var(--accent)" : "var(--muted)",
               fontWeight: 700
             }}

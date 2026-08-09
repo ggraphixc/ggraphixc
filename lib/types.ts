@@ -90,7 +90,18 @@ export type BlogPost = {
   content: string;
   tags: string | null;
   published: boolean;
+  /** Scheduled publish moment (UTC ISO). When set, the post appears publicly from then. */
+  published_at: string | null;
   display_order: number;
+  created_at: string;
+};
+
+export type MediaItem = {
+  id: string;
+  url: string;
+  filename: string | null;
+  folder: string;
+  size_kb: number | null;
   created_at: string;
 };
 
@@ -105,6 +116,7 @@ export type Database = {
       clients: { Row: Client; Insert: Omit<Client, "id" | "created_at">; Update: Partial<Client> };
       faqs: { Row: Faq; Insert: Omit<Faq, "id" | "created_at">; Update: Partial<Faq> };
       services: { Row: Service; Insert: Omit<Service, "id" | "created_at">; Update: Partial<Service> };
+      media: { Row: MediaItem; Insert: Omit<MediaItem, "id" | "created_at">; Update: Partial<MediaItem> };
       site_settings: { Row: SiteSetting; Insert: Omit<SiteSetting, "updated_at">; Update: Partial<SiteSetting> };
       blog_posts: { Row: BlogPost; Insert: Omit<BlogPost, "id" | "created_at">; Update: Partial<BlogPost> };
     };

@@ -24,6 +24,18 @@ export default function Header({ brand = "ggraphixc", logo = "/images/brand/ggra
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Flip the data-theme attribute; the sun/moon icon visibility is pure CSS
+  // driven by that attribute, so there's no state to keep in sync (and no
+  // hydration mismatch — the inline <head> script already chose the theme).
+  const toggleTheme = () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("theme", next);
+    } catch {}
+  };
+
   return (
     <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
       <div className="header-shell">
@@ -48,6 +60,16 @@ export default function Header({ brand = "ggraphixc", logo = "/images/brand/ggra
           <i className="fa-solid fa-magnifying-glass header-search-icon" />
           <input type="search" name="q" placeholder="Search…" aria-label="Search projects and notes" />
         </form>
+
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label="Toggle light / dark mode"
+          title="Toggle light / dark mode"
+        >
+          <i className="fa-solid fa-moon theme-icon-dark" />
+          <i className="fa-solid fa-sun theme-icon-light" />
+        </button>
 
         <button
           className={`hamburger ${open ? "open" : ""}`}

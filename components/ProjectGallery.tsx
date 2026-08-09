@@ -53,6 +53,9 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
           <button className="lb-close" onClick={close} aria-label="Close viewer">
             ✕
           </button>
+          <div className="lb-count" aria-hidden="true">
+            {open + 1} / {images.length}
+          </div>
           <button
             className="lb-btn lb-prev"
             onClick={(e) => {

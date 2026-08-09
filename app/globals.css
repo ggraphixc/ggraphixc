@@ -61,8 +61,34 @@
   --radius-pill: 999px;
 
   --cb: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Glass surfaces: translucent panels (cards, buttons, inputs) that sit on
+     top of the background. Two strengths so hover states stay visible. */
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-strong: rgba(255, 255, 255, 0.06);
+
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 30px 90px rgba(0, 0, 0, 0.65);
+}
+
+/* ============================================================
+   Light theme — the same design tokens, tuned for light.
+   The inline <head> script sets data-theme before first paint
+   (localStorage → system preference → dark), so there is no
+   flash of the wrong theme. Accent/royal stay identical; only
+   the surfaces, text, borders and shadows flip.
+   ============================================================ */
+[data-theme="light"] {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --elevated: #eceef1;
+  --text: #14161c;
+  --muted: #555d69;
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.18);
+  --glass: rgba(15, 23, 42, 0.05);
+  --glass-strong: rgba(15, 23, 42, 0.09);
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 30px 90px rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -268,13 +294,13 @@ summary:focus-visible {
   font-size: 13px;
 }
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass);
   border: 1px solid var(--border);
   color: var(--text);
 }
 .btn-ghost:hover {
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--glass-strong);
 }
 .btn-danger {
   background: rgba(255, 80, 80, 0.1);
@@ -358,7 +384,7 @@ summary:focus-visible {
 }
 .nav-links a:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-strong);
 }
 .nav-links a::after {
   content: "";
@@ -397,7 +423,7 @@ summary:focus-visible {
   justify-content: center;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass);
   border: 1px solid var(--border);
   cursor: pointer;
   padding: 12px;
@@ -436,12 +462,12 @@ summary:focus-visible {
   height: 40px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   transition: border-color 0.3s var(--cb), background 0.3s var(--cb);
 }
 .header-search:focus-within {
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-strong);
 }
 .header-search-icon {
   color: var(--muted);
@@ -609,7 +635,7 @@ summary:focus-visible {
 
 /* ---------- Cards / glass ---------- */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(10px);
@@ -868,7 +894,7 @@ summary:focus-visible {
 }
 .t-card .quote {
   font-size: 17px;
-  color: #d9d9de;
+  color: var(--text);
   line-height: 1.7;
 }
 .t-card .who {
@@ -898,7 +924,7 @@ summary:focus-visible {
   border-radius: var(--radius-md);
   padding: 2px 24px;
   margin-bottom: 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
   transition: 0.35s var(--cb);
 }
 .faq-item:hover {
@@ -953,7 +979,7 @@ summary:focus-visible {
 .field input,
 .field textarea,
 .field select {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
@@ -1018,7 +1044,7 @@ summary:focus-visible {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass);
   border: 1px solid var(--border);
   color: var(--muted);
   font-size: 14px;
@@ -1108,7 +1134,7 @@ summary:focus-visible {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 24px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
   margin-bottom: 18px;
 }
 /* Responsive two-column form layout used across admin pages. Collapses to a
@@ -1144,7 +1170,7 @@ summary:focus-visible {
   letter-spacing: 0.06em;
 }
 .admin-table tr:hover td {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--glass);
 }
 .admin-grid {
   display: grid;
@@ -1156,7 +1182,7 @@ summary:focus-visible {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 24px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
 }
 .admin-stat .num {
   font-size: 34px;
@@ -1223,7 +1249,7 @@ summary:focus-visible {
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
 }
 .range-toggle a {
   display: inline-flex;
@@ -1253,7 +1279,7 @@ summary:focus-visible {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
 }
 .cstat .num {
   font-size: 28px;
@@ -1278,7 +1304,7 @@ summary:focus-visible {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
   font-size: 13px;
   color: var(--muted);
 }
@@ -1384,7 +1410,7 @@ tr.drop-target td {
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   display: block;
 }
 .admin-toast {
@@ -1424,7 +1450,7 @@ tr.drop-target td {
   color: #fbbf24;
 }
 .star-toggle:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-strong);
 }
 @media (max-width: 640px) {
   .admin-toast {
@@ -1523,7 +1549,7 @@ tr.drop-target td {
 .cs-meta .chip {
   padding: 8px 16px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   border: 1px solid var(--border);
   font-size: 13px;
   font-weight: 600;
@@ -1556,7 +1582,7 @@ tr.drop-target td {
   flex-shrink: 0;
 }
 .cs-block p {
-  color: #d9d9de;
+  color: var(--text);
   font-size: 17px;
   line-height: 1.85;
   max-width: 640px;
@@ -1571,7 +1597,7 @@ tr.drop-target td {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 24px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
   transition: 0.4s var(--cb);
   min-height: 96px;
 }
@@ -1653,7 +1679,7 @@ tr.drop-target td {
   height: 46px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-strong);
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -1664,6 +1690,21 @@ tr.drop-target td {
 .lightbox .lb-btn:hover { background: rgba(0, 210, 255, 0.2); border-color: var(--accent); }
 .lightbox .lb-prev { left: 18px; }
 .lightbox .lb-next { right: 18px; }
+.lightbox .lb-count {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(245, 245, 247, 0.75);
+  background: rgba(10, 10, 12, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 5px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
 .lightbox .lb-close {
   position: absolute;
   top: 20px;
@@ -1672,7 +1713,7 @@ tr.drop-target td {
   height: 42px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--glass-strong);
   color: var(--text);
   cursor: pointer;
   font-size: 16px;
@@ -1760,7 +1801,7 @@ tr.drop-target td {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-strong);
   border: 1px solid var(--border);
   color: var(--muted);
   cursor: pointer;
@@ -1830,9 +1871,9 @@ tr.drop-target td {
 }
 .concierge-msgs .bot {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-strong);
   border: 1px solid var(--border);
-  color: #e6e6ea;
+  color: var(--text);
   border-bottom-left-radius: 4px;
 }
 .concierge-msgs .user {
@@ -1869,7 +1910,7 @@ tr.drop-target td {
 }
 .concierge-input input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   padding: 13px 16px;
@@ -1916,7 +1957,7 @@ tr.drop-target td {
   padding: 8px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   transition: 0.3s var(--cb);
 }
 .concierge-card:hover {
@@ -2192,7 +2233,7 @@ tr.drop-target td {
     margin-bottom: 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--glass);
   }
   /* Headroom for the floating handle — only on sortable rows (messages has none). */
   .admin-table-wrap tbody tr:has(.drag-handle) {
@@ -2257,4 +2298,185 @@ tr.drop-target td {
     align-items: flex-start;
     justify-content: flex-start;
   }
+}
+
+/* ============================================================
+   Theme toggle + light-mode header overrides
+   ============================================================ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 0.3s var(--cb), background 0.3s var(--cb), color 0.3s var(--cb), transform 0.3s var(--cb);
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--glass-strong);
+  transform: translateY(-1px);
+}
+
+/* The header pill is dark glass in the default theme; flip it to light
+   glass so text (which follows --text) stays readable in light mode. */
+[data-theme="light"] .header-shell {
+  background: rgba(255, 255, 255, 0.65);
+}
+[data-theme="light"] .site-header.scrolled .header-shell {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1);
+}
+[data-theme="light"] .mobile-nav {
+  background: rgba(255, 255, 255, 0.97);
+}
+[data-theme="light"] .mobile-nav a {
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+/* ============================================================
+   Brief wizard (guided 3-step project intake)
+   ============================================================ */
+.wizard-types {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.type-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--glass);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  min-height: 52px;
+  cursor: pointer;
+  transition: border-color 0.3s var(--cb), background 0.3s var(--cb), transform 0.3s var(--cb);
+}
+.type-card i {
+  color: var(--accent);
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+.type-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.type-card.selected {
+  border-color: var(--accent);
+  background: rgba(0, 210, 255, 0.08);
+}
+.type-card small {
+  display: block;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+.wizard-step {
+  animation: vt-fade-in 0.3s var(--cb);
+}
+.wizard-progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.wizard-progress .dot {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition: background 0.4s var(--cb);
+}
+.wizard-progress .dot.done,
+.wizard-progress .dot.active {
+  background: linear-gradient(90deg, var(--accent), var(--royal));
+}
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 22px;
+}
+@media (max-width: 640px) {
+  .wizard-types {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   Press / media kit page
+   ============================================================ */
+.press-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.press-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.press-fact {
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--glass);
+}
+.press-fact-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 800;
+}
+.press-fact-value {
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 6px;
+  color: var(--text);
+}
+.press-swatches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.swatch {
+  height: 84px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+}
+@media (max-width: 640px) {
+  .press-grid,
+  .press-facts,
+  .press-swatches {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Theme-toggle icons: which one shows is driven purely by the data-theme
+   attribute (set pre-paint by the inline script), so no JS state is needed. */
+.theme-toggle .theme-icon-light {
+  display: none;
+}
+[data-theme="light"] .theme-toggle .theme-icon-dark {
+  display: none;
+}
+[data-theme="light"] .theme-toggle .theme-icon-light {
+  display: inline;
 }

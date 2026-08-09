@@ -109,7 +109,7 @@ export default function About({
                 <span
                   key={chip}
                   className="kicker"
-                  style={{ background: "rgba(255,255,255,0.04)", borderColor: "var(--border)", color: "var(--text)" }}
+                  style={{ background: "var(--glass)", borderColor: "var(--border)", color: "var(--text)" }}
                 >
                   {chip}
                 </span>
