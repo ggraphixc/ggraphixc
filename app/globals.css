@@ -1666,9 +1666,10 @@ tr.drop-target td {
 }
 .lightbox img {
   max-width: 92vw;
-  max-height: 86vh;
+  max-height: 82vh;
+  object-fit: contain; /* fills the viewing canvas (snaps), never crops */
+  display: block; /* kills the inline baseline gap inside the card */
   border-radius: var(--radius-md);
-  object-fit: contain;
   box-shadow: var(--shadow-lg);
 }
 .lightbox .lb-btn {
@@ -2484,16 +2485,14 @@ tr.drop-target td {
 /* ============================================================
    Lightbox — filmstrip + fully responsive sizing
    ============================================================ */
-.lightbox img {
-  /* Leave room at the bottom for the filmstrip dots (base rule already sets
-     padding 40px + max-width 92vw; only the height cap changes). */
-  max-height: 82vh;
-}
 .lb-card {
   /* Anchors the absolutely-positioned chrome (counter/close/arrows/dots) to
-     the media canvas instead of the viewport. The card shrink-wraps the
-     image on desktop; mobile makes it a flexible floating card. */
+     the media canvas instead of the viewport, and flex-centers the image so
+     it snaps to the canvas (object-fit: contain) at every size. */
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .lb-dots {
   position: absolute;
@@ -2542,25 +2541,31 @@ tr.drop-target td {
 @media (max-width: 640px) {
   .lightbox {
     inset: 0;
-    padding: 16px;
-    background: rgba(4, 5, 8, 0.8);
-    backdrop-filter: blur(8px);
+    padding: 14px;
+    background: #040508; /* fully opaque: the page never shows through, so the
+                            image reads as snapped to the viewing canvas */
   }
   .lb-card {
-    max-width: 100%;
-    max-height: 100%;
-    padding: 10px;
+    /* The image SNAPS to the viewing canvas: the card fills the full width,
+       the image fills the card edge-to-edge (object-fit contain), and the
+       card height hugs the image — a landscape shot now fills the screen
+       instead of floating as a small strip. */
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-strong);
     background: #0c0d11;
     box-shadow: var(--shadow-lg);
   }
   .lightbox img {
-    max-width: calc(100vw - 56px);
-    max-height: calc(100dvh - 150px); /* flexible cap — card hugs the image,
-                                         chrome always clear */
-    border-radius: var(--radius-lg);
-    display: block; /* kills the inline-image baseline gap inside the card */
+    width: 100%;
+    height: auto;
+    max-height: calc(100dvh - 120px); /* bounded — chrome stays clear, a very
+                                         tall image never dominates */
+    object-fit: contain;
+    border-radius: 0;
+    display: block;
   }
   .lightbox .lb-btn {
     width: 38px;
@@ -2613,12 +2618,12 @@ tr.drop-target td {
     background: #111;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 8px;
+    padding: 0; /* image fills the card edge-to-edge (snaps to the canvas) */
+    overflow: hidden;
   }
   .gallery-grid .g-item img {
-    width: auto;
+    width: 100%;
     height: auto;
-    max-width: 100%;
     max-height: calc(70dvh - 20px); /* bounded, so a tall image never dominates */
     object-fit: contain;
   }
@@ -2628,13 +2633,13 @@ tr.drop-target td {
    the whole card + chrome always fit between the screen edges. */
 @media (max-height: 480px) and (max-width: 640px) {
   .lightbox img {
-    max-height: calc(100dvh - 110px);
-  }
-  .lb-card {
-    padding: 6px;
+    max-height: calc(100dvh - 90px); /* tighter cap for landscape phones */
   }
   .lightbox {
-    padding: 12px;
+    padding: 10px;
+  }
+  .lb-card {
+    border-radius: var(--radius-lg);
   }
 }
 
