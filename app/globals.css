@@ -2489,6 +2489,12 @@ tr.drop-target td {
      padding 40px + max-width 92vw; only the height cap changes). */
   max-height: 82vh;
 }
+.lb-card {
+  /* Anchors the absolutely-positioned chrome (counter/close/arrows/dots) to
+     the media canvas instead of the viewport. The card shrink-wraps the
+     image on desktop; mobile makes it a flexible floating card. */
+  position: relative;
+}
 .lb-dots {
   position: absolute;
   bottom: 22px;
@@ -2530,31 +2536,30 @@ tr.drop-target td {
   transform: scale(1.25);
 }
 
-/* --- Mobile: the viewer floats as a centered card canvas, never touching
-       the screen edges. The huge spread shadow dims the page around it. --- */
+/* --- Mobile: the lightbox is a full-screen dim scrim (tap anywhere to
+       close); the .lb-card inside is a FLEXIBLE canvas that hugs the image's
+       height instead of stretching to the screen edges. --- */
 @media (max-width: 640px) {
   .lightbox {
-    inset: 14px;
+    inset: 0;
+    padding: 16px;
+    background: rgba(4, 5, 8, 0.8);
+    backdrop-filter: blur(8px);
+  }
+  .lb-card {
+    max-width: 100%;
+    max-height: 100%;
     padding: 10px;
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-strong);
     background: #0c0d11;
-    box-shadow: 0 0 0 100vmax rgba(4, 5, 8, 0.74);
-    backdrop-filter: none;
-  }
-  /* Click-catcher: the card only covers inset:14px, so this full-screen
-     transparent layer swallows taps on the dimmed area around it (box-shadows
-     don't receive pointer events) and lets them close the viewer via the
-     lightbox's onClick, instead of leaking into the page underneath. */
-  .lightbox::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
+    box-shadow: var(--shadow-lg);
   }
   .lightbox img {
-    max-width: 100%;
-    max-height: calc(100dvh - 150px); /* leaves room for counter/close/dots */
+    max-width: calc(100vw - 56px);
+    max-height: calc(100dvh - 140px); /* flexible cap — card hugs the image */
+    border-radius: var(--radius-lg);
+    display: block; /* kills the inline-image baseline gap inside the card */
   }
   .lightbox .lb-btn {
     width: 38px;
@@ -2581,7 +2586,7 @@ tr.drop-target td {
   }
   .lb-dots {
     bottom: 14px;
-    max-width: 80vw;
+    max-width: min(80vw, calc(100% - 24px)); /* never overhang a narrow card */
     gap: 7px;
   }
   .lb-dot {

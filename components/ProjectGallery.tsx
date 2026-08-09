@@ -50,6 +50,10 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
 
       {open !== null && (
         <div className="lightbox" onClick={close} role="dialog" aria-modal="true" aria-label="Image viewer">
+          {/* The media canvas: on mobile it's a flexible card that hugs the
+              image's height (never stretches to the screen edges); the
+              lightbox itself stays full-screen as the dim tap-to-close scrim. */}
+          <div className="lb-card">
           <button className="lb-close" onClick={close} aria-label="Close viewer">
             ✕
           </button>
@@ -98,6 +102,7 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
                 aria-current={i === open ? "true" : undefined}
               />
             ))}
+          </div>
           </div>
         </div>
       )}
