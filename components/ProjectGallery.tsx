@@ -31,9 +31,11 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
   const [zoom, setZoomState] = useState(1);
   const [off, setOffState] = useState<Offset>({ x: 0, y: 0 });
   const [gesturing, setGesturing] = useState(false);
+  const [cardSize, setCardSize] = useState<{ w: number; h: number } | null>(null);
 
   const imgRef = useRef<HTMLImageElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
   const openRef = useRef<number | null>(null);
   const zoomRef = useRef(1);
   const offRef = useRef<Offset>({ x: 0, y: 0 });
@@ -41,6 +43,7 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
   const gestureRef = useRef<Gesture | null>(null);
   const movedRef = useRef(false);
   const lastTapRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const erroredRef = useRef<string | null>(null);
 
   const clampNum = (v: number, min: number, max: number) =>
     Math.min(max, Math.max(min, v));
@@ -100,11 +103,26 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
     [setZoomAnchored]
   );
 
-  /** Record the image's fitted size (used for pan bounds). */
+  /** Fit the image into the viewing canvas (contain, never upscale) and size
+      the container to match it — the lightbox inherits the image's size. */
   const measure = useCallback(() => {
     const img = imgRef.current;
-    if (!img) return;
-    fitRef.current = { w: img.clientWidth, h: img.clientHeight };
+    const lb = lightboxRef.current;
+    if (!img || !lb) return;
+    const natW = img.naturalWidth;
+    const natH = img.naturalHeight;
+    if (!natW || !natH) return;
+    const cs = window.getComputedStyle(lb);
+    const cw =
+      lb.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    const ch =
+      lb.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+    if (cw <= 0 || ch <= 0) return;
+    const scale = Math.min(cw / natW, ch / natH, 1);
+    const w = Math.max(1, Math.floor(natW * scale));
+    const h = Math.max(1, Math.floor(natH * scale));
+    fitRef.current = { w, h };
+    setCardSize({ w, h });
     setOff(clampOff(offRef.current, zoomRef.current));
   }, [clampOff, setOff]);
 
@@ -112,6 +130,9 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
     (i: number) => {
       setZoom(1);
       setOff({ x: 0, y: 0 });
+      // Keep the previous card size until the new image is measured — the
+      // image letterboxes briefly (object-fit contain), then the card morphs
+      // smoothly to the new fit instead of popping to fullscreen.
       movedRef.current = false;
       lastTapRef.current = null;
       openRef.current = i;
@@ -176,15 +197,17 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
   }, [open, measure, clampOff, setOff]);
 
   // Desktop mouse-wheel zoom (non-passive so the page can't scroll behind it).
+  // Attached to the whole lightbox so wheel works over the black area too;
+  // the anchor is mapped into the image card's coordinate space.
   useEffect(() => {
-    const el = cardRef.current;
+    const el = lightboxRef.current;
     if (!el || open === null) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const r = el.getBoundingClientRect();
+      const cr = cardRef.current?.getBoundingClientRect();
       const z = clampNum(zoomRef.current * Math.exp(-e.deltaY * 0.0015), 1, ZOOM_MAX);
       if (Math.abs(z - zoomRef.current) < 0.001) return;
-      setZoomAnchored(z, e.clientX - r.left, e.clientY - r.top);
+      setZoomAnchored(z, cr ? e.clientX - cr.left : 0, cr ? e.clientY - cr.top : 0);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -324,6 +347,7 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
       {open !== null && (
         <div
           className="lightbox"
+          ref={lightboxRef}
           onClick={close}
           role="dialog"
           aria-modal="true"
@@ -334,6 +358,7 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
             ref={cardRef}
             data-zoomed={zoom > 1 ? "true" : "false"}
             data-gesturing={gesturing ? "true" : "false"}
+            style={cardSize ? { width: cardSize.w, height: cardSize.h } : undefined}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endPointer}
@@ -363,6 +388,18 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
               alt={images[open].alt_text ?? ""}
               draggable={false}
               onLoad={measure}
+              onError={() => {
+                const id = images[open].id;
+                if (erroredRef.current === id) {
+                  // Already skipped this one after failing others — give up.
+                  erroredRef.current = null;
+                  close();
+                  return;
+                }
+                erroredRef.current = id;
+                if (images.length > 1) step(1);
+                else close();
+              }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 const r = cardRef.current?.getBoundingClientRect();

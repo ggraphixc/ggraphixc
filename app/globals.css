@@ -1665,11 +1665,12 @@ tr.drop-target td {
   animation: vt-fade-in 0.3s var(--cb);
 }
 .lightbox img {
-  /* The image fits the whole viewing canvas (object-fit contain) and is
-     zoomed/panned via a CSS transform driven by the pan-zoom gesture state. */
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* fills the canvas (snaps), never crops */
+  /* The image fills the media canvas exactly (the canvas is sized to the
+     image itself) and is zoomed/panned via a CSS transform from the gesture
+     state. */
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* exact fit — the canvas is the image's own size */
   display: block;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -2494,17 +2495,21 @@ tr.drop-target td {
    Lightbox — filmstrip + fully responsive sizing
    ============================================================ */
 .lb-card {
-  /* The full-screen viewing canvas: fills the lightbox edge-to-edge, flex-
-     centers the image, and clips the zoomed/panning image at the screen
-     edges. Anchors the chrome (counter/close/arrows/dots/zoom). */
+  /* The media canvas: fills the lightbox while the image loads, then the JS
+     shrink-wraps it to the fitted image size — the container inherits the
+     image's dimensions. Anchors the chrome (counter/close/arrows/dots/zoom)
+     and clips the zoomed/panning image. */
   position: relative;
   width: 100%;
   height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   touch-action: none;
+  transition: width 0.3s var(--cb), height 0.3s var(--cb);
 }
 .lb-card[data-zoomed="true"] img {
   cursor: grab;
@@ -2575,7 +2580,7 @@ tr.drop-target td {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: min(72vw, 560px);
+  max-width: min(72vw, calc(100% - 24px)); /* never wider than the card */
   overflow-x: auto;
   scrollbar-width: none;
   padding: 8px 12px;
@@ -2618,25 +2623,16 @@ tr.drop-target td {
     background: #040508; /* fully opaque — the page never shows through */
   }
   .lb-card {
-    /* Edge-to-edge canvas: fills the screen; the image fits inside with
-       object-fit contain and can be pinch/double-tap zoomed + panned. */
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    border-radius: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
+    /* The container inherits the image's size (set in JS); on phones it's a
+       floating rounded card over the opaque scrim. */
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background: #0c0d11;
+    box-shadow: var(--shadow-lg);
   }
   .lightbox img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
     border-radius: 0;
     box-shadow: none;
-    display: block;
   }
   .lightbox .lb-btn {
     width: 38px;
