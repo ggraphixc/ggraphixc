@@ -49,7 +49,7 @@ export default async function HomePage() {
         portrait={settings.profile_image || "/images/about/portrait.jpg"}
       />
       <Services items={services} />
-      <Work projects={projects} />
+      <Work projects={projects} watermark={settings.download_watermark} />
       <Testimonials items={testimonials} />
 
       {posts.length > 0 && (

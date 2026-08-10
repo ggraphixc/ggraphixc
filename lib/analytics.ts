@@ -26,6 +26,7 @@ export const TRACKED_EVENTS = [
   "concierge_message",
   "concierge_card_click",
   "contact_submit",
+  "download",
   "page_view"
 ] as const;
 
@@ -76,6 +77,41 @@ export async function getPopularContent(days = 30): Promise<PageView[]> {
     .limit(5000);
   if (error || !data) return [];
   const counts = new Map<string, PageView>();
+  for (const row of data as { event_data: { kind?: string; slug?: string } | null }[]) {
+    const kind = row.event_data?.kind;
+    const slug = row.event_data?.slug;
+    if ((kind !== "project" && kind !== "post") || !slug) continue;
+    const key = `${kind}:${slug}`;
+    const cur = counts.get(key) ?? { kind, slug, count: 0 };
+    cur.count++;
+    counts.set(key, cur);
+  }
+  return Array.from(counts.values()).sort((a, b) => b.count - a.count);
+}
+
+export type DownloadCount = { kind: "project" | "post"; slug: string; count: number };
+
+/**
+ * Most-downloaded projects + blog posts over the last `days`, aggregated from
+ * the "download" events (data: { kind, slug }). Title resolution happens in
+ * the caller, mirroring getPopularContent.
+ */
+export async function getDownloadStats(days = 30): Promise<DownloadCount[]> {
+  let sb;
+  try {
+    sb = getServiceSupabase();
+  } catch {
+    return [];
+  }
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await sb
+    .from("analytics_events")
+    .select("event_data")
+    .eq("event_name", "download")
+    .gte("created_at", since)
+    .limit(5000);
+  if (error || !data) return [];
+  const counts = new Map<string, DownloadCount>();
   for (const row of data as { event_data: { kind?: string; slug?: string } | null }[]) {
     const kind = row.event_data?.kind;
     const slug = row.event_data?.slug;

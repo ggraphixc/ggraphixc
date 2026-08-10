@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import ProjectGallery from "@/components/ProjectGallery";
+import TrackDownload from "@/components/TrackDownload";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
 
@@ -151,14 +152,36 @@ export default async function ProjectCaseStudy({
         <section className="section" style={{ paddingTop: 10 }}>
           <div className="container" style={{ maxWidth: 1000 }}>
             <Reveal>
-              <span className="kicker">Gallery</span>
-              <h2 className="section-title" style={{ fontSize: "clamp(24px, 3.5vw, 38px)" }}>
-                Inside the project
-              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-end",
+                  gap: 16,
+                  flexWrap: "wrap"
+                }}
+              >
+                <div>
+                  <span className="kicker">Gallery</span>
+                  <h2 className="section-title" style={{ fontSize: "clamp(24px, 3.5vw, 38px)" }}>
+                    Inside the project
+                  </h2>
+                </div>
+                <TrackDownload
+                  href={`/api/projects/${project.slug}/download-all`}
+                  kind="project"
+                  slug={project.slug}
+                  className="btn btn-ghost btn-sm"
+                  title="Download the full gallery as a ZIP"
+                >
+                  <i className="fa-solid fa-file-zipper" aria-hidden="true" />
+                  Download all ({gallery.length})
+                </TrackDownload>
+              </div>
             </Reveal>
             <Reveal delay={80}>
               <div style={{ marginTop: 30 }}>
-                <ProjectGallery images={gallery} />
+                <ProjectGallery images={gallery} watermark={settings.download_watermark} slug={project.slug} />
               </div>
             </Reveal>
           </div>

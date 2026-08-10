@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { BlogPost } from "@/lib/types";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -125,6 +125,27 @@ export default function AdminBlog() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  /** Insert an uploaded image as markdown at the cursor position. */
+  function insertImage(url: string | null) {
+    if (!url) return;
+    const alt = form.title.trim() || "image";
+    const md = `![${alt}](${url})`;
+    const ta = contentRef.current;
+    if (!ta) {
+      set("content", form.content ? form.content.trimEnd() + "\n\n" + md : md);
+      return;
+    }
+    const start = ta.selectionStart ?? form.content.length;
+    const end = ta.selectionEnd ?? start;
+    set("content", form.content.slice(0, start) + md + form.content.slice(end));
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + md.length;
+    });
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim() || !form.slug.trim() || !form.content.trim()) {
@@ -239,8 +260,15 @@ export default function AdminBlog() {
           />
         </div>
         <div className="field">
-          <label>Content (paragraphs separated by blank lines)</label>
-          <textarea value={form.content} onChange={(e) => set("content", e.target.value)} style={{ minHeight: 160 }} />
+          <label>Content (paragraphs separated by blank lines — images as ![alt](url))</label>
+          <textarea ref={contentRef} value={form.content} onChange={(e) => set("content", e.target.value)} style={{ minHeight: 160 }} />
+          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <ImageUpload value={null} folder="blog" onChange={insertImage} />
+            <span style={{ fontSize: 11.5, color: "var(--muted)", maxWidth: 420 }}>
+              Upload &amp; inserts a markdown image at the cursor — it renders on the post as a clickable,
+              downloadable figure. Image must be on its own line (blank line above/below).
+            </span>
+          </div>
         </div>
         <div className="admin-form-grid">
           <div className="field">

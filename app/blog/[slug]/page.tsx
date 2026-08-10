@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
+import TrackDownload from "@/components/TrackDownload";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getBlogPost, getPublishedBlog, getSettings } from "@/lib/data";
 import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
@@ -110,13 +111,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <a href={post.cover_url} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
                   <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                 </a>
-                <a
-                  href={cloudinaryDownloadUrl(post.cover_url)}
+                <TrackDownload
+                  href={cloudinaryDownloadUrl(post.cover_url, settings.download_watermark)}
                   download={fileNameFromUrl(post.cover_url, "ggraphixc-cover")}
+                  kind="post"
+                  slug={post.slug}
                   className="blog-img-btn blog-img-dl"
                 >
                   <i className="fa-solid fa-download" aria-hidden="true" /> Download
-                </a>
+                </TrackDownload>
               </div>
             </figure>
           </Reveal>
@@ -141,13 +144,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <a href={block.src} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
                       <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                     </a>
-                    <a
-                      href={cloudinaryDownloadUrl(block.src)}
+                    <TrackDownload
+                      href={cloudinaryDownloadUrl(block.src, settings.download_watermark)}
                       download={fileNameFromUrl(block.src, `ggraphixc-blog-image-${i + 1}`)}
+                      kind="post"
+                      slug={post.slug}
                       className="blog-img-btn blog-img-dl"
                     >
                       <i className="fa-solid fa-download" aria-hidden="true" /> Download
-                    </a>
+                    </TrackDownload>
                   </div>
                 </figure>
               ) : block.type === "h2" ? (

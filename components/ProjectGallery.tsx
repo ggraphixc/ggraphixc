@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { trackEvent } from "@/lib/client-track";
 import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
 import type { ProjectImage } from "@/lib/types";
 
-export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
+export default function ProjectGallery({
+  images,
+  watermark,
+  slug
+}: {
+  images: ProjectImage[];
+  watermark?: string;
+  slug?: string;
+}) {
   const [open, setOpen] = useState<number | null>(null);
   const [hint, setHint] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -80,10 +89,17 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
             <div className="gv-actions">
               <a
                 className="gv-dl"
-                href={cloudinaryDownloadUrl(current.image_url)}
+                href={cloudinaryDownloadUrl(current.image_url, watermark)}
                 download={fileNameFromUrl(current.image_url, `ggraphixc-gallery-${open + 1}`)}
                 aria-label="Download this image"
                 title="Download full-resolution image"
+                onClick={() => {
+                  if (slug) {
+                    try {
+                      trackEvent("download", { kind: "project", slug });
+                    } catch {}
+                  }
+                }}
               >
                 <i className="fa-solid fa-download" aria-hidden="true" />
               </a>

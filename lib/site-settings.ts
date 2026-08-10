@@ -51,6 +51,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   social_x: "https://x.com",
   social_linkedin: "https://linkedin.com",
   google_api_key: "",
+  download_watermark: "ggraphixc",
   welcome_email_subject: "Welcome to ggraphixc — you're in! 🎉",
   welcome_email_headline: "You're in — welcome to the design notes 👋",
   welcome_email_body:
@@ -90,6 +91,11 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
     "google_api_key",
     "Google AI API key (Gemini)",
     "Powers the AI concierge + case-study drafts. Get one at aistudio.google.com. Stored privately (never shown publicly)."
+  ],
+  [
+    "download_watermark",
+    "Download watermark",
+    "Brand text stamped on downloaded images (project gallery, work cards, blog posts). Leave empty to disable. Applies to Cloudinary images only."
   ],
   ["welcome_email_subject", "Welcome email — subject line", "Shown as the subject of the welcome email sent after a new signup."],
   [

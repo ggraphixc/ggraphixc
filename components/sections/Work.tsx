@@ -2,10 +2,17 @@
 
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import { trackEvent } from "@/lib/client-track";
 import { fileSlug, fileNameFromUrl, triggerDownload } from "@/lib/images";
 import type { Project } from "@/lib/types";
 
-export default function Work({ projects }: { projects: Project[] }) {
+export default function Work({
+  projects,
+  watermark
+}: {
+  projects: Project[];
+  watermark?: string;
+}) {
   return (
     <section className="section" id="work">
       <div className="container">
@@ -53,7 +60,12 @@ export default function Work({ projects }: { projects: Project[] }) {
                         e.preventDefault();
                         e.stopPropagation();
                         const url = p.image_url;
-                        if (url) triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)));
+                        if (url) {
+                          triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)), watermark);
+                          try {
+                            trackEvent("download", { kind: "project", slug: p.slug });
+                          } catch {}
+                        }
                       }}
                     >
                       <i className="fa-solid fa-download" aria-hidden="true" />
