@@ -1,15 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ProjectImage } from "@/lib/types";
 
 export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
   const [open, setOpen] = useState<number | null>(null);
-  const lightboxRef = useRef<HTMLDivElement>(null);
+  const [hint, setHint] = useState(false);
+  const viewerRef = useRef<HTMLDivElement>(null);
   const openRef = useRef<number | null>(null);
   const erroredRef = useRef<string | null>(null);
+  const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   const openAt = useCallback((i: number) => {
+    setHint(false); // a fresh image re-evaluates the hint on load
     openRef.current = i;
     setOpen(i);
   }, []);
@@ -28,17 +32,27 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
     [images.length, openAt]
   );
 
-  // Keep openRef in sync (source of truth for keyboard/step).
   useEffect(() => {
     openRef.current = open;
   }, [open]);
 
-  // Scroll back to the top-left whenever a new image opens.
+  // The viewer lives inline in the page — scroll it into view and move focus
+  // into it when it opens.
   useEffect(() => {
-    lightboxRef.current?.scrollTo({ top: 0, left: 0 });
+    if (open === null) return;
+    viewerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    viewerRef.current?.focus({ preventScroll: true });
   }, [open]);
 
-  // Keyboard navigation + body scroll lock while the viewer is open.
+  // Auto-hide the "scroll to explore" hint shortly after it appears — keyed
+  // on hint, so it also works when an image loads slowly.
+  useEffect(() => {
+    if (!hint) return;
+    const t = window.setTimeout(() => setHint(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [hint]);
+
+  // Keyboard: Escape closes, arrows switch images.
   useEffect(() => {
     if (open === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -47,17 +61,115 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
       if (e.key === "ArrowRight") step(1);
     };
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, close, step]);
 
   if (images.length === 0) return null;
 
+  const current = open === null ? null : images[open];
+
   return (
     <>
+      {open !== null && current && (
+        <div className="gallery-viewer" ref={viewerRef} tabIndex={-1}>
+          <div className="gv-top">
+            <span className="lb-count" aria-hidden="true">
+              {open + 1} / {images.length}
+            </span>
+            <button className="lb-close" onClick={close} aria-label="Close viewer">
+              ✕
+            </button>
+          </div>
+
+          <div className="gv-stage">
+            <button
+              className="lb-btn lb-prev"
+              onClick={(e) => {
+                e.stopPropagation();
+                step(-1);
+              }}
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={current.id}
+              src={current.image_url}
+              alt={current.alt_text ?? ""}
+              onLoad={(e) => {
+                // Hint only when the image is taller than the screen.
+                setHint(
+                  e.currentTarget.getBoundingClientRect().height > window.innerHeight * 0.92
+                );
+              }}
+              onError={() => {
+                const id = current.id;
+                if (erroredRef.current === id) {
+                  // Already skipped this one after failing others — give up.
+                  erroredRef.current = null;
+                  close();
+                  return;
+                }
+                erroredRef.current = id;
+                if (images.length > 1) step(1);
+                else close();
+              }}
+              onPointerDown={(e) => {
+                swipeRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+              }}
+              onPointerUp={(e) => {
+                // Touch-only horizontal swipe switches images (vertical swipe
+                // stays a page scroll — touch-action: pan-y on the img).
+                const s = swipeRef.current;
+                swipeRef.current = null;
+                if (!s || e.pointerType !== "touch") return;
+                const dx = e.clientX - s.x;
+                const dy = e.clientY - s.y;
+                if (
+                  Date.now() - s.t < 700 &&
+                  Math.abs(dx) > 48 &&
+                  Math.abs(dx) > Math.abs(dy) * 1.4
+                ) {
+                  step(dx < 0 ? 1 : -1);
+                }
+              }}
+            />
+            <button
+              className="lb-btn lb-next"
+              onClick={(e) => {
+                e.stopPropagation();
+                step(1);
+              }}
+              aria-label="Next image"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="lb-dots">
+            {images.map((img, i) => (
+              <button
+                key={img.id}
+                type="button"
+                className={`lb-dot ${i === open ? "active" : ""}`}
+                onClick={() => openAt(i)}
+                aria-label={`Go to image ${i + 1}`}
+                aria-current={i === open ? "true" : undefined}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hint &&
+        createPortal(
+          <div className="gv-hint" role="status">
+            <i className="fa-solid fa-arrows-up-down" aria-hidden="true" /> Scroll to explore
+          </div>,
+          document.body
+        )}
+
       <div className="gallery-grid">
         {images.map((img, i) => (
           <button
@@ -72,84 +184,6 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
           </button>
         ))}
       </div>
-
-      {open !== null && (
-        <div
-          className="lightbox"
-          ref={lightboxRef}
-          onClick={close}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image viewer"
-        >
-          {/* The scroll content: the image at its full natural size. The
-              transparent lightbox scrolls through it (no black backdrop). */}
-          <div className="lb-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={images[open].id}
-              src={images[open].image_url}
-              alt={images[open].alt_text ?? ""}
-              onError={() => {
-                const id = images[open].id;
-                if (erroredRef.current === id) {
-                  // Already skipped this one after failing others — give up.
-                  erroredRef.current = null;
-                  close();
-                  return;
-                }
-                erroredRef.current = id;
-                if (images.length > 1) step(1);
-                else close();
-              }}
-            />
-          </div>
-
-          <button className="lb-close" onClick={close} aria-label="Close viewer">
-            ✕
-          </button>
-          <div className="lb-count" aria-hidden="true">
-            {open + 1} / {images.length}
-          </div>
-          <button
-            className="lb-btn lb-prev"
-            onClick={(e) => {
-              e.stopPropagation();
-              step(-1);
-            }}
-            aria-label="Previous image"
-          >
-            ‹
-          </button>
-          <button
-            className="lb-btn lb-next"
-            onClick={(e) => {
-              e.stopPropagation();
-              step(1);
-            }}
-            aria-label="Next image"
-          >
-            ›
-          </button>
-          {/* Filmstrip: one dot per image — click to jump. Scrolls horizontally
-              when a gallery has many images so it never overflows the screen. */}
-          <div className="lb-dots">
-            {images.map((img, i) => (
-              <button
-                key={img.id}
-                type="button"
-                className={`lb-dot ${i === open ? "active" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openAt(i);
-                }}
-                aria-label={`Go to image ${i + 1}`}
-                aria-current={i === open ? "true" : undefined}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </>
   );
 }

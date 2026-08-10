@@ -1651,46 +1651,48 @@ tr.drop-target td {
 .gallery-grid .g-item:hover img {
   transform: scale(1.05);
 }
-.lightbox {
-  /* Full-size scrollable viewer: no black backdrop — the page stays visible
-     and the viewer scrolls through the image at its natural resolution. */
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  background: transparent;
-  display: flex;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
-  animation: vt-fade-in 0.3s var(--cb);
+/* ============================================================
+   Project gallery — inline full-size viewer
+   (no modal: the page stays scrollable and the image sits in the
+   document flow at full height, width capped to its container)
+   ============================================================ */
+.gallery-viewer {
+  margin-top: 30px;
+  padding: clamp(14px, 3vw, 28px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.1)),
+    var(--glass);
+  scroll-margin-top: 130px; /* clear the fixed site header */
+  animation: vt-fade-in 0.35s var(--cb);
 }
-.lightbox img {
-  /* Full natural size — never scaled down, so it can be scrolled through. */
-  width: auto;
-  height: auto;
-  max-width: none;
-  max-height: none;
+.gallery-viewer:focus {
+  outline: none; /* the panel is focusable only for keyboard users */
+}
+.gv-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.gv-stage {
+  position: relative;
+}
+.gv-stage img {
   display: block;
+  max-width: 100%;
+  height: auto; /* full height — tall images scroll with the page */
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  touch-action: pan-y; /* vertical swipes scroll the page; horizontal stay ours */
   user-select: none;
 }
-.lightbox::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.lightbox::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-}
-.lightbox::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
-}
-.lightbox::-webkit-scrollbar-track {
-  background: transparent;
-}
-.lightbox .lb-btn {
-  position: fixed;
+.lb-btn {
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 2;
   width: 46px;
   height: 46px;
   border-radius: 50%;
@@ -1703,14 +1705,10 @@ tr.drop-target td {
   justify-content: center;
   transition: 0.3s;
 }
-.lightbox .lb-btn:hover { background: rgba(0, 210, 255, 0.2); border-color: var(--accent); }
-.lightbox .lb-prev { left: 18px; }
-.lightbox .lb-next { right: 18px; }
-.lightbox .lb-count {
-  position: fixed;
-  top: 24px;
-  left: 24px;
-  z-index: 3;
+.lb-btn:hover { background: rgba(0, 210, 255, 0.2); border-color: var(--accent); }
+.lb-prev { left: 14px; }
+.lb-next { right: 14px; }
+.lb-count {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1721,11 +1719,7 @@ tr.drop-target td {
   border-radius: 999px;
   backdrop-filter: blur(8px);
 }
-.lightbox .lb-close {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 3;
+.lb-close {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -1734,14 +1728,52 @@ tr.drop-target td {
   color: var(--text);
   cursor: pointer;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
 }
-/* Over the transparent backdrop the chrome can sit on top of live page
-   content — give every pill a soft shadow so it reads cleanly anywhere. */
-.lightbox .lb-btn,
-.lightbox .lb-count,
-.lightbox .lb-close,
+.lb-close:hover {
+  background: rgba(255, 70, 70, 0.16);
+  border-color: rgba(255, 100, 100, 0.5);
+  color: #ff9a9a;
+}
+.lb-btn,
+.lb-count,
+.lb-close,
 .lb-dots {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+/* 'Scroll to explore' hint — shown briefly when the image is taller than the
+   viewport, then fades away. Portaled to <body> so it stays viewport-fixed. */
+.gv-hint {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: rgba(10, 10, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  animation: gv-hint-in 0.35s var(--cb), gv-hint-out 0.3s var(--cb) 3.4s forwards;
+}
+@keyframes gv-hint-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes gv-hint-out {
+  to { opacity: 0; transform: translateX(-50%) translateY(6px); }
 }
 
 /* ---------- AI concierge widget ---------- */
@@ -2506,36 +2538,22 @@ tr.drop-target td {
   display: inline;
 }
 
-/* ============================================================
-   Lightbox — filmstrip + fully responsive sizing
-   ============================================================ */
-.lb-card {
-  /* Scroll content: the image at its full natural size. margin: auto centers
-     it when it's smaller than the viewport; auto margins collapse to 0 when
-     it's bigger, so the scroll starts cleanly from every edge. */
-  margin: auto;
-  width: max-content;
-  height: max-content;
-  position: relative;
-  flex: 0 0 auto;
-}
+/* Filmstrip — one dot per image, centered under the viewer. */
 .lb-dots {
-  position: fixed;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  max-width: min(72vw, calc(100% - 24px));
+  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
+  margin: 18px auto 0;
+  width: max-content;
   padding: 8px 12px;
   border-radius: 999px;
   background: rgba(10, 10, 12, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
-  z-index: 3;
 }
 .lb-dots::-webkit-scrollbar {
   display: none;
@@ -2560,45 +2578,43 @@ tr.drop-target td {
   transform: scale(1.25);
 }
 
-/* --- Mobile: same transparent scrollable viewer — chrome shrinks and tucks
-       into the screen corners. --- */
+/* --- Mobile: the inline viewer shrinks its chrome to fit phones. --- */
 @media (max-width: 640px) {
-  .lightbox {
-    inset: 0;
-    padding: 0;
-    background: transparent; /* no backdrop — just the full-size image */
+  .gallery-viewer {
+    padding: 12px;
   }
-  .lightbox .lb-btn {
+  .gv-stage img {
+    border-radius: var(--radius-md);
+  }
+  .lb-btn {
     width: 38px;
     height: 38px;
   }
-  .lightbox .lb-prev {
-    left: 8px;
+  .lb-prev {
+    left: 6px;
   }
-  .lightbox .lb-next {
-    right: 8px;
+  .lb-next {
+    right: 6px;
   }
-  .lightbox .lb-count {
-    top: 12px;
-    left: 12px;
+  .lb-count {
     font-size: 12px;
     padding: 4px 10px;
   }
-  .lightbox .lb-close {
-    top: 10px;
-    right: 10px;
+  .lb-close {
     width: 38px;
     height: 38px;
     font-size: 14px;
   }
   .lb-dots {
-    bottom: 14px;
-    max-width: min(80vw, calc(100% - 24px)); /* never overhang a narrow card */
     gap: 7px;
+    padding: 7px 10px;
   }
   .lb-dot {
     width: 8px;
     height: 8px;
+  }
+  .gv-hint {
+    bottom: 18px;
   }
 }
 
@@ -2630,25 +2646,7 @@ tr.drop-target td {
   }
 }
 
-/* Very short screens (landscape phones, small devices): shrink the image so
-   the whole card + chrome always fit between the screen edges. */
-@media (max-height: 480px) and (max-width: 640px) {
-  /* Landscape phones: keep the chrome close to the edges. */
-  .lightbox {
-    padding: 0;
-  }
-  .lightbox .lb-count {
-    top: 8px;
-    left: 8px;
-  }
-  .lightbox .lb-close {
-    top: 8px;
-    right: 8px;
-  }
-  .lb-dots {
-    bottom: 10px;
-  }
-}
+
 
 /* Work cards go single-column at 760px, so cap the thumb height for the whole
    range (not just ≤640px) so cards never stretch to the bottom of the screen. */
