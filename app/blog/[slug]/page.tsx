@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getBlogPost, getPublishedBlog, getSettings } from "@/lib/data";
+import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
 
 export const revalidate = 300;
 
@@ -31,8 +32,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   // Parse content: lines starting with "## " become section headings (rendered
   // as h2 with an id for the table of contents); everything else is a paragraph.
   const blocks = post.content.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  type PostBlock =
+    | { type: "h2"; text: string; id: string }
+    | { type: "p"; text: string }
+    | { type: "img"; src: string; alt: string };
   const sections: { id: string; heading: string }[] = [];
-  const rendered: { type: "h2" | "p"; text: string; id?: string }[] = blocks.map((block) => {
+  // Markdown-style images (![alt](url)) on their own line become clickable,
+  // downloadable figures; "## " lines become TOC-able section headings.
+  const IMG_RE = /^!\[([^\]]*)\]\((\S+)\)\s*$/;
+  const rendered: PostBlock[] = blocks.map((block) => {
+    const img = block.match(IMG_RE);
+    if (img) {
+      return { type: "img" as const, src: img[2], alt: img[1].trim() || "Blog image" };
+    }
     const m = block.match(/^##\s+(.+)$/);
     if (m) {
       const heading = m[1].trim();
@@ -91,10 +103,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {post.cover_url && (
           <Reveal delay={80}>
-            <div className="work-card" style={{ marginTop: 30, border: "none" }}>
+            <figure className="blog-img" style={{ marginTop: 30 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={post.cover_url} alt={post.title} style={{ width: "100%", borderRadius: 18, display: "block" }} />
-            </div>
+              <img src={post.cover_url} alt={post.title} />
+              <div className="blog-img-actions">
+                <a href={post.cover_url} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
+                  <i className="fa-solid fa-expand" aria-hidden="true" /> Open
+                </a>
+                <a
+                  href={cloudinaryDownloadUrl(post.cover_url)}
+                  download={fileNameFromUrl(post.cover_url, "ggraphixc-cover")}
+                  className="blog-img-btn blog-img-dl"
+                >
+                  <i className="fa-solid fa-download" aria-hidden="true" /> Download
+                </a>
+              </div>
+            </figure>
           </Reveal>
         )}
 
@@ -109,7 +133,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         >
           <div style={{ marginTop: 34, fontSize: 17, lineHeight: 1.8, color: "var(--text)" }}>
             {rendered.map((block, i) =>
-              block.type === "h2" ? (
+              block.type === "img" ? (
+                <figure key={i} className="blog-img">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={block.src} alt={block.alt} loading="lazy" />
+                  <div className="blog-img-actions">
+                    <a href={block.src} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
+                      <i className="fa-solid fa-expand" aria-hidden="true" /> Open
+                    </a>
+                    <a
+                      href={cloudinaryDownloadUrl(block.src)}
+                      download={fileNameFromUrl(block.src, `ggraphixc-blog-image-${i + 1}`)}
+                      className="blog-img-btn blog-img-dl"
+                    >
+                      <i className="fa-solid fa-download" aria-hidden="true" /> Download
+                    </a>
+                  </div>
+                </figure>
+              ) : block.type === "h2" ? (
                 <h2 key={i} id={block.id} style={{ fontSize: 24, fontWeight: 800, margin: "36px 0 14px", scrollMarginTop: 100 }}>
                   {block.text}
                 </h2>

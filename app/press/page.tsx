@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSettings } from "@/lib/data";
+import { cloudinaryDownloadUrl } from "@/lib/images";
 
 export const revalidate = 300;
 
@@ -10,15 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `Press & Media Kit — ${s.brand_name}`,
     description: `Brand facts, logo downloads, colors and usage guidelines for ${s.brand_name} by ${s.designer_name}.`
   };
-}
-
-// Cloudinary can force a download with fl_attachment; fall back to the plain
-// URL (browsers open it, users save with right-click) for any other host.
-function downloadUrl(url: string): string {
-  if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/image/upload/fl_attachment/");
-  }
-  return url;
 }
 
 export default async function PressPage() {
@@ -96,7 +88,7 @@ export default async function PressPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={logo} alt={`${brand} logo`} style={{ maxWidth: "70%", maxHeight: 120, objectFit: "contain" }} />
             </div>
-            <a href={downloadUrl(logo)} download className="btn btn-primary" style={{ justifyContent: "center" }}>
+            <a href={cloudinaryDownloadUrl(logo)} download className="btn btn-primary" style={{ justifyContent: "center" }}>
               <i className="fa-solid fa-file-arrow-down" /> Download logo
             </a>
           </div>

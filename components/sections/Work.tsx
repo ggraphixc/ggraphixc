@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import { fileSlug, fileNameFromUrl, triggerDownload } from "@/lib/images";
 import type { Project } from "@/lib/types";
 
 export default function Work({ projects }: { projects: Project[] }) {
@@ -19,11 +22,7 @@ export default function Work({ projects }: { projects: Project[] }) {
         <div className="work-grid" style={{ marginTop: 44 }}>
           {projects.map((p, i) => (
             <Reveal key={p.id} delay={i * 50}>
-              <Link
-                className="work-card"
-                href={`/projects/${p.slug}`}
-                style={{ display: "flex" }}
-              >
+              <div className="work-card">
                 <div className="thumb">
                   {p.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -44,6 +43,22 @@ export default function Work({ projects }: { projects: Project[] }) {
                       Featured
                     </span>
                   )}
+                  {p.image_url && (
+                    <button
+                      type="button"
+                      className="work-dl"
+                      aria-label={`Download ${p.title} image`}
+                      title="Download full-resolution image"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const url = p.image_url;
+                        if (url) triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)));
+                      }}
+                    >
+                      <i className="fa-solid fa-download" aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
                 <div className="body">
                   {p.result && <div className="result" style={{ marginBottom: 6 }}>{p.result}</div>}
@@ -55,7 +70,14 @@ export default function Work({ projects }: { projects: Project[] }) {
                     View case study <i className="fa-solid fa-arrow-right" />
                   </span>
                 </div>
-              </Link>
+                {/* Stretched-link overlay: covers the card for navigation while
+                    the download button stays a valid, clickable sibling. */}
+                <Link
+                  className="work-card-link"
+                  href={`/projects/${p.slug}`}
+                  aria-label={`View case study: ${p.title}`}
+                />
+              </div>
             </Reveal>
           ))}
         </div>

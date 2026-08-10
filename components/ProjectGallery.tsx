@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
 import type { ProjectImage } from "@/lib/types";
 
 export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
@@ -76,9 +77,20 @@ export default function ProjectGallery({ images }: { images: ProjectImage[] }) {
             <span className="lb-count" aria-hidden="true">
               {open + 1} / {images.length}
             </span>
-            <button className="lb-close" onClick={close} aria-label="Close viewer">
-              ✕
-            </button>
+            <div className="gv-actions">
+              <a
+                className="gv-dl"
+                href={cloudinaryDownloadUrl(current.image_url)}
+                download={fileNameFromUrl(current.image_url, `ggraphixc-gallery-${open + 1}`)}
+                aria-label="Download this image"
+                title="Download full-resolution image"
+              >
+                <i className="fa-solid fa-download" aria-hidden="true" />
+              </a>
+              <button className="lb-close" onClick={close} aria-label="Close viewer">
+                ✕
+              </button>
+            </div>
           </div>
 
           <div className="gv-stage">

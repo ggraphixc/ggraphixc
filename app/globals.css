@@ -2676,3 +2676,153 @@ tr.drop-target td {
     order: -1; /* 'On this page' first, then the article */
   }
 }
+
+/* ---- Download controls (gallery viewer, work cards, blog images) ---- */
+.gv-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gv-dl {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--glass-strong);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: border-color 0.2s var(--cb), color 0.2s var(--cb), background 0.2s var(--cb), transform 0.2s var(--cb);
+}
+.gv-dl:hover {
+  border-color: rgba(0, 210, 255, 0.5);
+  color: var(--accent);
+  background: rgba(0, 210, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.work-dl {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 7, 10, 0.72);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s var(--cb), transform 0.3s var(--cb), background 0.2s var(--cb), border-color 0.2s var(--cb), color 0.2s var(--cb);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.work-card:hover .work-dl,
+.work-dl:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.work-dl:hover {
+  background: rgba(0, 210, 255, 0.9);
+  border-color: transparent;
+  color: #04060a;
+}
+
+.blog-img {
+  margin: 28px 0;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.blog-img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.blog-img-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s var(--cb), transform 0.3s var(--cb);
+}
+.blog-img:hover .blog-img-actions,
+.blog-img-actions:focus-within {
+  opacity: 1;
+  transform: translateY(0);
+}
+.blog-img-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(6, 7, 10, 0.78);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.2s var(--cb), border-color 0.2s var(--cb), color 0.2s var(--cb);
+}
+.blog-img-btn:hover {
+  background: rgba(0, 210, 255, 0.9);
+  border-color: transparent;
+  color: #04060a;
+}
+.blog-img-dl {
+  color: var(--accent);
+}
+.blog-img-dl:hover {
+  color: #04060a;
+}
+
+/* Touch devices have no hover — keep the controls reachable. */
+@media (hover: none) {
+  .work-dl,
+  .blog-img-actions {
+    opacity: 1;
+    transform: none;
+  }
+  .work-dl {
+    top: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* Stretched-link overlay for work cards — the card body is a div, the anchor
+   covers it for navigation, and interactive children (work-dl) sit above it. */
+.work-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.work-card-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+.work-card:focus-within .work-dl {
+  opacity: 1;
+  transform: translateY(0);
+}
