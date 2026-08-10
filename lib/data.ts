@@ -14,6 +14,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "A calm, premium identity system and packaging suite for a direct-to-consumer furniture brand, built to feel tactile and trustworthy.",
     link: null,
     featured: true,
+    allow_downloads: null,
     client_name: "Veloura Living",
     challenge:
       "A DTC furniture brand with a warm, tactile product line was being communicated through scattered, cold marketing assets. Every channel told a slightly different visual story, which made the brand feel smaller and harder to trust.",
@@ -35,6 +36,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "A high-velocity visual campaign with motion graphics and ad creative for a luxury rentals launch.",
     link: null,
     featured: true,
+    allow_downloads: null,
     client_name: "Velocity Drive",
     challenge:
       "A luxury rentals platform needed a launch campaign that cut through a saturated, generic category — and they needed it fast, with no in-house creative team.",
@@ -56,6 +58,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "A modular social template system and icon library that cut campaign production time dramatically.",
     link: null,
     featured: true,
+    allow_downloads: null,
     client_name: "AeroLux Travel",
     challenge:
       "The marketing team was recreating social assets from scratch every week, burning designer time and drifting off-brand.",
@@ -76,6 +79,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "Conversion-focused landing page architecture with a clean visual hierarchy and reusable component kit.",
     link: null,
     featured: false,
+    allow_downloads: null,
     client_name: null,
     challenge: null,
     solution: null,
@@ -94,6 +98,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "An enterprise analytics UI with a consistent design system, custom widgets, and a scalable component library.",
     link: null,
     featured: false,
+    allow_downloads: null,
     client_name: null,
     challenge: null,
     solution: null,
@@ -112,6 +117,7 @@ export const SAMPLE_PROJECTS: Project[] = [
       "A bold audio-first brand identity and cover art system for an independent streaming artist.",
     link: null,
     featured: false,
+    allow_downloads: null,
     client_name: null,
     challenge: null,
     solution: null,

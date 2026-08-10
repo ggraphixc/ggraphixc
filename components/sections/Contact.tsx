@@ -14,7 +14,8 @@ export default function Contact({
   phone = "",
   whatsapp = "",
   location = "",
-  wizard = false
+  wizard = false,
+  initialTopic
 }: {
   email?: string;
   phone?: string;
@@ -22,6 +23,8 @@ export default function Contact({
   location?: string;
   // Guided 3-step intake instead of the single long form (used on /contact).
   wizard?: boolean;
+  // Pre-filled goals context (e.g. from a “Request access” download button).
+  initialTopic?: string;
 }) {
   const [state, formAction, pending] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
@@ -112,7 +115,7 @@ export default function Contact({
           </div>
 
           {wizard ? (
-            <BriefWizard />
+            <BriefWizard initialTopic={initialTopic} />
           ) : (
           <form ref={formRef} action={formAction} className="glass" style={{ padding: 32 }}>
             {/* Honeypot: hidden from humans, irresistible to bots. */}

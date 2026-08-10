@@ -17,6 +17,20 @@ export type WatermarkOptions = {
   position?: string;
 };
 
+/**
+ * Resolve whether downloads are allowed for a project (or the site default):
+ * a per-project override wins; otherwise the global allow_downloads setting
+ * (anything except "no" means allowed).
+ */
+export function downloadsAllowed(
+  project: { allow_downloads?: boolean | null } | null | undefined,
+  settings: Record<string, string>
+): boolean {
+  if (project?.allow_downloads === true) return true;
+  if (project?.allow_downloads === false) return false;
+  return (settings.allow_downloads ?? "").toLowerCase() !== "no";
+}
+
 // Build watermark options from the site_settings record (all string values).
 // Dependency-free so client components and route handlers share one rule.
 export function watermarkFromSettings(settings: Record<string, string>): WatermarkOptions {

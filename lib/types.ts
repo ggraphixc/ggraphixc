@@ -8,6 +8,8 @@ export type Project = {
   description: string | null;
   link: string | null;
   featured: boolean;
+  /** Download control: true/false override the global setting; null = inherit it. */
+  allow_downloads: boolean | null;
   client_name: string | null;
   challenge: string | null;
   solution: string | null;

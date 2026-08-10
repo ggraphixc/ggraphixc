@@ -30,6 +30,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const [post, settings] = await Promise.all([getBlogPost(slug), getSettings()]);
   if (!post) notFound();
   const watermark = watermarkFromSettings(settings);
+  // Blog images follow the global download setting (no per-post override).
+  const blogDownloadsOk = settings.allow_downloads !== "no";
 
   // Parse content: lines starting with "## " become section headings (rendered
   // as h2 with an id for the table of contents); everything else is a paragraph.
@@ -112,15 +114,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <a href={post.cover_url} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
                   <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                 </a>
-                <TrackDownload
-                  href={cloudinaryDownloadUrl(post.cover_url, watermark)}
-                  download={fileNameFromUrl(post.cover_url, "ggraphixc-cover")}
-                  kind="post"
-                  slug={post.slug}
-                  className="blog-img-btn blog-img-dl"
-                >
-                  <i className="fa-solid fa-download" aria-hidden="true" /> Download
-                </TrackDownload>
+                {blogDownloadsOk ? (
+                  <TrackDownload
+                    href={cloudinaryDownloadUrl(post.cover_url, watermark)}
+                    download={fileNameFromUrl(post.cover_url, "ggraphixc-cover")}
+                    kind="post"
+                    slug={post.slug}
+                    className="blog-img-btn blog-img-dl"
+                  >
+                    <i className="fa-solid fa-download" aria-hidden="true" /> Download
+                  </TrackDownload>
+                ) : (
+                  <a
+                    href={`/contact?about=${encodeURIComponent(`Request access to the images from the post: ${post.title}`)}`}
+                    className="blog-img-btn blog-img-dl"
+                  >
+                    <i className="fa-solid fa-lock" aria-hidden="true" /> Request access
+                  </a>
+                )}
               </div>
             </figure>
           </Reveal>
@@ -145,15 +156,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <a href={block.src} target="_blank" rel="noopener noreferrer" className="blog-img-btn">
                       <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                     </a>
-                    <TrackDownload
-                      href={cloudinaryDownloadUrl(block.src, watermark)}
-                      download={fileNameFromUrl(block.src, `ggraphixc-blog-image-${i + 1}`)}
-                      kind="post"
-                      slug={post.slug}
-                      className="blog-img-btn blog-img-dl"
-                    >
-                      <i className="fa-solid fa-download" aria-hidden="true" /> Download
-                    </TrackDownload>
+                    {blogDownloadsOk ? (
+                      <TrackDownload
+                        href={cloudinaryDownloadUrl(block.src, watermark)}
+                        download={fileNameFromUrl(block.src, `ggraphixc-blog-image-${i + 1}`)}
+                        kind="post"
+                        slug={post.slug}
+                        className="blog-img-btn blog-img-dl"
+                      >
+                        <i className="fa-solid fa-download" aria-hidden="true" /> Download
+                      </TrackDownload>
+                    ) : (
+                      <a
+                        href={`/contact?about=${encodeURIComponent(`Request access to the images from the post: ${post.title}`)}`}
+                        className="blog-img-btn blog-img-dl"
+                      >
+                        <i className="fa-solid fa-lock" aria-hidden="true" /> Request access
+                      </a>
+                    )}
                   </div>
                 </figure>
               ) : block.type === "h2" ? (

@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import AdmZip from "adm-zip";
 import { getSettings } from "@/lib/data";
-import { cloudinaryWatermarkUrl, fileNameFromUrl, slugFileName, watermarkFromSettings } from "@/lib/images";
+import {
+  cloudinaryWatermarkUrl,
+  downloadsAllowed,
+  fileNameFromUrl,
+  slugFileName,
+  watermarkFromSettings
+} from "@/lib/images";
 import { getServiceSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +73,7 @@ export async function GET(
 
   const { data: project } = await sb
     .from("projects")
-    .select("id, slug")
+    .select("id, slug, allow_downloads")
     .eq("slug", slug)
     .maybeSingle();
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -85,6 +91,11 @@ export async function GET(
   }
 
   const settings = await getSettings();
+  // Server-side enforcement: even if the button is hidden, the archive is only
+  // served while downloads are allowed for this project.
+  if (!downloadsAllowed(project, settings)) {
+    return NextResponse.json({ error: "Downloads are restricted for this project." }, { status: 403 });
+  }
   const watermark = watermarkFromSettings(settings);
 
   const zip = new AdmZip();

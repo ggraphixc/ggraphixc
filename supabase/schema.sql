@@ -322,3 +322,6 @@ create table if not exists public.broadcast_jobs (
 create index if not exists broadcast_jobs_status_idx
   on public.broadcast_jobs (status, created_at);
 alter table public.broadcast_jobs enable row level security;
+
+-- Per-project download override (null = follow site_settings.allow_downloads).
+alter table public.projects add column if not exists allow_downloads boolean;

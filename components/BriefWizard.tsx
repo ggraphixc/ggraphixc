@@ -20,10 +20,10 @@ const STEPS = ["Project type", "Goals", "Details"];
 
 const initial: ContactState = { status: "idle", message: "" };
 
-export default function BriefWizard() {
+export default function BriefWizard({ initialTopic }: { initialTopic?: string }) {
   const [step, setStep] = useState(0);
   const [projectType, setProjectType] = useState("");
-  const [goals, setGoals] = useState("");
+  const [goals, setGoals] = useState(initialTopic ?? "");
   const [timeline, setTimeline] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

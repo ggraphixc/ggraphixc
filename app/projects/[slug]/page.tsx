@@ -6,7 +6,7 @@ import ProjectGallery from "@/components/ProjectGallery";
 import TrackDownload from "@/components/TrackDownload";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
-import { watermarkFromSettings } from "@/lib/images";
+import { downloadsAllowed, watermarkFromSettings } from "@/lib/images";
 
 export const revalidate = 300;
 
@@ -53,6 +53,7 @@ export default async function ProjectCaseStudy({
   const idx = allProjects.findIndex((p) => p.id === project.id);
   const prev = idx > 0 ? allProjects[idx - 1] : null;
   const next = idx >= 0 && idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
+  const downloadsOk = downloadsAllowed(project, settings);
 
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app";
   const projectLd = {
@@ -168,21 +169,38 @@ export default async function ProjectCaseStudy({
                     Inside the project
                   </h2>
                 </div>
-                <TrackDownload
-                  href={`/api/projects/${project.slug}/download-all`}
-                  kind="project"
-                  slug={project.slug}
-                  className="btn btn-ghost btn-sm"
-                  title="Download the full gallery as a ZIP"
-                >
-                  <i className="fa-solid fa-file-zipper" aria-hidden="true" />
-                  Download all ({gallery.length})
-                </TrackDownload>
+                {downloadsOk ? (
+                  <TrackDownload
+                    href={`/api/projects/${project.slug}/download-all`}
+                    kind="project"
+                    slug={project.slug}
+                    className="btn btn-ghost btn-sm"
+                    title="Download the full gallery as a ZIP"
+                  >
+                    <i className="fa-solid fa-file-zipper" aria-hidden="true" />
+                    Download all ({gallery.length})
+                  </TrackDownload>
+                ) : (
+                  <Link
+                    href={`/contact?about=${encodeURIComponent(`Request access to the full gallery of ${project.title}`)}`}
+                    className="btn btn-ghost btn-sm"
+                    title="Downloads are restricted — request access"
+                  >
+                    <i className="fa-solid fa-lock" aria-hidden="true" />
+                    Request gallery
+                  </Link>
+                )}
               </div>
             </Reveal>
             <Reveal delay={80}>
               <div style={{ marginTop: 30 }}>
-                <ProjectGallery images={gallery} watermark={watermarkFromSettings(settings)} slug={project.slug} />
+                <ProjectGallery
+                  images={gallery}
+                  watermark={watermarkFromSettings(settings)}
+                  slug={project.slug}
+                  title={project.title}
+                  downloadsAllowed={downloadsOk}
+                />
               </div>
             </Reveal>
           </div>

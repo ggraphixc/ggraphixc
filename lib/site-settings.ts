@@ -51,6 +51,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   social_x: "https://x.com",
   social_linkedin: "https://linkedin.com",
   google_api_key: "",
+  allow_downloads: "yes",
   download_watermark: "ggraphixc",
   download_watermark_size: "24",
   download_watermark_opacity: "45",
@@ -94,6 +95,11 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
     "google_api_key",
     "Google AI API key (Gemini)",
     "Powers the AI concierge + case-study drafts. Get one at aistudio.google.com. Stored privately (never shown publicly)."
+  ],
+  [
+    "allow_downloads",
+    "Allow image downloads",
+    "Global default for downloading site images. Set to 'no' to hide every download button (gallery, work cards, blog, ZIP) and show 'Request access' instead — individual projects can override this."
   ],
   [
     "download_watermark",

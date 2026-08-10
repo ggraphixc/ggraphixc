@@ -10,8 +10,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function ContactPage() {
+export default async function ContactPage({
+  searchParams
+}: {
+  searchParams: Promise<{ about?: string }>;
+}) {
+  const sp = await searchParams;
   const settings = await getSettings();
+  // Pre-fill the brief with the reason the visitor came (e.g. a “Request
+  // access” download button). Next passes the raw (still-encoded) value.
+  let about = "";
+  if (typeof sp.about === "string" && sp.about) {
+    try {
+      about = decodeURIComponent(sp.about).slice(0, 200);
+    } catch {
+      about = sp.about.slice(0, 200);
+    }
+  }
   return (
     <div style={{ paddingTop: 80 }}>
       <Contact
@@ -20,6 +35,7 @@ export default async function ContactPage() {
         whatsapp={settings.whatsapp_number}
         location={settings.location}
         wizard
+        initialTopic={about || undefined}
       />
     </div>
   );

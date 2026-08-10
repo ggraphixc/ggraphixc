@@ -9,11 +9,16 @@ import type { ProjectImage } from "@/lib/types";
 export default function ProjectGallery({
   images,
   watermark,
-  slug
+  slug,
+  title,
+  downloadsAllowed = true
 }: {
   images: ProjectImage[];
   watermark?: WatermarkOptions;
   slug?: string;
+  title?: string;
+  /** When false the download button becomes a “Request access” link. */
+  downloadsAllowed?: boolean;
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const [hint, setHint] = useState(false);
@@ -87,22 +92,37 @@ export default function ProjectGallery({
               {open + 1} / {images.length}
             </span>
             <div className="gv-actions">
-              <a
-                className="gv-dl"
-                href={cloudinaryDownloadUrl(current.image_url, watermark)}
-                download={fileNameFromUrl(current.image_url, `ggraphixc-gallery-${open + 1}`)}
-                aria-label="Download this image"
-                title="Download full-resolution image"
-                onClick={() => {
-                  if (slug) {
-                    try {
-                      trackEvent("download", { kind: "project", slug });
-                    } catch {}
-                  }
-                }}
-              >
-                <i className="fa-solid fa-download" aria-hidden="true" />
-              </a>
+              {downloadsAllowed ? (
+                <a
+                  className="gv-dl"
+                  href={cloudinaryDownloadUrl(current.image_url, watermark)}
+                  download={fileNameFromUrl(current.image_url, `ggraphixc-gallery-${open + 1}`)}
+                  aria-label="Download this image"
+                  title="Download full-resolution image"
+                  onClick={() => {
+                    if (slug) {
+                      try {
+                        trackEvent("download", { kind: "project", slug });
+                      } catch {}
+                    }
+                  }}
+                >
+                  <i className="fa-solid fa-download" aria-hidden="true" />
+                </a>
+              ) : (
+                <a
+                  className="gv-dl gv-request"
+                  href={`/contact?about=${encodeURIComponent(
+                    title
+                      ? `Request access to the full-resolution images of ${title}`
+                      : "Request access to project images"
+                  )}`}
+                  aria-label="Request download access"
+                  title="Downloads are restricted — request access"
+                >
+                  <i className="fa-solid fa-lock" aria-hidden="true" />
+                </a>
+              )}
               <button className="lb-close" onClick={close} aria-label="Close viewer">
                 ✕
               </button>

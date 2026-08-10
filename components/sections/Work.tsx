@@ -8,10 +8,13 @@ import type { Project } from "@/lib/types";
 
 export default function Work({
   projects,
-  watermark
+  watermark,
+  downloads
 }: {
   projects: Project[];
   watermark?: WatermarkOptions;
+  /** slug → is downloading allowed (server-resolved; default true). */
+  downloads?: Record<string, boolean>;
 }) {
   return (
     <section className="section" id="work">
@@ -50,27 +53,39 @@ export default function Work({
                       Featured
                     </span>
                   )}
-                  {p.image_url && (
-                    <button
-                      type="button"
-                      className="work-dl"
-                      aria-label={`Download ${p.title} image`}
-                      title="Download full-resolution image"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const url = p.image_url;
-                        if (url) {
-                          triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)), watermark);
-                          try {
-                            trackEvent("download", { kind: "project", slug: p.slug });
-                          } catch {}
-                        }
-                      }}
-                    >
-                      <i className="fa-solid fa-download" aria-hidden="true" />
-                    </button>
-                  )}
+                  {p.image_url &&
+                    (downloads?.[p.slug] ?? true ? (
+                      <button
+                        type="button"
+                        className="work-dl"
+                        aria-label={`Download ${p.title} image`}
+                        title="Download full-resolution image"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const url = p.image_url;
+                          if (url) {
+                            triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)), watermark);
+                            try {
+                              trackEvent("download", { kind: "project", slug: p.slug });
+                            } catch {}
+                          }
+                        }}
+                      >
+                        <i className="fa-solid fa-download" aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/contact?about=${encodeURIComponent(
+                          `Request access to the full-resolution images of ${p.title}`
+                        )}`}
+                        className="work-dl work-request"
+                        aria-label={`Request download access for ${p.title}`}
+                        title="Downloads are restricted — request access"
+                      >
+                        <i className="fa-solid fa-lock" aria-hidden="true" />
+                      </Link>
+                    ))}
                 </div>
                 <div className="body">
                   {p.result && <div className="result" style={{ marginBottom: 6 }}>{p.result}</div>}

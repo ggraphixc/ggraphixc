@@ -22,6 +22,7 @@ const EMPTY: FormState = {
   description: null,
   link: null,
   featured: false,
+  allow_downloads: null,
   client_name: null,
   challenge: null,
   solution: null,
@@ -119,6 +120,7 @@ export default function AdminProjects() {
       description: p.description,
       link: p.link,
       featured: p.featured,
+      allow_downloads: p.allow_downloads,
       client_name: p.client_name,
       challenge: p.challenge,
       solution: p.solution,
@@ -340,10 +342,31 @@ export default function AdminProjects() {
           <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} style={{ minHeight: 70 }} />
         </div>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, color: "var(--muted)", fontSize: 14 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, color: "var(--muted)", fontSize: 14 }}>
           <input type="checkbox" checked={form.featured} onChange={(e) => set("featured", e.target.checked)} />
           Featured on the homepage
         </label>
+
+        <div className="field" style={{ marginBottom: 18 }}>
+          <label>Image downloads</label>
+          <select
+            value={form.allow_downloads === null ? "inherit" : form.allow_downloads ? "allow" : "block"}
+            onChange={(e) =>
+              set(
+                "allow_downloads",
+                e.target.value === "inherit" ? null : e.target.value === "allow"
+              )
+            }
+          >
+            <option value="inherit">Inherit global setting</option>
+            <option value="allow">Allow downloads</option>
+            <option value="block">Block downloads (show Request access)</option>
+          </select>
+          <span style={{ fontSize: 11, color: "var(--muted)", marginTop: -6 }}>
+            Inherit uses the site-wide “Allow image downloads” setting in Admin → Settings.
+            When blocked, visitors see a “Request access” button linking to your contact form instead of download buttons.
+          </span>
+        </div>
 
         <h4 style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>Case-study narrative (shown on /projects/{form.slug || "slug"})</h4>
         <div className="field">
