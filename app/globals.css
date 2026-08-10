@@ -1652,37 +1652,43 @@ tr.drop-target td {
   transform: scale(1.05);
 }
 .lightbox {
+  /* Full-size scrollable viewer: no black backdrop — the page stays visible
+     and the viewer scrolls through the image at its natural resolution. */
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: rgba(4, 5, 8, 0.94);
-  backdrop-filter: blur(14px);
+  background: transparent;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  cursor: zoom-out;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
   animation: vt-fade-in 0.3s var(--cb);
 }
 .lightbox img {
-  /* The image fills the media canvas exactly (the canvas is sized to the
-     image itself) and is zoomed/panned via a CSS transform from the gesture
-     state. */
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* exact fit — the canvas is the image's own size */
+  /* Full natural size — never scaled down, so it can be scrolled through. */
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
   display: block;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  transform-origin: center;
-  will-change: transform;
-  transition: transform 0.28s var(--cb);
-  touch-action: none; /* let our gestures own pan/pinch */
   user-select: none;
-  cursor: zoom-in;
+}
+.lightbox::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.lightbox::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+}
+.lightbox::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+.lightbox::-webkit-scrollbar-track {
+  background: transparent;
 }
 .lightbox .lb-btn {
-  position: absolute;
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
   width: 46px;
@@ -1701,10 +1707,10 @@ tr.drop-target td {
 .lightbox .lb-prev { left: 18px; }
 .lightbox .lb-next { right: 18px; }
 .lightbox .lb-count {
-  position: absolute;
+  position: fixed;
   top: 24px;
   left: 24px;
-  z-index: 1;
+  z-index: 3;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1716,9 +1722,10 @@ tr.drop-target td {
   backdrop-filter: blur(8px);
 }
 .lightbox .lb-close {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
+  z-index: 3;
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -1727,6 +1734,14 @@ tr.drop-target td {
   color: var(--text);
   cursor: pointer;
   font-size: 16px;
+}
+/* Over the transparent backdrop the chrome can sit on top of live page
+   content — give every pill a soft shadow so it reads cleanly anywhere. */
+.lightbox .lb-btn,
+.lightbox .lb-count,
+.lightbox .lb-close,
+.lb-dots {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* ---------- AI concierge widget ---------- */
@@ -2495,92 +2510,24 @@ tr.drop-target td {
    Lightbox — filmstrip + fully responsive sizing
    ============================================================ */
 .lb-card {
-  /* The media canvas: fills the lightbox while the image loads, then the JS
-     shrink-wraps it to the fitted image size — the container inherits the
-     image's dimensions. Anchors the chrome (counter/close/arrows/dots/zoom)
-     and clips the zoomed/panning image. */
+  /* Scroll content: the image at its full natural size. margin: auto centers
+     it when it's smaller than the viewport; auto margins collapse to 0 when
+     it's bigger, so the scroll starts cleanly from every edge. */
+  margin: auto;
+  width: max-content;
+  height: max-content;
   position: relative;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  touch-action: none;
-  transition: width 0.3s var(--cb), height 0.3s var(--cb);
-}
-.lb-card[data-zoomed="true"] img {
-  cursor: grab;
-}
-.lb-card[data-zoomed="true"] img:active {
-  cursor: grabbing;
-}
-/* While a finger/mouse drag or pinch is active, disable the transform
-   transition so the image tracks the pointer exactly (no lag). */
-.lb-card[data-gesturing="true"] img {
-  transition: none;
-}
-/* Zoom control pill (− / % / +) — centered above the filmstrip dots so it
-   never collides with them at any screen width. */
-.lb-zoom {
-  position: absolute;
-  bottom: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 999px;
-  background: rgba(10, 10, 12, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-}
-.lb-zoom button {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: transparent;
-  color: var(--text);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.25s;
-}
-.lb-zoom button:hover:not(:disabled) {
-  background: rgba(0, 210, 255, 0.18);
-  border-color: var(--accent);
-}
-.lb-zoom button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-.lb-zoom .lb-zoom-pct {
-  width: auto;
-  min-width: 52px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  font-family: inherit;
-  color: rgba(245, 245, 247, 0.75);
+  flex: 0 0 auto;
 }
 .lb-dots {
-  position: absolute;
+  position: fixed;
   bottom: 22px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: min(72vw, calc(100% - 24px)); /* never wider than the card */
+  max-width: min(72vw, calc(100% - 24px));
   overflow-x: auto;
   scrollbar-width: none;
   padding: 8px 12px;
@@ -2588,7 +2535,7 @@ tr.drop-target td {
   background: rgba(10, 10, 12, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
-  z-index: 1;
+  z-index: 3;
 }
 .lb-dots::-webkit-scrollbar {
   display: none;
@@ -2613,26 +2560,13 @@ tr.drop-target td {
   transform: scale(1.25);
 }
 
-/* --- Mobile: the lightbox is a full-screen dim scrim (tap anywhere to
-       close); the .lb-card inside is a FLEXIBLE canvas that hugs the image's
-       height instead of stretching to the screen edges. --- */
+/* --- Mobile: same transparent scrollable viewer — chrome shrinks and tucks
+       into the screen corners. --- */
 @media (max-width: 640px) {
   .lightbox {
     inset: 0;
-    padding: 0; /* edge-to-edge: the viewer occupies the whole screen */
-    background: #040508; /* fully opaque — the page never shows through */
-  }
-  .lb-card {
-    /* The container inherits the image's size (set in JS); on phones it's a
-       floating rounded card over the opaque scrim. */
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-strong);
-    background: #0c0d11;
-    box-shadow: var(--shadow-lg);
-  }
-  .lightbox img {
-    border-radius: 0;
-    box-shadow: none;
+    padding: 0;
+    background: transparent; /* no backdrop — just the full-size image */
   }
   .lightbox .lb-btn {
     width: 38px;
@@ -2713,9 +2647,6 @@ tr.drop-target td {
   }
   .lb-dots {
     bottom: 10px;
-  }
-  .lb-zoom {
-    bottom: 54px;
   }
 }
 
