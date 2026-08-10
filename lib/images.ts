@@ -6,26 +6,66 @@ function isCloudinary(url: string): boolean {
   return url.includes("res.cloudinary.com") && url.includes("/image/upload/");
 }
 
-// Appends a subtle brand-text overlay (the downloadable-image watermark) and
+export type WatermarkOptions = {
+  /** Brand text stamped on the image; empty/whitespace disables the overlay. */
+  text?: string;
+  /** Font size in px (default 24). */
+  size?: number;
+  /** Opacity 0–100 (default 45). */
+  opacity?: number;
+  /** center | top-left | top-right | bottom-left | bottom-right (default center). */
+  position?: string;
+};
+
+// Build watermark options from the site_settings record (all string values).
+// Dependency-free so client components and route handlers share one rule.
+export function watermarkFromSettings(settings: Record<string, string>): WatermarkOptions {
+  return {
+    text: settings.download_watermark || "",
+    size: Number(settings.download_watermark_size) || 24,
+    opacity: Number(settings.download_watermark_opacity) || 45,
+    position: settings.download_watermark_position || "center"
+  };
+}
+
+const POSITION_GRAVITY: Record<string, string> = {
+  "top-left": "g_north_west",
+  "top-right": "g_north_east",
+  "bottom-left": "g_south_west",
+  "bottom-right": "g_south_east"
+};
+
+// Appends the brand-text watermark (configurable size/opacity/position) and
 // optionally caps the delivery width. No-op for non-Cloudinary hosts or when
-// nothing is requested.
+// no text is configured.
 export function cloudinaryWatermarkUrl(
   url: string,
-  watermark?: string,
+  watermark?: string | WatermarkOptions,
   maxWidth?: number
 ): string {
   if (!isCloudinary(url)) return url;
-  const parts: string[] = [];
-  if (maxWidth && maxWidth > 0) parts.push(`w_${maxWidth}`);
-  if (watermark?.trim()) {
-    const text = encodeURIComponent(watermark.trim());
-    parts.push(`l_text:Arial_24:${text},o_45,co_rgb:ffffff`);
+  const o: WatermarkOptions = typeof watermark === "string" ? { text: watermark } : watermark ?? {};
+  const transforms: string[] = [];
+  if (maxWidth && maxWidth > 0) transforms.push(`w_${maxWidth}`);
+  if (o.text?.trim()) {
+    const size = o.size && o.size > 0 ? Math.round(o.size) : 24;
+    const opacity = Number.isFinite(o.opacity)
+      ? Math.min(100, Math.max(0, Math.round(o.opacity as number)))
+      : 45;
+    transforms.push(`l_text:Arial_${size}:${encodeURIComponent(o.text.trim())}`);
+    transforms.push(`o_${opacity}`);
+    transforms.push("co_rgb:ffffff");
+    const gravity = POSITION_GRAVITY[o.position ?? "center"];
+    if (gravity) transforms.push(gravity, "x_16", "y_16");
   }
-  if (parts.length === 0) return url;
-  return url.replace("/image/upload/", `/image/upload/${parts.join(",")}/`);
+  if (transforms.length === 0) return url;
+  return url.replace("/image/upload/", `/image/upload/${transforms.join(",")}/`);
 }
 
-export function cloudinaryDownloadUrl(url: string, watermark?: string): string {
+export function cloudinaryDownloadUrl(
+  url: string,
+  watermark?: string | WatermarkOptions
+): string {
   if (!isCloudinary(url)) return url;
   const wm = cloudinaryWatermarkUrl(url, watermark);
   return wm.replace("/image/upload/", "/image/upload/fl_attachment/");
@@ -63,7 +103,11 @@ export function slugFileName(name: string): string {
 
 // Client-side download trigger — used where the download control can't be a
 // real anchor (e.g. a button nested inside a link card).
-export function triggerDownload(url: string, filename: string, watermark?: string): void {
+export function triggerDownload(
+  url: string,
+  filename: string,
+  watermark?: string | WatermarkOptions
+): void {
   const a = document.createElement("a");
   a.href = cloudinaryDownloadUrl(url, watermark);
   a.download = filename;

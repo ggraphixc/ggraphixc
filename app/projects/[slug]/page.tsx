@@ -6,6 +6,7 @@ import ProjectGallery from "@/components/ProjectGallery";
 import TrackDownload from "@/components/TrackDownload";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
+import { watermarkFromSettings } from "@/lib/images";
 
 export const revalidate = 300;
 
@@ -181,7 +182,7 @@ export default async function ProjectCaseStudy({
             </Reveal>
             <Reveal delay={80}>
               <div style={{ marginTop: 30 }}>
-                <ProjectGallery images={gallery} watermark={settings.download_watermark} slug={project.slug} />
+                <ProjectGallery images={gallery} watermark={watermarkFromSettings(settings)} slug={project.slug} />
               </div>
             </Reveal>
           </div>

@@ -49,14 +49,26 @@ export function buildWelcomeEmailHtml({
   unsubscribeHref,
   projectsHref = `${process.env.NEXT_PUBLIC_SITE_URL || "https://ggraphixc.vercel.app"}/projects`
 }: WelcomeEmailParts): string {
+  // A line that is exactly `[image: https://...]` renders as a centered,
+  // responsive photo instead of a paragraph (URL is http(s)-only by regex, so
+  // no script: or other schemes can sneak in).
   const paragraphs = body
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
-    .map(
-      (p) =>
-        `<p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 14px">${escHtml(p)}</p>`
-    )
+    .map((p) => {
+      // The URL charset excludes quotes/angle brackets so it can never break
+      // out of the src attribute into extra markup.
+      const img = p.match(/^\[image:\s*(https?:\/\/[^\s"'<>\[\]]+)\s*\]$/i);
+      if (img) {
+        return (
+          `<p style="margin:0 0 16px;text-align:center">` +
+          `<img src="${img[1]}" alt="${escHtml(brand)}" style="max-width:100%;height:auto;border-radius:12px;display:inline-block" />` +
+          `</p>`
+        );
+      }
+      return `<p style="font-size:15px;line-height:1.7;color:#333;margin:0 0 14px">${escHtml(p)}</p>`;
+    })
     .join("\n");
 
   return `

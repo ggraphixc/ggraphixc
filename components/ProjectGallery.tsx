@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { trackEvent } from "@/lib/client-track";
-import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
+import { cloudinaryDownloadUrl, fileNameFromUrl, type WatermarkOptions } from "@/lib/images";
 import type { ProjectImage } from "@/lib/types";
 
 export default function ProjectGallery({
@@ -12,7 +12,7 @@ export default function ProjectGallery({
   slug
 }: {
   images: ProjectImage[];
-  watermark?: string;
+  watermark?: WatermarkOptions;
   slug?: string;
 }) {
   const [open, setOpen] = useState<number | null>(null);

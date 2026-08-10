@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sendBroadcast, sendTestBroadcast, type BroadcastState } from "@/app/actions/broadcast";
+import ImageUpload from "@/components/admin/ImageUpload";
 import { buildWelcomeEmailHtml } from "@/lib/welcome-email";
 
 type PickableProject = {
@@ -42,6 +43,7 @@ export default function BroadcastClient({
   const [busy, setBusy] = useState<"test" | "all" | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // AI draft panel
   const [showAi, setShowAi] = useState(false);
@@ -70,6 +72,24 @@ export default function BroadcastClient({
   const recipientsShown = recipients.slice(0, MAX_SHOWN);
   const recipientsHidden = recipients.length - recipientsShown.length;
   const canSend = subject.trim() && body.trim() && recipients.length > 0;
+
+  /** Insert an uploaded image as a [image: URL] marker at the cursor. */
+  function insertImage(url: string | null) {
+    if (!url) return;
+    const marker = `[image: ${url}]`;
+    const ta = bodyRef.current;
+    if (!ta) {
+      setBody(body ? body.trimEnd() + "\n\n" + marker : marker);
+      return;
+    }
+    const start = ta.selectionStart ?? body.length;
+    const end = ta.selectionEnd ?? start;
+    setBody(body.slice(0, start) + marker + body.slice(end));
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + marker.length;
+    });
+  }
 
   function run(kind: "test" | "all", fn: () => Promise<BroadcastState>) {
     setBusy(kind);
@@ -183,12 +203,20 @@ export default function BroadcastClient({
           <label htmlFor="b-body">Message</label>
           <textarea
             id="b-body"
+            ref={bodyRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder={"Write your newsletter here.\n\nSeparate paragraphs with a blank line."}
             rows={8}
             style={{ minHeight: 160 }}
           />
+          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <ImageUpload value={null} folder="newsletter" onChange={insertImage} />
+            <span style={{ fontSize: 11.5, color: "var(--muted)", maxWidth: 520 }}>
+              Upload &amp; inserts an image marker at the cursor — it renders as a centered photo in the
+              email (preview and real sends). Keep it on its own line.
+            </span>
+          </div>
           <span style={{ fontSize: 11, color: "var(--muted)" }}>
             Plain text — a blank line becomes a new paragraph. The sign-off, “See the work” button,
             and each subscriber’s own unsubscribe link are added automatically.

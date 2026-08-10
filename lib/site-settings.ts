@@ -52,6 +52,9 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   social_linkedin: "https://linkedin.com",
   google_api_key: "",
   download_watermark: "ggraphixc",
+  download_watermark_size: "24",
+  download_watermark_opacity: "45",
+  download_watermark_position: "center",
   welcome_email_subject: "Welcome to ggraphixc — you're in! 🎉",
   welcome_email_headline: "You're in — welcome to the design notes 👋",
   welcome_email_body:
@@ -97,6 +100,21 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
     "Download watermark",
     "Brand text stamped on downloaded images (project gallery, work cards, blog posts). Leave empty to disable. Applies to Cloudinary images only."
   ],
+  [
+    "download_watermark_size",
+    "Watermark size (px)",
+    "Font size of the watermark text — e.g. 24."
+  ],
+  [
+    "download_watermark_opacity",
+    "Watermark opacity (%)",
+    "0–100 — e.g. 45 for a subtle mark, 90 for bold protection."
+  ],
+  [
+    "download_watermark_position",
+    "Watermark position",
+    "center, top-left, top-right, bottom-left, or bottom-right."
+  ],
   ["welcome_email_subject", "Welcome email — subject line", "Shown as the subject of the welcome email sent after a new signup."],
   [
     "welcome_email_headline",
@@ -106,6 +124,6 @@ export const SETTING_FIELD_LABELS: [key: string, label: string, hint: string][] 
   [
     "welcome_email_body",
     "Welcome email — body",
-    "Plain text paragraphs; leave a blank line between paragraphs. The sign-off, projects link, and unsubscribe link are added automatically."
+    "Plain text paragraphs; leave a blank line between paragraphs. A line that is exactly [image: https://...] renders as a centered photo. The sign-off, projects link, and unsubscribe link are added automatically."
   ]
 ];

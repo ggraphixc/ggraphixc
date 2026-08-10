@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import AdmZip from "adm-zip";
 import { getSettings } from "@/lib/data";
-import { cloudinaryWatermarkUrl, fileNameFromUrl, slugFileName } from "@/lib/images";
+import { cloudinaryWatermarkUrl, fileNameFromUrl, slugFileName, watermarkFromSettings } from "@/lib/images";
 import { getServiceSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -85,7 +85,7 @@ export async function GET(
   }
 
   const settings = await getSettings();
-  const watermark = settings.download_watermark;
+  const watermark = watermarkFromSettings(settings);
 
   const zip = new AdmZip();
   let ok = 0;

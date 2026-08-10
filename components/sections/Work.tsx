@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { trackEvent } from "@/lib/client-track";
-import { fileSlug, fileNameFromUrl, triggerDownload } from "@/lib/images";
+import { fileSlug, fileNameFromUrl, triggerDownload, type WatermarkOptions } from "@/lib/images";
 import type { Project } from "@/lib/types";
 
 export default function Work({
@@ -11,7 +11,7 @@ export default function Work({
   watermark
 }: {
   projects: Project[];
-  watermark?: string;
+  watermark?: WatermarkOptions;
 }) {
   return (
     <section className="section" id="work">

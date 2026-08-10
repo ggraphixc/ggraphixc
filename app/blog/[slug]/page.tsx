@@ -5,7 +5,7 @@ import Reveal from "@/components/Reveal";
 import TrackDownload from "@/components/TrackDownload";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getBlogPost, getPublishedBlog, getSettings } from "@/lib/data";
-import { cloudinaryDownloadUrl, fileNameFromUrl } from "@/lib/images";
+import { cloudinaryDownloadUrl, fileNameFromUrl, watermarkFromSettings } from "@/lib/images";
 
 export const revalidate = 300;
 
@@ -29,6 +29,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const [post, settings] = await Promise.all([getBlogPost(slug), getSettings()]);
   if (!post) notFound();
+  const watermark = watermarkFromSettings(settings);
 
   // Parse content: lines starting with "## " become section headings (rendered
   // as h2 with an id for the table of contents); everything else is a paragraph.
@@ -112,7 +113,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                 </a>
                 <TrackDownload
-                  href={cloudinaryDownloadUrl(post.cover_url, settings.download_watermark)}
+                  href={cloudinaryDownloadUrl(post.cover_url, watermark)}
                   download={fileNameFromUrl(post.cover_url, "ggraphixc-cover")}
                   kind="post"
                   slug={post.slug}
@@ -145,7 +146,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       <i className="fa-solid fa-expand" aria-hidden="true" /> Open
                     </a>
                     <TrackDownload
-                      href={cloudinaryDownloadUrl(block.src, settings.download_watermark)}
+                      href={cloudinaryDownloadUrl(block.src, watermark)}
                       download={fileNameFromUrl(block.src, `ggraphixc-blog-image-${i + 1}`)}
                       kind="post"
                       slug={post.slug}
