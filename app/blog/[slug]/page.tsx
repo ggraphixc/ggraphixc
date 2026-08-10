@@ -125,12 +125,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <i className="fa-solid fa-download" aria-hidden="true" /> Download
                   </TrackDownload>
                 ) : (
-                  <a
+                  <TrackDownload
                     href={`/contact?about=${encodeURIComponent(`Request access to the images from the post: ${post.title}`)}`}
+                    kind="post"
+                    slug={post.slug}
+                    event="download_request"
                     className="blog-img-btn blog-img-dl"
                   >
                     <i className="fa-solid fa-lock" aria-hidden="true" /> Request access
-                  </a>
+                  </TrackDownload>
                 )}
               </div>
             </figure>

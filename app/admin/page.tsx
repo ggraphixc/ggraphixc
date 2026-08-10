@@ -1,6 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/data";
-import { getDownloadStats, getPopularContent } from "@/lib/analytics";
+import { getDownloadRequestStats, getDownloadStats, getPopularContent } from "@/lib/analytics";
 import { getConciergeStats, type EventCount } from "@/lib/vercel-analytics";
 
 // The dashboard shows live counts per request — render dynamically.
@@ -119,6 +119,7 @@ export default async function AdminDashboard({
   const s = await getSettings();
   const stats = await getConciergeStats(days);
   const dlStats = await getDownloadStats(days);
+  const dlReqStats = await getDownloadRequestStats(days);
   const [popular, sb] = await Promise.all([getPopularContent(30), (async () => {
     try {
       return getServiceSupabase();
@@ -157,6 +158,22 @@ export default async function AdminDashboard({
     dlRows = dlStats
       .slice(0, 8)
       .map((d) => ({ kind: d.kind, slug: d.slug, count: d.count, title: dlTitleOf.get(`${d.kind}:${d.slug}`) ?? d.slug }));
+  }
+  // Resolve request slugs to titles for the download-requests panel.
+  let dlReqRows: { kind: string; slug: string; count: number; title: string }[] = [];
+  if (dlReqStats.length > 0 && sb) {
+    const rpSlugs = dlReqStats.filter((d) => d.kind === "project").map((d) => d.slug);
+    const rbSlugs = dlReqStats.filter((d) => d.kind === "post").map((d) => d.slug);
+    const [rpRes, rbRes] = await Promise.all([
+      rpSlugs.length ? sb.from("projects").select("slug, title").in("slug", rpSlugs) : Promise.resolve({ data: [] }),
+      rbSlugs.length ? sb.from("blog_posts").select("slug, title").in("slug", rbSlugs) : Promise.resolve({ data: [] })
+    ]);
+    const rTitleOf = new Map<string, string>();
+    (rpRes.data as { slug: string; title: string }[]).forEach((r) => rTitleOf.set(`project:${r.slug}`, r.title));
+    (rbRes.data as { slug: string; title: string }[]).forEach((r) => rTitleOf.set(`post:${r.slug}`, r.title));
+    dlReqRows = dlReqStats
+      .slice(0, 8)
+      .map((d) => ({ kind: d.kind, slug: d.slug, count: d.count, title: rTitleOf.get(`${d.kind}:${d.slug}`) ?? d.slug }));
   }
   const opened = stats.events.concierge_opened?.count ?? 0;
   const afterChat = stats.contactAfterChat.count;
@@ -274,6 +291,16 @@ export default async function AdminDashboard({
           note="Images downloaded from project galleries, work cards, and blog posts."
           rows={dlRows}
           unit="downloads"
+          days={days}
+        />
+      )}
+
+      {dlReqRows.length > 0 && (
+        <TopListCard
+          title="Download requests"
+          note="Visitors who clicked “Request access” on restricted images — approve them from Messages."
+          rows={dlReqRows}
+          unit="requests"
           days={days}
         />
       )}

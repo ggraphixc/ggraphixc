@@ -27,6 +27,7 @@ export const TRACKED_EVENTS = [
   "concierge_card_click",
   "contact_submit",
   "download",
+  "download_request",
   "page_view"
 ] as const;
 
@@ -92,11 +93,14 @@ export async function getPopularContent(days = 30): Promise<PageView[]> {
 export type DownloadCount = { kind: "project" | "post"; slug: string; count: number };
 
 /**
- * Most-downloaded projects + blog posts over the last `days`, aggregated from
- * the "download" events (data: { kind, slug }). Title resolution happens in
- * the caller, mirroring getPopularContent.
+ * Aggregate content-scoped events (download / download_request) over the last
+ * `days` into per-project/post counts. Title resolution happens in the caller,
+ * mirroring getPopularContent.
  */
-export async function getDownloadStats(days = 30): Promise<DownloadCount[]> {
+async function getContentEventStats(
+  eventName: string,
+  days: number
+): Promise<DownloadCount[]> {
   let sb;
   try {
     sb = getServiceSupabase();
@@ -107,7 +111,7 @@ export async function getDownloadStats(days = 30): Promise<DownloadCount[]> {
   const { data, error } = await sb
     .from("analytics_events")
     .select("event_data")
-    .eq("event_name", "download")
+    .eq("event_name", eventName)
     .gte("created_at", since)
     .limit(5000);
   if (error || !data) return [];
@@ -123,6 +127,13 @@ export async function getDownloadStats(days = 30): Promise<DownloadCount[]> {
   }
   return Array.from(counts.values()).sort((a, b) => b.count - a.count);
 }
+
+/** Most-downloaded projects + posts over the last `days`. */
+export const getDownloadStats = (days = 30) => getContentEventStats("download", days);
+
+/** Most-requested (blocked) downloads over the last `days`. */
+export const getDownloadRequestStats = (days = 30) =>
+  getContentEventStats("download_request", days);
 
 export async function getSelfHostedStats(days: 7 | 30 = 30): Promise<
   ConciergeStats & { available: boolean }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import AdmZip from "adm-zip";
+import { recordEvent } from "@/lib/analytics";
 import { getSettings } from "@/lib/data";
+import { verifyDownloadToken } from "@/lib/download-tokens";
 import {
   cloudinaryWatermarkUrl,
   downloadsAllowed,
@@ -92,11 +94,19 @@ export async function GET(
 
   const settings = await getSettings();
   // Server-side enforcement: even if the button is hidden, the archive is only
-  // served while downloads are allowed for this project.
-  if (!downloadsAllowed(project, settings)) {
+  // served while downloads are allowed — or an admin-issued access token is valid.
+  const token = new URL(request.url).searchParams.get("t") ?? "";
+  const approved = token && verifyDownloadToken(token, project.slug);
+  const allowed = downloadsAllowed(project, settings) || Boolean(approved);
+  if (!allowed) {
     return NextResponse.json({ error: "Downloads are restricted for this project." }, { status: 403 });
   }
   const watermark = watermarkFromSettings(settings);
+
+  // Server-side analytics (the button no longer client-tracks this).
+  try {
+    await recordEvent("download", { kind: "project", slug: project.slug });
+  } catch {}
 
   const zip = new AdmZip();
   let ok = 0;

@@ -10,7 +10,7 @@ import FAQ from "@/components/sections/FAQ";
 import Contact from "@/components/sections/Contact";
 import Reveal from "@/components/Reveal";
 import { getProjects, getTestimonials, getSettings, getPublishedBlog, getServices } from "@/lib/data";
-import { downloadsAllowed, watermarkFromSettings } from "@/lib/images";
+import { downloadsAllowed } from "@/lib/images";
 
 // ISR: rebuild this page at most every 5 minutes (admin edits purge instantly).
 export const revalidate = 300;
@@ -53,7 +53,7 @@ export default async function HomePage() {
         portrait={settings.profile_image || "/images/about/portrait.jpg"}
       />
       <Services items={services} />
-      <Work projects={projects} watermark={watermarkFromSettings(settings)} downloads={downloadMap} />
+      <Work projects={projects} downloads={downloadMap} />
       <Testimonials items={testimonials} />
 
       {posts.length > 0 && (

@@ -15,7 +15,8 @@ export default function TrackDownload({
   slug,
   className,
   title,
-  children
+  children,
+  event = "download"
 }: {
   href: string;
   download?: string;
@@ -24,6 +25,8 @@ export default function TrackDownload({
   className?: string;
   title?: string;
   children: React.ReactNode;
+  /** Which analytics event to fire on click. */
+  event?: "download" | "download_request";
 }) {
   return (
     <a
@@ -33,7 +36,7 @@ export default function TrackDownload({
       title={title}
       onClick={() => {
         try {
-          trackEvent("download", { kind, slug });
+          trackEvent(event, { kind, slug });
         } catch {}
       }}
     >

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import ProjectGallery from "@/components/ProjectGallery";
-import TrackDownload from "@/components/TrackDownload";
+import GalleryZipButton from "@/components/GalleryZipButton";
 import PageViewTracker from "@/components/PageViewTracker";
 import { getProjects, getProjectBySlug, getProjectGallery, getSettings } from "@/lib/data";
 import { downloadsAllowed, watermarkFromSettings } from "@/lib/images";
@@ -169,27 +169,12 @@ export default async function ProjectCaseStudy({
                     Inside the project
                   </h2>
                 </div>
-                {downloadsOk ? (
-                  <TrackDownload
-                    href={`/api/projects/${project.slug}/download-all`}
-                    kind="project"
-                    slug={project.slug}
-                    className="btn btn-ghost btn-sm"
-                    title="Download the full gallery as a ZIP"
-                  >
-                    <i className="fa-solid fa-file-zipper" aria-hidden="true" />
-                    Download all ({gallery.length})
-                  </TrackDownload>
-                ) : (
-                  <Link
-                    href={`/contact?about=${encodeURIComponent(`Request access to the full gallery of ${project.title}`)}`}
-                    className="btn btn-ghost btn-sm"
-                    title="Downloads are restricted — request access"
-                  >
-                    <i className="fa-solid fa-lock" aria-hidden="true" />
-                    Request gallery
-                  </Link>
-                )}
+                <GalleryZipButton
+                  slug={project.slug}
+                  title={project.title}
+                  count={gallery.length}
+                  allowed={downloadsOk}
+                />
               </div>
             </Reveal>
             <Reveal delay={80}>

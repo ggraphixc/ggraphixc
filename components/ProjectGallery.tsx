@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { trackEvent } from "@/lib/client-track";
-import { cloudinaryDownloadUrl, fileNameFromUrl, type WatermarkOptions } from "@/lib/images";
+import { cloudinaryDownloadUrl, type WatermarkOptions } from "@/lib/images";
 import type { ProjectImage } from "@/lib/types";
 
 export default function ProjectGallery({
@@ -26,6 +26,18 @@ export default function ProjectGallery({
   const openRef = useRef<number | null>(null);
   const erroredRef = useRef<string | null>(null);
   const swipeRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  // Admin-issued ?access= download token from the URL — verified server-side
+  // by the download routes, so a forged token simply fails there. Read lazily
+  // at mount (client side), not via an effect.
+  const [urlToken] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const t = new URLSearchParams(window.location.search).get("access");
+      return t && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t) ? t : null;
+    } catch {
+      return null;
+    }
+  });
 
   const openAt = useCallback((i: number) => {
     setHint(false); // a fresh image re-evaluates the hint on load
@@ -92,20 +104,16 @@ export default function ProjectGallery({
               {open + 1} / {images.length}
             </span>
             <div className="gv-actions">
-              {downloadsAllowed ? (
+              {downloadsAllowed || urlToken ? (
                 <a
                   className="gv-dl"
-                  href={cloudinaryDownloadUrl(current.image_url, watermark)}
-                  download={fileNameFromUrl(current.image_url, `ggraphixc-gallery-${open + 1}`)}
+                  href={
+                    slug
+                      ? `/api/projects/${slug}/download?image=${current.id}${urlToken ? `&t=${urlToken}` : ""}`
+                      : cloudinaryDownloadUrl(current.image_url, watermark)
+                  }
                   aria-label="Download this image"
                   title="Download full-resolution image"
-                  onClick={() => {
-                    if (slug) {
-                      try {
-                        trackEvent("download", { kind: "project", slug });
-                      } catch {}
-                    }
-                  }}
                 >
                   <i className="fa-solid fa-download" aria-hidden="true" />
                 </a>
@@ -119,6 +127,13 @@ export default function ProjectGallery({
                   )}`}
                   aria-label="Request download access"
                   title="Downloads are restricted — request access"
+                  onClick={() => {
+                    if (slug) {
+                      try {
+                        trackEvent("download_request", { kind: "project", slug });
+                      } catch {}
+                    }
+                  }}
                 >
                   <i className="fa-solid fa-lock" aria-hidden="true" />
                 </a>

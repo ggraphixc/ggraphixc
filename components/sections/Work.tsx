@@ -3,16 +3,14 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import { trackEvent } from "@/lib/client-track";
-import { fileSlug, fileNameFromUrl, triggerDownload, type WatermarkOptions } from "@/lib/images";
+import { fileSlug, fileNameFromUrl, triggerDownload } from "@/lib/images";
 import type { Project } from "@/lib/types";
 
 export default function Work({
   projects,
-  watermark,
   downloads
 }: {
   projects: Project[];
-  watermark?: WatermarkOptions;
   /** slug → is downloading allowed (server-resolved; default true). */
   downloads?: Record<string, boolean>;
 }) {
@@ -63,12 +61,12 @@ export default function Work({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          const url = p.image_url;
-                          if (url) {
-                            triggerDownload(url, fileNameFromUrl(url, fileSlug(p.title)), watermark);
-                            try {
-                              trackEvent("download", { kind: "project", slug: p.slug });
-                            } catch {}
+                          // Server-controlled route — policy + watermark applied there.
+                          if (p.image_url) {
+                            triggerDownload(
+                              `/api/projects/${p.slug}/download?cover=1`,
+                              fileNameFromUrl(p.image_url, fileSlug(p.title))
+                            );
                           }
                         }}
                       >
@@ -82,6 +80,11 @@ export default function Work({
                         className="work-dl work-request"
                         aria-label={`Request download access for ${p.title}`}
                         title="Downloads are restricted — request access"
+                        onClick={() => {
+                          try {
+                            trackEvent("download_request", { kind: "project", slug: p.slug });
+                          } catch {}
+                        }}
                       >
                         <i className="fa-solid fa-lock" aria-hidden="true" />
                       </Link>

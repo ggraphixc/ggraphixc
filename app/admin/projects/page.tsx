@@ -425,6 +425,7 @@ export default function AdminProjects() {
                 <th>Category</th>
                 <th>Result</th>
                 <th>Featured</th>
+                <th>Downloads</th>
                 <th></th>
               </tr>
             </thead>
@@ -496,6 +497,38 @@ export default function AdminProjects() {
                       <i className={p.featured ? "fa-solid fa-star" : "fa-regular fa-star"} />
                     </button>
                   </td>
+                  <td data-label="Downloads">
+                    <span
+                      className="badge-soft"
+                      style={{
+                        background:
+                          p.allow_downloads === false
+                            ? "rgba(255,180,84,0.12)"
+                            : p.allow_downloads === true
+                              ? "rgba(0,210,255,0.12)"
+                              : "var(--glass-strong)",
+                        color:
+                          p.allow_downloads === false
+                            ? "#ffb454"
+                            : p.allow_downloads === true
+                              ? "var(--accent)"
+                              : "var(--muted)",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {p.allow_downloads === false ? (
+                        <>
+                          <i className="fa-solid fa-lock" style={{ marginRight: 5 }} />blocked
+                        </>
+                      ) : p.allow_downloads === true ? (
+                        <>
+                          <i className="fa-solid fa-download" style={{ marginRight: 5 }} />open
+                        </>
+                      ) : (
+                        "global"
+                      )}
+                    </span>
+                  </td>
                   <td>
                     <div className="row-actions">
                       <button className="btn btn-ghost btn-sm" onClick={() => copyPreview(p.slug)} title="Copy draft preview link">
@@ -510,12 +543,11 @@ export default function AdminProjects() {
                     </div>
                   </td>
                 </tr>
-              ))}
-              {items.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ color: "var(--muted)" }}>No projects yet.</td>
-                </tr>
-              )}
+              ))}                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ color: "var(--muted)" }}>No projects yet.</td>
+                    </tr>
+                  )}
             </tbody>
           </table>
         )}

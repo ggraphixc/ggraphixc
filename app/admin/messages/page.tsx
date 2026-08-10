@@ -1,12 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { approveDownloadAccess } from "@/app/actions/approve-downloads";
 import { supabase } from "@/lib/supabase/client";
 import type { Inquiry } from "@/lib/types";
 
 export default function AdminMessages() {
   const [items, setItems] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  /** Approve a download request: mints a token, emails the links, marks replied. */
+  async function approve(m: Inquiry) {
+    setBusyId(m.id);
+    setNotice(null);
+    const res = await approveDownloadAccess({ inquiryId: m.id });
+    setBusyId(null);
+    setNotice({ type: res.ok ? "ok" : "err", text: res.message });
+    if (res.ok) load();
+  }
 
   async function load() {
     setLoading(true);
@@ -50,6 +63,26 @@ export default function AdminMessages() {
       <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 24 }}>
         Inquiries submitted through your contact form.
       </p>
+      {notice && (
+        <p
+          role="status"
+          style={{
+            marginBottom: 18,
+            padding: "12px 16px",
+            borderRadius: 10,
+            border: `1px solid ${notice.type === "ok" ? "var(--accent)" : "#ff8080"}`,
+            background: notice.type === "ok" ? "rgba(0,210,255,0.06)" : "rgba(255,128,128,0.06)",
+            color: notice.type === "ok" ? "var(--accent)" : "#ff9b9b",
+            fontSize: 13.5
+          }}
+        >
+          <i
+            className={`fa-solid ${notice.type === "ok" ? "fa-circle-check" : "fa-triangle-exclamation"}`}
+            style={{ marginRight: 8 }}
+          />
+          {notice.text}
+        </p>
+      )}
 
       <div className="admin-card admin-table-wrap">
         {loading ? (
@@ -90,9 +123,22 @@ export default function AdminMessages() {
                     </select>
                   </td>
                   <td>
-                    <button className="btn btn-danger btn-sm" onClick={() => remove(m.id)}>
-                      <i className="fa-solid fa-trash" />
-                    </button>
+                    <div className="row-actions">
+                      {m.message.toLowerCase().includes("request access") ? (
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => approve(m)}
+                          disabled={busyId === m.id || m.status === "archived"}
+                          title="Finds the project in this request, mints a 7-day access token, and emails the download links"
+                        >
+                          <i className={`fa-solid ${busyId === m.id ? "fa-spinner fa-spin" : "fa-download"}`} />
+                          {busyId === m.id ? " Approving…" : " Approve & send"}
+                        </button>
+                      ) : null}
+                      <button className="btn btn-danger btn-sm" onClick={() => remove(m.id)}>
+                        <i className="fa-solid fa-trash" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
